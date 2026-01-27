@@ -362,7 +362,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
-import { bankService } from '@/services/bankService'
+import { bankService } from '@/services/BankService'
 import { categoryService } from '@/services/categoryService'
 
 // Composition

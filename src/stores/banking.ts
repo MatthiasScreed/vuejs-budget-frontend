@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { bankService } from '@/services/bankService'
-import type { BankConnection, BankTransaction, BankingStats } from '@/services/bankService'
+import { bankService } from '@/services/BankService'
+import type { BankConnection, BankTransaction, BankingStats } from '@/services/BankService'
 import type { ApiResponse } from '@/types/base'
 
 export const useBankingStore = defineStore('banking', () => {

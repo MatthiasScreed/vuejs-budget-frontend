@@ -156,7 +156,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { BankConnection } from '@/services/bankService'
+import type { BankConnection } from '@/services/BankService'
 
 // ==========================================
 // PROPS & EMITS

@@ -258,7 +258,7 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted } from 'vue'
-import type { BankTransaction } from '@/services/bankService'
+import type { BankTransaction } from '@/services/BankService'
 
 // Props & Emits
 const props = defineProps<{
