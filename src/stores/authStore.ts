@@ -12,6 +12,7 @@ import type { User, LoginCredentials, RegisterData } from '@/types/entities/auth
 interface AuthState {
   user: User | null
   isAuthenticated: boolean
+  isInitialized: boolean // ← AJOUTER
   loading: boolean
   error: string | null
   validationErrors: Record<string, string[]>
@@ -28,6 +29,7 @@ export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
     user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null,
     isAuthenticated: false,
+    isInitialized: false, // ← AJOUTER
     loading: false,
     error: null,
     validationErrors: {},
@@ -232,46 +234,38 @@ export const useAuthStore = defineStore('auth', {
     },
 
     /**
-     * 🔍 INIT AUTH AVEC DEBUG COMPLET
+     * 🔐 INIT AUTH AVEC FLAG INITIALIZED
      */
     async initAuth(): Promise<boolean> {
-      console.group('🔍 === INIT AUTH ===')
+      // Éviter double init
+      if (this.isInitialized) {
+        console.log('🔐 Auth déjà initialisée')
+        return this.isAuthenticated
+      }
+
+      console.group('🔐 === INIT AUTH ===')
 
       try {
-        // 1. Vérifier le token
-        console.log('🔑 Vérification du token...')
         const token = await getTokenIfValid()
         console.log('Token récupéré:', token ? token.substring(0, 20) + '...' : 'NULL')
 
         if (!token) {
           console.log('❌ Aucun token valide trouvé')
-          console.log('📋 Contenu localStorage:')
-          console.log('- auth_token:', localStorage.getItem('auth_token') ? 'EXISTS' : 'NULL')
-          console.log(
-            '- auth_token_expiry:',
-            localStorage.getItem('auth_token_expiry') ? 'EXISTS' : 'NULL',
-          )
-          console.log('- user:', localStorage.getItem('user') ? 'EXISTS' : 'NULL')
           this.clearAuthData()
-          console.groupEnd()
           return false
         }
 
-        // 2. Vérifier cache utilisateur
         const userStr = localStorage.getItem('user')
         if (!userStr) {
           console.log('❌ Aucun cache utilisateur')
           this.clearAuthData()
-          console.groupEnd()
           return false
         }
 
-        // 3. Définir état de base
         this.user = JSON.parse(userStr)
         this.isAuthenticated = true
         console.log('✅ État restauré:', this.user?.name)
 
-        // 4. Vérifier avec l'API
         console.log('🌐 Vérification API...')
         const result = await this.loadUser()
 
@@ -281,19 +275,19 @@ export const useAuthStore = defineStore('auth', {
             this.clearAuthData()
             window.location.href = '/login'
           })
-          console.groupEnd()
           return true
         } else {
           console.log('❌ Session invalide:', result.message)
           this.clearAuthData()
-          console.groupEnd()
           return false
         }
       } catch (error) {
         console.error('❌ Erreur initAuth:', error)
         this.clearAuthData()
-        console.groupEnd()
         return false
+      } finally {
+        this.isInitialized = true // ← TOUJOURS MARQUER COMME INIT
+        console.groupEnd()
       }
     },
 
@@ -345,6 +339,7 @@ export const useAuthStore = defineStore('auth', {
     clearAuthData(): void {
       this.user = null
       this.isAuthenticated = false
+      // NE PAS reset isInitialized ici
       this.error = null
       this.validationErrors = {}
       localStorage.removeItem('user')

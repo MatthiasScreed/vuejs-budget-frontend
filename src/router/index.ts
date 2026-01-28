@@ -1,8 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 
-// ... (garde tout le code des routes exactement comme avant)
-
 const routes = [
   {
     path: '/',
@@ -163,42 +161,15 @@ const routes = [
   },
 
   // REDIRECTIONS COMPATIBILITÉ
-  {
-    path: '/dashboard',
-    redirect: '/app/dashboard',
-  },
-  {
-    path: '/transactions',
-    redirect: '/app/transactions',
-  },
-  {
-    path: '/goals',
-    redirect: '/app/goals',
-  },
-  {
-    path: '/categories',
-    redirect: '/app/categories',
-  },
-  {
-    path: '/analytics',
-    redirect: '/app/analytics',
-  },
-  {
-    path: '/gaming',
-    redirect: '/app/gaming',
-  },
-  {
-    path: '/achievements',
-    redirect: '/app/gaming/achievements',
-  },
-  {
-    path: '/challenges',
-    redirect: '/app/gaming/challenges',
-  },
-  {
-    path: '/profile',
-    redirect: '/app/profile',
-  },
+  { path: '/dashboard', redirect: '/app/dashboard' },
+  { path: '/transactions', redirect: '/app/transactions' },
+  { path: '/goals', redirect: '/app/goals' },
+  { path: '/categories', redirect: '/app/categories' },
+  { path: '/analytics', redirect: '/app/analytics' },
+  { path: '/gaming', redirect: '/app/gaming' },
+  { path: '/achievements', redirect: '/app/gaming/achievements' },
+  { path: '/challenges', redirect: '/app/gaming/challenges' },
+  { path: '/profile', redirect: '/app/profile' },
 
   // ROUTE 404
   {
@@ -218,14 +189,13 @@ const router = createRouter({
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
       return savedPosition
-    } else {
-      return { top: 0 }
     }
+    return { top: 0 }
   },
 })
 
 // ==========================================
-// GUARDS DE NAVIGATION - VERSION DEBUG
+// GUARD DE NAVIGATION AVEC INIT AUTH
 // ==========================================
 
 router.beforeEach(async (to, from, next) => {
@@ -234,50 +204,38 @@ router.beforeEach(async (to, from, next) => {
   console.log('To:', to.path)
 
   const authStore = useAuthStore()
-  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
+  const requiresAuth = to.matched.some((r) => r.meta.requiresAuth)
 
   console.log('Route requires auth?', requiresAuth)
+  console.log('isInitialized?', authStore.isInitialized)
+
+  // ✅ ATTENDRE L'INITIALISATION DE L'AUTH
+  if (!authStore.isInitialized) {
+    console.log('⏳ Auth non initialisée, attente...')
+    await authStore.initAuth()
+    console.log('✅ Auth initialisée')
+    console.log('isAuthenticated après init:', authStore.isAuthenticated)
+  }
+
   console.log('User authenticated?', authStore.isAuthenticated)
   console.log('User:', authStore.user?.email || 'null')
 
-  // Vérifier l'authentification
+  // Route protégée sans auth → login
   if (requiresAuth && !authStore.isAuthenticated) {
     console.log('❌ BLOCAGE : Route protégée, utilisateur non authentifié')
     console.log('→ Redirection vers /login')
     console.groupEnd()
-    next({
-      path: '/login',
-      query: { redirect: to.fullPath },
-    })
+    next({ path: '/login', query: { redirect: to.fullPath } })
     return
   }
 
-  // Rediriger si déjà connecté
+  // Déjà connecté sur login/register → dashboard
   if (authStore.isAuthenticated && (to.path === '/login' || to.path === '/register')) {
     console.log('✅ Utilisateur déjà connecté, redirection vers dashboard')
     console.groupEnd()
     next('/app/dashboard')
     return
   }
-
-  // ⚠️ VALIDATION DU TOKEN DÉSACTIVÉE TEMPORAIREMENT
-  // Cette section était la cause de la boucle de redirection
-  /*
-  if (requiresAuth && authStore.isAuthenticated) {
-    try {
-      if (authStore.validateToken) {
-        console.log('🔍 Validation du token...')
-        await authStore.validateToken()
-        console.log('✅ Token valide')
-      }
-    } catch (error) {
-      console.log('❌ Token invalide, redirection vers login')
-      console.groupEnd()
-      next('/login')
-      return
-    }
-  }
-  */
 
   console.log('✅ Navigation autorisée')
   console.groupEnd()
