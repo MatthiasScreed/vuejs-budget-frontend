@@ -1,4 +1,3 @@
-// src/stores/authStore.ts - VERSION SÉCURISÉE NATIVE
 import { defineStore } from 'pinia'
 import { api } from '@/services/api'
 import {
@@ -27,9 +26,8 @@ interface AuthResult {
 
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
-    // ✅ Cache utilisateur en localStorage normal (pas sensible)
     user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null,
-    isAuthenticated: false, // Sera vérifié au démarrage
+    isAuthenticated: false,
     loading: false,
     error: null,
     validationErrors: {},
@@ -45,34 +43,19 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    /**
-     * Test de connexion API
-     */
     async testConnection(): Promise<AuthResult> {
       try {
         console.log('🔄 Test de connexion API...')
         const response = await api.get('/health')
-
         console.log('✅ API Health Check:', response)
-        return {
-          success: true,
-          data: response,
-          message: 'API connectée avec succès',
-        }
+        return { success: true, data: response, message: 'API connectée avec succès' }
       } catch (error: any) {
         console.warn('⚠️ API Health Check Failed:', error.message)
-        return {
-          success: false,
-          message: error.message || 'Serveur API indisponible',
-        }
+        return { success: false, message: error.message || 'Serveur API indisponible' }
       }
     },
 
-    /**
-     * Charger les données utilisateur
-     */
     async loadUser(): Promise<AuthResult> {
-      // ✅ Vérifier que le token est valide
       const token = await getTokenIfValid()
       if (!token) {
         return { success: false, message: 'Aucun token valide' }
@@ -83,16 +66,12 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         console.log('👤 Chargement des données utilisateur...')
-
         const response = await api.get<User>('/auth/me')
 
         if (response.success && response.data) {
           this.user = this.cloneUser(response.data)
           this.isAuthenticated = true
-
-          // Cache utilisateur (pas sensible)
           localStorage.setItem('user', JSON.stringify(this.user))
-
           console.log('✅ Utilisateur chargé:', this.user?.name)
           return { success: true, data: this.user }
         }
@@ -113,12 +92,15 @@ export const useAuthStore = defineStore('auth', {
     },
 
     /**
-     * Connexion utilisateur avec rate limiting
+     * 🔐 CONNEXION AVEC DEBUG COMPLET
      */
     async login(credentials: LoginCredentials): Promise<AuthResult> {
-      // ✅ Rate limiting (max 5 tentatives / 15min)
+      console.group('🔐 === PROCESSUS DE LOGIN ===')
+
+      // Rate limiting
       if (!rateLimiter.canAttempt('login', 5, 15)) {
         const waitTime = rateLimiter.getWaitTime('login', 15)
+        console.groupEnd()
         return {
           success: false,
           message: `Trop de tentatives. Réessayez dans ${waitTime} minutes.`,
@@ -130,43 +112,78 @@ export const useAuthStore = defineStore('auth', {
       this.validationErrors = {}
 
       try {
+        // 1. Appel API
+        console.log('📤 Envoi de la requête de login...')
         const response = await api.post('/auth/login', credentials)
+        console.log('📥 Réponse reçue:', response)
 
-        if (response.success && response.data) {
-          const { user, token } = response.data
-
-          // ✅ Stocker le token de façon sécurisée avec expiration
-          await setTokenWithExpiry(token, 24 * 7) // 7 jours
-
-          // Cache utilisateur
-          this.setAuthData(user)
-
-          // ✅ Reset rate limiter après succès
-          rateLimiter.reset('login')
-
-          console.log('✅ Connexion réussie:', user.name)
-          return { success: true, data: response.data }
+        if (!response.success) {
+          throw new Error(response.message || 'Erreur de connexion')
         }
 
-        throw new Error(response.message || 'Erreur de connexion')
-      } catch (error: any) {
-        this.error = error.message
+        if (!response.data) {
+          console.error('❌ Pas de données dans la réponse!', response)
+          throw new Error('Réponse invalide du serveur')
+        }
 
+        const { user, token } = response.data
+
+        if (!token) {
+          console.error('❌ Pas de token dans la réponse!', response.data)
+          throw new Error('Token manquant dans la réponse')
+        }
+
+        console.log('✅ Token extrait:', token.substring(0, 20) + '...')
+        console.log('✅ User extrait:', user.email)
+
+        // 2. Sauvegarder le token
+        console.log('💾 Sauvegarde du token avec setTokenWithExpiry...')
+        await setTokenWithExpiry(token, 24 * 7)
+        console.log('✅ setTokenWithExpiry terminé')
+
+        // 3. VÉRIFICATION IMMÉDIATE
+        console.log('🔍 Vérification immédiate du token sauvegardé...')
+        const savedToken = await getTokenIfValid()
+
+        if (savedToken) {
+          console.log('✅ Token RÉCUPÉRÉ avec succès:', savedToken.substring(0, 20) + '...')
+          console.log('✅ Correspondance:', savedToken === token)
+        } else {
+          console.error('❌ ÉCHEC : getTokenIfValid() retourne NULL juste après sauvegarde!')
+          console.error('🔍 Vérifions le localStorage...')
+          console.log('auth_token existe?', localStorage.getItem('auth_token') !== null)
+          console.log(
+            'auth_token_expiry existe?',
+            localStorage.getItem('auth_token_expiry') !== null,
+          )
+          console.log('auth_token value:', localStorage.getItem('auth_token'))
+          console.log('auth_token_expiry value:', localStorage.getItem('auth_token_expiry'))
+        }
+
+        // 4. Mettre à jour le store
+        console.log('📝 Mise à jour du store...')
+        this.setAuthData(user)
+        rateLimiter.reset('login')
+
+        console.log('🎉 Login réussi!')
+        console.groupEnd()
+
+        return { success: true, data: response.data }
+      } catch (error: any) {
+        console.error('❌ Erreur de login:', error)
+        console.groupEnd()
+
+        this.error = error.message
         if (error.response?.data?.errors) {
           this.validationErrors = error.response.data.errors
         }
-
         return { success: false, message: error.message }
       } finally {
         this.loading = false
       }
     },
 
-    /**
-     * Enregistrement utilisateur
-     */
     async register(userData: RegisterData): Promise<AuthResult> {
-      // ✅ Rate limiting inscription
       if (!rateLimiter.canAttempt('register', 3, 60)) {
         const waitTime = rateLimiter.getWaitTime('register', 60)
         return {
@@ -184,13 +201,9 @@ export const useAuthStore = defineStore('auth', {
 
         if (response.success && response.data) {
           const { user, token } = response.data
-
-          // ✅ Stocker token sécurisé
           await setTokenWithExpiry(token, 24 * 7)
-
           this.setAuthData(user)
           rateLimiter.reset('register')
-
           console.log('✅ Inscription réussie:', user.name)
           return { success: true, data: response.data }
         }
@@ -198,20 +211,15 @@ export const useAuthStore = defineStore('auth', {
         throw new Error(response.message || "Erreur d'enregistrement")
       } catch (error: any) {
         this.error = error.message
-
         if (error.response?.data?.errors) {
           this.validationErrors = error.response.data.errors
         }
-
         return { success: false, message: error.message }
       } finally {
         this.loading = false
       }
     },
 
-    /**
-     * Déconnexion
-     */
     async logout(): Promise<void> {
       try {
         await api.post('/auth/logout')
@@ -224,69 +232,77 @@ export const useAuthStore = defineStore('auth', {
     },
 
     /**
-     * Initialiser l'authentification au démarrage
+     * 🔍 INIT AUTH AVEC DEBUG COMPLET
      */
     async initAuth(): Promise<boolean> {
+      console.group('🔍 === INIT AUTH ===')
+
       try {
-        // ✅ Vérifier token chiffré
+        // 1. Vérifier le token
+        console.log('🔑 Vérification du token...')
         const token = await getTokenIfValid()
+        console.log('Token récupéré:', token ? token.substring(0, 20) + '...' : 'NULL')
 
         if (!token) {
-          console.log('❌ Aucun token valide')
+          console.log('❌ Aucun token valide trouvé')
+          console.log('📋 Contenu localStorage:')
+          console.log('- auth_token:', localStorage.getItem('auth_token') ? 'EXISTS' : 'NULL')
+          console.log(
+            '- auth_token_expiry:',
+            localStorage.getItem('auth_token_expiry') ? 'EXISTS' : 'NULL',
+          )
+          console.log('- user:', localStorage.getItem('user') ? 'EXISTS' : 'NULL')
           this.clearAuthData()
+          console.groupEnd()
           return false
         }
 
-        // ✅ Vérifier cache utilisateur
+        // 2. Vérifier cache utilisateur
         const userStr = localStorage.getItem('user')
         if (!userStr) {
           console.log('❌ Aucun cache utilisateur')
           this.clearAuthData()
+          console.groupEnd()
           return false
         }
 
-        // Définir état de base
+        // 3. Définir état de base
         this.user = JSON.parse(userStr)
         this.isAuthenticated = true
+        console.log('✅ État restauré:', this.user?.name)
 
-        // ✅ Vérifier token auprès de l'API
+        // 4. Vérifier avec l'API
+        console.log('🌐 Vérification API...')
         const result = await this.loadUser()
 
         if (result.success) {
-          console.log('✅ Session restaurée:', this.user?.name)
-
-          // ✅ Setup logout multi-onglets
+          console.log('✅ Session valide!')
           setupMultiTabLogout(() => {
             this.clearAuthData()
             window.location.href = '/login'
           })
-
+          console.groupEnd()
           return true
         } else {
-          // Token invalide ou expiré
-          console.log('❌ Token invalide')
+          console.log('❌ Session invalide:', result.message)
           this.clearAuthData()
+          console.groupEnd()
           return false
         }
       } catch (error) {
-        console.warn('⚠️ Erreur initAuth:', error)
+        console.error('❌ Erreur initAuth:', error)
         this.clearAuthData()
+        console.groupEnd()
         return false
       }
     },
 
-    /**
-     * Rafraîchir les données utilisateur
-     */
     async refreshUser(): Promise<void> {
       if (this.isAuthenticated) {
         await this.loadUser()
       }
     },
 
-    /**
-     * Mettre à jour le profil
-     */
     async updateProfile(updates: Partial<User>): Promise<AuthResult> {
       if (!this.isAuthenticated) {
         return { success: false, message: 'Non authentifié' }
@@ -301,7 +317,6 @@ export const useAuthStore = defineStore('auth', {
         if (response.success && response.data) {
           this.user = this.cloneUser(response.data)
           localStorage.setItem('user', JSON.stringify(this.user))
-
           console.log('✅ Profil mis à jour')
           return { success: true, data: this.user }
         }
@@ -315,43 +330,27 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    /**
-     * Obtenir le token actuel (pour usage interne)
-     */
     async getCurrentToken(): Promise<string | null> {
       return await getTokenIfValid()
     },
 
-    /**
-     * Définir les données d'authentification
-     */
     setAuthData(user: User): void {
       this.user = this.cloneUser(user)
       this.isAuthenticated = true
       this.error = null
       this.validationErrors = {}
-
-      // Cache utilisateur (pas sensible)
       localStorage.setItem('user', JSON.stringify(this.user))
     },
 
-    /**
-     * Nettoyer les données d'authentification
-     */
     clearAuthData(): void {
       this.user = null
       this.isAuthenticated = false
       this.error = null
       this.validationErrors = {}
-
-      // ✅ Nettoyer localStorage ET secureStorage
       localStorage.removeItem('user')
       secureStorage.removeItem('auth_token')
     },
 
-    /**
-     * Cloner utilisateur pour éviter XrayWrapper
-     */
     cloneUser(user: any): User | null {
       if (!user) return null
 
