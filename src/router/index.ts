@@ -208,16 +208,30 @@ router.beforeEach(async (to, from, next) => {
 
   console.log('Route requires auth?', requiresAuth)
   console.log('isInitialized?', authStore.isInitialized)
+  console.log('isAuthenticated?', authStore.isAuthenticated)
 
-  // ✅ ATTENDRE L'INITIALISATION DE L'AUTH
-  if (!authStore.isInitialized) {
-    console.log('⏳ Auth non initialisée, attente...')
-    await authStore.initAuth()
-    console.log('✅ Auth initialisée')
-    console.log('isAuthenticated après init:', authStore.isAuthenticated)
+  // ⏳ Si auth pas initialisée, ATTENDRE (max 10 secondes)
+  // App.vue appelle initAuth() au démarrage, le router attend juste qu'elle termine
+  if (!authStore.isInitialized && requiresAuth) {
+    console.log('⏳ Auth pas encore initialisée, attente de App.vue...')
+
+    let attempts = 0
+    const maxAttempts = 100 // 100 * 100ms = 10 secondes
+
+    while (!authStore.isInitialized && attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 100))
+      attempts++
+    }
+
+    if (!authStore.isInitialized) {
+      console.error('❌ TIMEOUT: Auth non initialisée après 10s')
+      console.error('→ Forçant initAuth() depuis le router')
+      await authStore.initAuth()
+    }
+
+    console.log(`✅ Auth initialisée après ${attempts * 100}ms`)
   }
 
-  console.log('User authenticated?', authStore.isAuthenticated)
   console.log('User:', authStore.user?.email || 'null')
 
   // Route protégée sans auth → login
