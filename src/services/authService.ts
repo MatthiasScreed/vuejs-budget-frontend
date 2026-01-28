@@ -21,16 +21,13 @@ class AuthService {
 
   /**
    * Connexion utilisateur
+   * ⚠️ NE PAS stocker le token ici, authStore s'en charge
    */
   async login(credentials: LoginCredentials): Promise<ApiResponse<AuthResponse>> {
     try {
       const response = await this.api.post<AuthResponse>('/api/auth/login', credentials)
 
       if (response.success && response.data) {
-        // Stocker le token
-        localStorage.setItem('auth_token', response.data.token)
-        localStorage.setItem('token_expires', (Date.now() + response.data.expires_in * 1000).toString())
-
         console.log('User logged in:', response.data.user.name)
       }
 
@@ -101,15 +98,13 @@ class AuthService {
 
   /**
    * Refresh token
+   * ⚠️ NE PAS stocker le token ici, authStore s'en charge
    */
   async refreshToken(): Promise<ApiResponse<RefreshResponse>> {
     try {
       const response = await this.api.post<RefreshResponse>('/api/auth/refresh')
 
       if (response.success && response.data) {
-        // Mettre à jour le token
-        localStorage.setItem('auth_token', response.data.token)
-        localStorage.setItem('token_expires', (Date.now() + response.data.expires_in * 1000).toString())
         console.log('Token refreshed')
       }
 
@@ -190,28 +185,24 @@ class AuthService {
   }
 
   /**
-   * Vérifier si le token est expiré
+   * ⚠️ DEPRECATED: Utiliser authStore.isAuthenticated à la place
+   * Ces méthodes sont conservées pour compatibilité mais ne doivent plus être utilisées
    */
-  isTokenExpired(): boolean {
-    const expiresAt = localStorage.getItem('token_expires')
-    if (!expiresAt) return true
-
-    return Date.now() > parseInt(expiresAt)
-  }
 
   /**
-   * Obtenir le token actuel
+   * @deprecated Utiliser getTokenIfValid() de secureStorage.ts
    */
   getToken(): string | null {
+    console.warn('⚠️ authService.getToken() est deprecated, utilisez getTokenIfValid()')
     return localStorage.getItem('auth_token')
   }
 
   /**
-   * Vérifier si l'utilisateur est connecté
+   * @deprecated Utiliser authStore.isAuthenticated
    */
   isAuthenticated(): boolean {
-    const token = this.getToken()
-    return !!token && !this.isTokenExpired()
+    console.warn('⚠️ authService.isAuthenticated() est deprecated, utilisez authStore.isAuthenticated')
+    return false // Ne plus utiliser
   }
 }
 

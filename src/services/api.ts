@@ -5,16 +5,21 @@ import { getTokenIfValid } from '@/services/secureStorage'
 // CONFIGURATION API
 // ==========================================
 
+// ⚠️ IMPORTANT: VITE_API_BASE_URL doit pointer vers la racine (sans /api)
+// Les routes ajoutent déjà le préfixe /api dans les appels
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://budget-api.test'
 
-console.log('🔧 API Base URL:', API_BASE_URL)
+// Vérifier si /api est déjà dans l'URL
+const baseURL = API_BASE_URL.endsWith('/api') ? API_BASE_URL : API_BASE_URL
+console.log('🔧 API Base URL:', baseURL)
+console.log('🔧 Environment:', import.meta.env.MODE)
 
 // ==========================================
 // INSTANCE AXIOS
 // ==========================================
 
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: baseURL,
   timeout: 60000, // 60 secondes
   headers: {
     'Content-Type': 'application/json',
