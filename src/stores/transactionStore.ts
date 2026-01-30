@@ -1,304 +1,241 @@
+// src/stores/transactionStore.ts - VERSION CORRIGÉE AVEC AUTH GUARD
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { useApi } from '@/composables/core/useApi'
-import { useErrorHandler } from '@/composables/core/useErrorHandler'
-import { useCache } from '@/composables/core/useCache'
-import { eventBus } from '@/services/eventBus'
-import { useAuthGuard } from '@/composables/useAuthGuard'
-import type {
-  Transaction,
-  CreateTransactionData,
-  UpdateTransactionData,
-  TransactionFilters,
-  TransactionStats,
-  PaginatedTransactions,
-} from '@/types/base'
+import { useAuthStore } from '@/stores/authStore'
+import api from '@/services/api'
+
+// ==========================================
+// TYPES
+// ==========================================
+
+export interface Transaction {
+  id: number
+  user_id: number
+  category_id?: number
+  amount: number
+  description: string
+  type: 'income' | 'expense'
+  date: string
+  is_recurring: boolean
+  status: 'pending' | 'completed' | 'cancelled'
+  metadata?: Record<string, any>
+  created_at: string
+  updated_at: string
+  category?: {
+    id: number
+    name: string
+    icon?: string
+    color?: string
+  }
+}
+
+export interface CreateTransactionData {
+  category_id?: number
+  amount: number
+  description: string
+  type: 'income' | 'expense'
+  date: string
+  is_recurring?: boolean
+  metadata?: Record<string, any>
+}
+
+export interface UpdateTransactionData extends Partial<CreateTransactionData> {
+  status?: 'pending' | 'completed' | 'cancelled'
+}
+
+// ==========================================
+// STORE DEFINITION - VERSION SÉCURISÉE ✅
+// ==========================================
 
 export const useTransactionStore = defineStore('transaction', () => {
-  const { get, post, put, delete: del } = useApi()
-  const { handleApiError } = useErrorHandler()
-  const { ensureAuthenticated } = useAuthGuard()
-  const { remember, invalidateByTag } = useCache()
-
   // ==========================================
   // STATE
   // ==========================================
 
   const transactions = ref<Transaction[]>([])
-  const pendingTransactions = ref<Transaction[]>([])
   const currentTransaction = ref<Transaction | null>(null)
-  const stats = ref<TransactionStats | null>(null)
 
-  const pagination = ref({
-    current_page: 1,
-    per_page: 15,
-    total: 0,
-    last_page: 1,
-    from: 0,
-    to: 0,
-    has_more_pages: false,
-  })
-
-  const filters = ref<TransactionFilters>({
-    per_page: 15,
-    page: 1,
-  })
-
+  // États de chargement
   const loading = ref(false)
-  const syncing = ref(false)
   const creating = ref(false)
   const updating = ref(false)
   const deleting = ref(false)
+
+  // Erreurs
   const error = ref<string | null>(null)
   const validationErrors = ref<Record<string, string[]>>({})
+
+  // Filtres
+  const filters = ref({
+    type: null as 'income' | 'expense' | null,
+    category: null as number | null,
+    dateFrom: null as string | null,
+    dateTo: null as string | null,
+    search: '',
+  })
+
+  // ==========================================
+  // 🔐 AUTH GUARD HELPER
+  // ==========================================
+
+  /**
+   * Vérifier que l'utilisateur est authentifié avant un appel API
+   */
+  async function ensureAuthenticated(): Promise<boolean> {
+    const authStore = useAuthStore()
+
+    // 1️⃣ Attendre l'initialisation de l'auth
+    if (!authStore.isInitialized) {
+      console.log('⏳ [Transactions] Attente initialisation auth...')
+
+      let attempts = 0
+      const maxAttempts = 30 // 3 secondes max
+
+      while (!authStore.isInitialized && attempts < maxAttempts) {
+        await new Promise((r) => setTimeout(r, 100))
+        attempts++
+      }
+
+      if (!authStore.isInitialized) {
+        console.error('❌ [Transactions] Auth non initialisée après timeout')
+        return false
+      }
+    }
+
+    // 2️⃣ Vérifier l'authentification
+    if (!authStore.isAuthenticated) {
+      console.warn('⚠️ [Transactions] Utilisateur non authentifié')
+      return false
+    }
+
+    console.log('✅ [Transactions] Utilisateur authentifié')
+    return true
+  }
 
   // ==========================================
   // GETTERS
   // ==========================================
 
+  /**
+   * Transactions filtrées
+   */
+  const filteredTransactions = computed(() => {
+    let result = [...transactions.value]
+
+    // Filtre par type
+    if (filters.value.type) {
+      result = result.filter((t) => t.type === filters.value.type)
+    }
+
+    // Filtre par catégorie
+    if (filters.value.category) {
+      result = result.filter((t) => t.category_id === filters.value.category)
+    }
+
+    // Filtre par date
+    if (filters.value.dateFrom) {
+      result = result.filter((t) => new Date(t.date) >= new Date(filters.value.dateFrom!))
+    }
+
+    if (filters.value.dateTo) {
+      result = result.filter((t) => new Date(t.date) <= new Date(filters.value.dateTo!))
+    }
+
+    // Recherche textuelle
+    if (filters.value.search) {
+      const search = filters.value.search.toLowerCase()
+      result = result.filter(
+        (t) =>
+          t.description.toLowerCase().includes(search) ||
+          t.category?.name.toLowerCase().includes(search),
+      )
+    }
+
+    return result
+  })
+
+  /**
+   * Transactions de revenus
+   */
   const incomeTransactions = computed(() => transactions.value.filter((t) => t.type === 'income'))
 
+  /**
+   * Transactions de dépenses
+   */
   const expenseTransactions = computed(() => transactions.value.filter((t) => t.type === 'expense'))
 
-  const recentTransactions = computed(() =>
-    transactions.value
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, 10),
-  )
+  /**
+   * Total des revenus
+   */
+  const totalIncome = computed(() => incomeTransactions.value.reduce((sum, t) => sum + t.amount, 0))
 
-  const totalIncome = computed(() =>
-    incomeTransactions.value.reduce((sum, t) => {
-      const amount = Number(t.amount) || 0
-      return sum + amount
-    }, 0),
-  )
-
+  /**
+   * Total des dépenses
+   */
   const totalExpenses = computed(() =>
-    expenseTransactions.value.reduce((sum, t) => {
-      const amount = Number(t.amount) || 0
-      return sum + amount
-    }, 0),
+    expenseTransactions.value.reduce((sum, t) => sum + t.amount, 0),
   )
 
-  const balance = computed(() => totalIncome.value - totalExpenses.value)
-
-  const isLoading = computed(
-    () => loading.value || creating.value || updating.value || deleting.value || syncing.value,
-  )
-
-  const hasTransactions = computed(() => transactions.value.length > 0)
-  const hasPendingTransactions = computed(() => pendingTransactions.value.length > 0)
-  const hasStats = computed(() => stats.value !== null)
-
-  // ==========================================
-  // ACTIONS - BRIDGE API
-  // ==========================================
+  /**
+   * Balance nette
+   */
+  const netBalance = computed(() => totalIncome.value - totalExpenses.value)
 
   /**
-   * 🏦 Récupérer les transactions d'une connexion bancaire
+   * Transactions par catégorie
    */
-  async function fetchBankTransactions(connectionId: number) {
-    // 🔥 VÉRIFICATION AUTH
-    const isAuth = await ensureAuthenticated()
-    if (!isAuth) {
-      console.warn('⚠️ Skip fetchBankTransactions: utilisateur non authentifié')
-      return null
-    }
+  const transactionsByCategory = computed(() => {
+    const grouped = new Map<number, Transaction[]>()
 
-    syncing.value = true
-    error.value = null
-
-    try {
-      const response = await get<any>(`/bank/connections/${connectionId}/transactions`)
-
-      if (!response.success) {
-        throw new Error(response.message || 'Erreur récupération transactions bancaires')
-      }
-
-      const bankTransactions = response.data || []
-
-      // Éviter les doublons
-      bankTransactions.forEach((bankTx: any) => {
-        const exists = transactions.value.some((t) => t.bank_transaction_id === bankTx.id)
-
-        if (!exists) {
-          transactions.value.push(bankTx)
+    transactions.value.forEach((transaction) => {
+      if (transaction.category_id) {
+        if (!grouped.has(transaction.category_id)) {
+          grouped.set(transaction.category_id, [])
         }
-      })
+        grouped.get(transaction.category_id)!.push(transaction)
+      }
+    })
 
-      invalidateByTag('transactions')
-      eventBus.emit('transactions:synced', bankTransactions)
-
-      return response.data
-    } catch (err: any) {
-      await handleApiError(err, 'fetch_bank_transactions')
-      error.value = err.message
-      throw err
-    } finally {
-      syncing.value = false
-    }
-  }
+    return Array.from(grouped.entries()).map(([categoryId, transactions]) => ({
+      categoryId,
+      categoryName: transactions[0]?.category?.name || 'Sans catégorie',
+      transactions,
+      total: transactions.reduce((sum, t) => sum + t.amount, 0),
+      count: transactions.length,
+    }))
+  })
 
   /**
-   * 🔄 Synchroniser toutes les connexions bancaires
+   * Transactions récentes (30 derniers jours)
    */
-  async function syncAllBankConnections() {
-    // 🔥 VÉRIFICATION AUTH
-    const isAuth = await ensureAuthenticated()
-    if (!isAuth) {
-      console.warn('⚠️ Skip syncAllBankConnections: utilisateur non authentifié')
-      return null
-    }
+  const recentTransactions = computed(() => {
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-    syncing.value = true
-
-    try {
-      const response = await post<any>('/bank/sync-all')
-
-      if (!response.success) {
-        throw new Error(response.message || 'Erreur synchronisation')
-      }
-
-      await fetchTransactions()
-
-      eventBus.emit('transactions:synced-all')
-
-      return response.data
-    } catch (err: any) {
-      await handleApiError(err, 'sync_all_banks')
-      error.value = err.message
-      throw err
-    } finally {
-      syncing.value = false
-    }
-  }
-
-  /**
-   * ⏳ Récupérer les transactions en attente
-   */
-  async function fetchPendingTransactions() {
-    // 🔥 VÉRIFICATION AUTH
-    const isAuth = await ensureAuthenticated()
-    if (!isAuth) {
-      console.warn('⚠️ Skip fetchPendingTransactions: utilisateur non authentifié')
-      pendingTransactions.value = []
-      return []
-    }
-
-    loading.value = true
-
-    try {
-      const response = await get<any>('/bank/pending-transactions')
-
-      if (response.success) {
-        pendingTransactions.value = response.data || []
-      }
-
-      return pendingTransactions.value
-    } catch (err: any) {
-      await handleApiError(err, 'fetch_pending_transactions')
-      pendingTransactions.value = []
-      return []
-    } finally {
-      loading.value = false
-    }
-  }
-
-  /**
-   * 🏷️ Catégoriser une transaction
-   */
-  async function categorizeTransaction(
-    transactionId: number,
-    categoryId: number,
-  ): Promise<boolean> {
-    // 🔥 VÉRIFICATION AUTH
-    const isAuth = await ensureAuthenticated()
-    if (!isAuth) {
-      console.warn('⚠️ Skip categorizeTransaction: utilisateur non authentifié')
-      return false
-    }
-
-    updating.value = true
-
-    try {
-      const response = await put<Transaction>(`/transactions/${transactionId}/categorize`, {
-        category_id: categoryId,
-      })
-
-      if (response.success && response.data) {
-        const index = transactions.value.findIndex((t) => t.id === transactionId)
-        if (index !== -1) {
-          transactions.value[index] = response.data
-        }
-
-        pendingTransactions.value = pendingTransactions.value.filter((t) => t.id !== transactionId)
-
-        invalidateByTag('transactions')
-        eventBus.emit('transaction:categorized', response.data)
-
-        return true
-      }
-
-      throw new Error(response.message || 'Erreur catégorisation')
-    } catch (err: any) {
-      await handleApiError(err, 'categorize_transaction', false)
-      error.value = err.message
-      return false
-    } finally {
-      updating.value = false
-    }
-  }
-
-  /**
-   * 🤖 Catégorisation automatique (IA)
-   */
-  async function autoCategorize(transactionId?: number) {
-    // 🔥 VÉRIFICATION AUTH
-    const isAuth = await ensureAuthenticated()
-    if (!isAuth) {
-      console.warn('⚠️ Skip autoCategorize: utilisateur non authentifié')
-      return null
-    }
-
-    updating.value = true
-
-    try {
-      const endpoint = transactionId
-        ? `/transactions/${transactionId}/auto-categorize`
-        : '/transactions/auto-categorize'
-
-      const response = await post<any>(endpoint)
-
-      if (response.success) {
-        await fetchTransactions()
-
-        eventBus.emit('transactions:auto-categorized', response.data)
-
-        return response.data
-      }
-
-      throw new Error(response.message || 'Erreur catégorisation auto')
-    } catch (err: any) {
-      await handleApiError(err, 'auto_categorize', false)
-      error.value = err.message
-      return null
-    } finally {
-      updating.value = false
-    }
-  }
+    return transactions.value
+      .filter((t) => new Date(t.date) >= thirtyDaysAgo)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  })
 
   // ==========================================
-  // ACTIONS - CRUD TRANSACTIONS
+  // ACTIONS - AVEC AUTH GUARD
   // ==========================================
 
   /**
-   * ✅ Charger les transactions avec vérification auth
+   * Récupérer toutes les transactions
+   * 🔐 Protégé par auth guard
    */
-  async function fetchTransactions(newFilters: TransactionFilters = {}) {
-    // 🔥 VÉRIFICATION AUTH
+  async function fetchTransactions(): Promise<void> {
+    // 🔐 VÉRIFICATION AUTH
     const isAuth = await ensureAuthenticated()
     if (!isAuth) {
-      console.warn('⚠️ Skip fetchTransactions: utilisateur non authentifié')
+      console.warn('⚠️ [Transactions] fetchTransactions annulé - utilisateur non authentifié')
+      error.value = 'Authentication required'
+      throw new Error('Authentication required')
+    }
+
+    if (loading.value) {
+      console.log('⏳ [Transactions] Chargement déjà en cours, ignoré')
       return
     }
 
@@ -306,69 +243,82 @@ export const useTransactionStore = defineStore('transaction', () => {
     error.value = null
 
     try {
-      const mergedFilters = { ...filters.value, ...newFilters }
-      filters.value = mergedFilters
+      console.log('💳 [Transactions] Chargement des transactions...')
 
-      console.log('📡 Fetching transactions...')
+      const response = await api.get<any>('/transactions')
 
-      const response = await get<any>('/transactions', {
-        params: mergedFilters,
-      })
-
-      if (!response.success) {
-        throw new Error(response.message || 'Erreur chargement transactions')
+      if (!response) {
+        console.warn("⚠️ [Transactions] Aucune réponse de l'API")
+        transactions.value = []
+        return
       }
 
-      if (Array.isArray(response.data)) {
-        transactions.value = response.data.map((t: any) => ({
-          ...t,
-          amount: Number(t.amount) || 0,
-        }))
+      if (response.success && response.data) {
+        // Gérer les deux formats possibles
+        const transactionsData = Array.isArray(response.data)
+          ? response.data
+          : response.data.data || []
 
-        if (response.meta) {
-          pagination.value = {
-            current_page: response.meta.current_page || 1,
-            per_page: response.meta.per_page || 15,
-            total: response.meta.total || 0,
-            last_page: response.meta.last_page || 1,
-            from: response.meta.from || 0,
-            to: response.meta.to || 0,
-            has_more_pages: response.meta.has_more_pages || false,
-          }
-        }
-      } else if (response.data?.data) {
-        transactions.value = response.data.data.map((t: any) => ({
-          ...t,
-          amount: Number(t.amount) || 0,
-        }))
-
-        if (response.data.meta) {
-          pagination.value = response.data.meta
-        }
+        transactions.value = transactionsData
+        console.log('✅ [Transactions] Transactions chargées:', transactions.value.length)
       } else {
-        console.warn('⚠️ Format inattendu')
+        console.warn('⚠️ [Transactions] API returned no data')
         transactions.value = []
       }
-
-      console.log('✅ Transactions chargées:', transactions.value.length)
     } catch (err: any) {
-      console.error('❌ Erreur fetchTransactions:', err)
-      await handleApiError(err, 'fetch_transactions')
-      error.value = err.message
+      console.error('❌ [Transactions] Erreur chargement transactions:', err)
+      error.value = err.message || 'Erreur lors du chargement des transactions'
       transactions.value = []
+      throw err // Relancer l'erreur pour que le composant puisse la gérer
     } finally {
       loading.value = false
     }
   }
 
   /**
-   * ✅ Créer une nouvelle transaction
+   * Récupérer une transaction par son ID
+   * 🔐 Protégé par auth guard
    */
-  async function createTransaction(data: CreateTransactionData): Promise<boolean> {
-    // 🔥 VÉRIFICATION AUTH
+  async function fetchTransaction(transactionId: number): Promise<Transaction | null> {
+    // 🔐 VÉRIFICATION AUTH
     const isAuth = await ensureAuthenticated()
     if (!isAuth) {
-      console.warn('⚠️ Skip createTransaction: utilisateur non authentifié')
+      console.warn('⚠️ [Transactions] fetchTransaction annulé - utilisateur non authentifié')
+      return null
+    }
+
+    try {
+      console.log('💳 [Transactions] Chargement transaction:', transactionId)
+
+      const response = await api.get<Transaction>(`/transactions/${transactionId}`)
+
+      if (!response) {
+        throw new Error("Aucune réponse de l'API")
+      }
+
+      if (response.success && response.data) {
+        currentTransaction.value = response.data
+        return response.data
+      }
+
+      return null
+    } catch (err: any) {
+      console.error('❌ [Transactions] Erreur chargement transaction:', err)
+      error.value = err.message
+      return null
+    }
+  }
+
+  /**
+   * Créer une nouvelle transaction
+   * 🔐 Protégé par auth guard
+   */
+  async function createTransaction(data: CreateTransactionData): Promise<boolean> {
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Transactions] createTransaction annulé - utilisateur non authentifié')
+      error.value = 'Authentification requise'
       return false
     }
 
@@ -377,37 +327,36 @@ export const useTransactionStore = defineStore('transaction', () => {
     validationErrors.value = {}
 
     try {
-      const response = await post<Transaction>('/transactions', data)
+      console.log('📝 [Transactions] Création transaction:', data)
+
+      const response = await api.post<Transaction>('/transactions', data)
+
+      if (!response) {
+        throw new Error("Aucune réponse de l'API")
+      }
 
       if (response.success && response.data) {
-        const newTransaction = {
-          ...response.data,
-          amount: Number(response.data.amount) || 0,
-        }
-
-        transactions.value.unshift(newTransaction)
-
-        invalidateByTag('transactions')
-        invalidateByTag('stats')
-
-        eventBus.emit('transaction:created', newTransaction)
-
-        if (hasStats.value) {
-          await fetchStats()
-        }
-
+        transactions.value.push(response.data)
+        console.log('✅ [Transactions] Transaction créée:', response.data)
         return true
       }
 
-      throw new Error(response.message || 'Erreur création transaction')
-    } catch (err: any) {
-      await handleApiError(err, 'create_transaction', false)
-
-      if (err.response?.status === 422) {
-        validationErrors.value = err.response.data.errors || {}
+      if (response.errors) {
+        validationErrors.value = response.errors
       }
 
-      error.value = err.message
+      error.value = response.message || 'Erreur lors de la création'
+      return false
+    } catch (err: any) {
+      console.error('❌ [Transactions] Erreur création transaction:', err)
+
+      if (err.response?.status === 422 && err.response?.data?.errors) {
+        validationErrors.value = err.response.data.errors
+        error.value = 'Erreur de validation'
+      } else {
+        error.value = err.message || 'Erreur lors de la création de la transaction'
+      }
+
       return false
     } finally {
       creating.value = false
@@ -415,13 +364,18 @@ export const useTransactionStore = defineStore('transaction', () => {
   }
 
   /**
-   * ✅ Mettre à jour une transaction
+   * Mettre à jour une transaction
+   * 🔐 Protégé par auth guard
    */
-  async function updateTransaction(id: number, data: UpdateTransactionData): Promise<boolean> {
-    // 🔥 VÉRIFICATION AUTH
+  async function updateTransaction(
+    transactionId: number,
+    data: UpdateTransactionData,
+  ): Promise<boolean> {
+    // 🔐 VÉRIFICATION AUTH
     const isAuth = await ensureAuthenticated()
     if (!isAuth) {
-      console.warn('⚠️ Skip updateTransaction: utilisateur non authentifié')
+      console.warn('⚠️ [Transactions] updateTransaction annulé - utilisateur non authentifié')
+      error.value = 'Authentification requise'
       return false
     }
 
@@ -430,42 +384,44 @@ export const useTransactionStore = defineStore('transaction', () => {
     validationErrors.value = {}
 
     try {
-      const response = await put<Transaction>(`/transactions/${id}`, data)
+      console.log('✏️ [Transactions] Mise à jour transaction:', transactionId, data)
+
+      const response = await api.put<Transaction>(`/transactions/${transactionId}`, data)
+
+      if (!response) {
+        throw new Error("Aucune réponse de l'API")
+      }
 
       if (response.success && response.data) {
-        const updatedTransaction = {
-          ...response.data,
-          amount: Number(response.data.amount) || 0,
-        }
-
-        const index = transactions.value.findIndex((t) => t.id === id)
+        const index = transactions.value.findIndex((t) => t.id === transactionId)
         if (index !== -1) {
-          transactions.value[index] = updatedTransaction
+          transactions.value[index] = response.data
         }
 
-        if (currentTransaction.value?.id === id) {
-          currentTransaction.value = updatedTransaction
+        if (currentTransaction.value?.id === transactionId) {
+          currentTransaction.value = response.data
         }
 
-        invalidateByTag('transactions')
-        eventBus.emit('transaction:updated', updatedTransaction)
-
-        if (hasStats.value) {
-          await fetchStats()
-        }
-
+        console.log('✅ [Transactions] Transaction mise à jour')
         return true
       }
 
-      throw new Error(response.message || 'Erreur mise à jour transaction')
-    } catch (err: any) {
-      await handleApiError(err, 'update_transaction', false)
-
-      if (err.response?.status === 422) {
-        validationErrors.value = err.response.data.errors || {}
+      if (response.errors) {
+        validationErrors.value = response.errors
       }
 
-      error.value = err.message
+      error.value = response.message || 'Erreur lors de la mise à jour'
+      return false
+    } catch (err: any) {
+      console.error('❌ [Transactions] Erreur mise à jour transaction:', err)
+
+      if (err.response?.status === 422 && err.response?.data?.errors) {
+        validationErrors.value = err.response.data.errors
+        error.value = 'Erreur de validation'
+      } else {
+        error.value = err.message || 'Erreur lors de la mise à jour'
+      }
+
       return false
     } finally {
       updating.value = false
@@ -473,13 +429,15 @@ export const useTransactionStore = defineStore('transaction', () => {
   }
 
   /**
-   * ✅ Supprimer une transaction
+   * Supprimer une transaction
+   * 🔐 Protégé par auth guard
    */
-  async function deleteTransaction(id: number): Promise<boolean> {
-    // 🔥 VÉRIFICATION AUTH
+  async function deleteTransaction(transactionId: number): Promise<boolean> {
+    // 🔐 VÉRIFICATION AUTH
     const isAuth = await ensureAuthenticated()
     if (!isAuth) {
-      console.warn('⚠️ Skip deleteTransaction: utilisateur non authentifié')
+      console.warn('⚠️ [Transactions] deleteTransaction annulé - utilisateur non authentifié')
+      error.value = 'Authentification requise'
       return false
     }
 
@@ -487,29 +445,30 @@ export const useTransactionStore = defineStore('transaction', () => {
     error.value = null
 
     try {
-      const response = await del(`/transactions/${id}`)
+      console.log('🗑️ [Transactions] Suppression transaction:', transactionId)
+
+      const response = await api.delete(`/transactions/${transactionId}`)
+
+      if (!response) {
+        throw new Error("Aucune réponse de l'API")
+      }
 
       if (response.success) {
-        transactions.value = transactions.value.filter((t) => t.id !== id)
+        transactions.value = transactions.value.filter((t) => t.id !== transactionId)
 
-        if (currentTransaction.value?.id === id) {
+        if (currentTransaction.value?.id === transactionId) {
           currentTransaction.value = null
         }
 
-        invalidateByTag('transactions')
-        eventBus.emit('transaction:deleted', id)
-
-        if (hasStats.value) {
-          await fetchStats()
-        }
-
+        console.log('✅ [Transactions] Transaction supprimée')
         return true
       }
 
-      throw new Error(response.message || 'Erreur suppression transaction')
+      error.value = response.message || 'Erreur lors de la suppression'
+      return false
     } catch (err: any) {
-      await handleApiError(err, 'delete_transaction')
-      error.value = err.message
+      console.error('❌ [Transactions] Erreur suppression transaction:', err)
+      error.value = err.message || 'Erreur lors de la suppression'
       return false
     } finally {
       deleting.value = false
@@ -517,195 +476,77 @@ export const useTransactionStore = defineStore('transaction', () => {
   }
 
   /**
-   * ✅ Charger les statistiques
+   * Appliquer les filtres
    */
-  async function fetchStats() {
-    // 🔥 VÉRIFICATION AUTH
-    const isAuth = await ensureAuthenticated()
-    if (!isAuth) {
-      console.warn('⚠️ Skip fetchStats: utilisateur non authentifié')
-      stats.value = null
-      return
-    }
-
-    try {
-      const response = await get<any>('/transactions/stats')
-
-      if (response.success && response.data) {
-        console.log('📊 Stats API:', response.data)
-        stats.value = response.data
-        return
-      }
-    } catch (err: any) {
-      console.warn('⚠️ Stats API failed, calcul local:', err.message)
-    }
-
-    // Fallback : calculer localement
-    const now = new Date()
-    const currentMonth = now.getMonth()
-    const currentYear = now.getFullYear()
-
-    const monthlyTransactions = transactions.value.filter((t) => {
-      const date = new Date(t.transaction_date)
-      return date.getMonth() === currentMonth && date.getFullYear() === currentYear
-    })
-
-    const monthlyIncome = monthlyTransactions
-      .filter((t) => t.type === 'income')
-      .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
-
-    const monthlyExpenses = monthlyTransactions
-      .filter((t) => t.type === 'expense')
-      .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
-
-    stats.value = {
-      total_transactions: transactions.value.length,
-      total_income: totalIncome.value,
-      total_expenses: totalExpenses.value,
-      balance: balance.value,
-      monthly_income: monthlyIncome,
-      monthly_expenses: monthlyExpenses,
-      calculated_locally: true,
-    }
-
-    console.log('✅ Stats calculées localement:', stats.value)
+  function setFilters(newFilters: Partial<typeof filters.value>): void {
+    filters.value = { ...filters.value, ...newFilters }
   }
 
   /**
-   * ✅ Charger une transaction spécifique
+   * Réinitialiser les filtres
    */
-  async function fetchTransaction(id: number) {
-    // 🔥 VÉRIFICATION AUTH
-    const isAuth = await ensureAuthenticated()
-    if (!isAuth) {
-      console.warn('⚠️ Skip fetchTransaction: utilisateur non authentifié')
-      return
+  function resetFilters(): void {
+    filters.value = {
+      type: null,
+      category: null,
+      dateFrom: null,
+      dateTo: null,
+      search: '',
     }
-
-    loading.value = true
-
-    try {
-      const response = await get<Transaction>(`/transactions/${id}`)
-
-      if (response.success) {
-        currentTransaction.value = {
-          ...response.data,
-          amount: Number(response.data.amount) || 0,
-        }
-      }
-    } catch (err: any) {
-      await handleApiError(err, 'fetch_transaction')
-    } finally {
-      loading.value = false
-    }
-  }
-
-  /**
-   * Changer de page
-   */
-  async function changePage(page: number) {
-    if (page >= 1 && page <= pagination.value.last_page) {
-      await fetchTransactions({ ...filters.value, page })
-    }
-  }
-
-  /**
-   * Appliquer des filtres
-   */
-  async function applyFilters(newFilters: TransactionFilters) {
-    await fetchTransactions({ ...newFilters, page: 1 })
-  }
-
-  /**
-   * Actualiser les données
-   */
-  async function refresh() {
-    invalidateByTag('transactions')
-
-    await Promise.all([fetchTransactions(filters.value), fetchPendingTransactions(), fetchStats()])
-  }
-
-  /**
-   * Nettoyer les erreurs
-   */
-  function clearErrors() {
-    error.value = null
-    validationErrors.value = {}
   }
 
   /**
    * Réinitialiser le store
    */
-  function $reset() {
+  function $reset(): void {
     transactions.value = []
-    pendingTransactions.value = []
     currentTransaction.value = null
-    stats.value = null
-    pagination.value = {
-      current_page: 1,
-      per_page: 15,
-      total: 0,
-      last_page: 1,
-      from: 0,
-      to: 0,
-      has_more_pages: false,
-    }
-    filters.value = { per_page: 15, page: 1 }
     loading.value = false
-    syncing.value = false
     creating.value = false
     updating.value = false
     deleting.value = false
     error.value = null
     validationErrors.value = {}
+    resetFilters()
+    console.log('🔄 [Transactions] Store réinitialisé')
   }
+
+  // ==========================================
+  // RETURN
+  // ==========================================
 
   return {
     // State
     transactions,
-    pendingTransactions,
     currentTransaction,
-    stats,
-    pagination,
-    filters,
     loading,
-    syncing,
     creating,
     updating,
     deleting,
     error,
     validationErrors,
+    filters,
 
     // Getters
+    filteredTransactions,
     incomeTransactions,
     expenseTransactions,
-    recentTransactions,
     totalIncome,
     totalExpenses,
-    balance,
-    isLoading,
-    hasTransactions,
-    hasPendingTransactions,
-    hasStats,
+    netBalance,
+    transactionsByCategory,
+    recentTransactions,
 
-    // Actions - Bridge API
-    fetchBankTransactions,
-    syncAllBankConnections,
-    fetchPendingTransactions,
-    categorizeTransaction,
-    autoCategorize,
-
-    // Actions - CRUD
+    // Actions
     fetchTransactions,
     fetchTransaction,
     createTransaction,
     updateTransaction,
     deleteTransaction,
-    fetchStats,
-    changePage,
-    applyFilters,
-    refresh,
-    clearErrors,
+    setFilters,
+    resetFilters,
     $reset,
   }
 })
+
+export default useTransactionStore
