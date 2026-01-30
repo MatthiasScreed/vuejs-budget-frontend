@@ -1,18 +1,51 @@
+// src/stores/authStore.ts - VERSION CORRIGÉE
 import { defineStore } from 'pinia'
 import { api } from '@/services/api'
-import {
-  secureStorage,
-  setTokenWithExpiry,
-  getTokenIfValid,
-  rateLimiter,
-  setupMultiTabLogout,
-} from '@/services/secureStorage'
 import type { User, LoginCredentials, RegisterData } from '@/types/entities/auth'
+
+// ==========================================
+// ✅ HELPERS TOKEN SIMPLIFIÉS
+// ==========================================
+
+function saveToken(token: string, expiryHours: number = 168): void {
+  const expiry = Date.now() + expiryHours * 60 * 60 * 1000
+  const item = { token, expiry, createdAt: new Date().toISOString() }
+  localStorage.setItem('auth_token', JSON.stringify(item))
+  console.log('💾 Token sauvegardé, expire:', new Date(expiry).toISOString())
+}
+
+function getToken(): string | null {
+  try {
+    const itemStr = localStorage.getItem('auth_token')
+    if (!itemStr) return null
+
+    const item = JSON.parse(itemStr)
+
+    if (item.expiry && Date.now() > item.expiry) {
+      console.log('🔒 Token expiré')
+      localStorage.removeItem('auth_token')
+      return null
+    }
+
+    return item.token || null
+  } catch {
+    return null
+  }
+}
+
+function clearToken(): void {
+  localStorage.removeItem('auth_token')
+  localStorage.removeItem('user')
+}
+
+// ==========================================
+// INTERFACES
+// ==========================================
 
 interface AuthState {
   user: User | null
   isAuthenticated: boolean
-  isInitialized: boolean // ← AJOUTER
+  isInitialized: boolean
   loading: boolean
   error: string | null
   validationErrors: Record<string, string[]>
@@ -25,11 +58,15 @@ interface AuthResult {
   errors?: Record<string, string[]>
 }
 
+// ==========================================
+// STORE
+// ==========================================
+
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
-    user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null,
+    user: null,
     isAuthenticated: false,
-    isInitialized: false, // ← AJOUTER
+    isInitialized: false,
     loading: false,
     error: null,
     validationErrors: {},
@@ -45,155 +82,125 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    async testConnection(): Promise<AuthResult> {
-      try {
-        console.log('🔄 Test de connexion API...')
-        const response = await api.get('/health')
-        console.log('✅ API Health Check:', response)
-        return { success: true, data: response, message: 'API connectée avec succès' }
-      } catch (error: any) {
-        console.warn('⚠️ API Health Check Failed:', error.message)
-        return { success: false, message: error.message || 'Serveur API indisponible' }
-      }
-    },
-
-    async loadUser(): Promise<AuthResult> {
-      const token = await getTokenIfValid()
-      if (!token) {
-        return { success: false, message: 'Aucun token valide' }
+    // ==========================================
+    // ✅ INIT AUTH - VERSION ROBUSTE
+    // ==========================================
+    async initAuth(): Promise<boolean> {
+      // Éviter double init
+      if (this.isInitialized) {
+        console.log('🔐 Auth déjà initialisée, skip')
+        return this.isAuthenticated
       }
 
-      this.loading = true
-      this.error = null
+      console.group('🔐 === INIT AUTH ===')
 
       try {
-        console.log('👤 Chargement des données utilisateur...')
-        const response = await api.get<User>('/auth/me')
+        // 1. Vérifier le token local
+        const token = getToken()
+        console.log('Token local:', token ? '✅ Présent' : '❌ Absent')
 
-        if (response.success && response.data) {
-          this.user = this.cloneUser(response.data)
-          this.isAuthenticated = true
-          localStorage.setItem('user', JSON.stringify(this.user))
-          console.log('✅ Utilisateur chargé:', this.user?.name)
-          return { success: true, data: this.user }
+        if (!token) {
+          console.log('Pas de token, utilisateur non connecté')
+          this.clearAuthData()
+          return false
         }
 
-        throw new Error(response.message || "Impossible de charger l'utilisateur")
+        // 2. Charger le user depuis le cache
+        const userStr = localStorage.getItem('user')
+        if (userStr) {
+          try {
+            this.user = JSON.parse(userStr)
+            this.isAuthenticated = true
+            console.log('👤 User chargé depuis cache:', this.user?.email)
+          } catch {
+            console.warn('Cache user corrompu')
+          }
+        }
+
+        // 3. Valider avec l'API (en background)
+        console.log('🌐 Validation API...')
+        const result = await this.loadUser()
+
+        if (result.success) {
+          console.log('✅ Session valide!')
+          return true
+        } else {
+          console.log('❌ Session invalide:', result.message)
+          // Token invalide côté serveur
+          this.clearAuthData()
+          return false
+        }
       } catch (error: any) {
-        console.warn('⚠️ Échec du chargement utilisateur:', error.message)
-        this.error = error.message
-
-        if (error.response?.status === 401) {
-          await this.logout()
+        console.error('❌ Erreur initAuth:', error.message)
+        // En cas d'erreur réseau, garder la session locale
+        if (this.user) {
+          console.log('⚠️ Erreur réseau, session locale conservée')
+          return true
         }
-
-        return { success: false, message: error.message }
+        this.clearAuthData()
+        return false
       } finally {
-        this.loading = false
+        this.isInitialized = true
+        console.groupEnd()
       }
     },
 
-    /**
-     * 🔐 CONNEXION AVEC DEBUG COMPLET
-     */
+    // ==========================================
+    // ✅ LOGIN - VERSION SIMPLIFIÉE
+    // ==========================================
     async login(credentials: LoginCredentials): Promise<AuthResult> {
-      console.group('🔐 === PROCESSUS DE LOGIN ===')
-
-      // Rate limiting
-      if (!rateLimiter.canAttempt('login', 5, 15)) {
-        const waitTime = rateLimiter.getWaitTime('login', 15)
-        console.groupEnd()
-        return {
-          success: false,
-          message: `Trop de tentatives. Réessayez dans ${waitTime} minutes.`,
-        }
-      }
+      console.group('🔑 === LOGIN ===')
 
       this.loading = true
       this.error = null
       this.validationErrors = {}
 
       try {
-        // 1. Appel API
-        console.log('📤 Envoi de la requête de login...')
+        console.log('📤 Envoi requête login...')
         const response = await api.post('/auth/login', credentials)
-        console.log('📥 Réponse reçue:', response)
+
+        console.log('📥 Réponse:', response.success ? '✅' : '❌')
 
         if (!response.success) {
           throw new Error(response.message || 'Erreur de connexion')
         }
 
-        if (!response.data) {
-          console.error('❌ Pas de données dans la réponse!', response)
-          throw new Error('Réponse invalide du serveur')
+        if (!response.data?.token || !response.data?.user) {
+          console.error('Réponse invalide:', response.data)
+          throw new Error('Réponse serveur invalide')
         }
 
         const { user, token } = response.data
 
-        if (!token) {
-          console.error('❌ Pas de token dans la réponse!', response.data)
-          throw new Error('Token manquant dans la réponse')
-        }
+        // Sauvegarder le token
+        const rememberHours = credentials.remember ? 168 : 24 // 7 jours ou 24h
+        saveToken(token, rememberHours)
 
-        console.log('✅ Token extrait:', token.substring(0, 20) + '...')
-        console.log('✅ User extrait:', user.email)
+        // Mettre à jour le store
+        this.user = this.cloneUser(user)
+        this.isAuthenticated = true
+        this.isInitialized = true
+        localStorage.setItem('user', JSON.stringify(this.user))
 
-        // 2. Sauvegarder le token
-        console.log('💾 Sauvegarde du token avec setTokenWithExpiry...')
-        await setTokenWithExpiry(token, 24 * 7)
-        console.log('✅ setTokenWithExpiry terminé')
-
-        // 3. VÉRIFICATION IMMÉDIATE
-        console.log('🔍 Vérification immédiate du token sauvegardé...')
-        const savedToken = await getTokenIfValid()
-
-        if (savedToken) {
-          console.log('✅ Token RÉCUPÉRÉ avec succès:', savedToken.substring(0, 20) + '...')
-          console.log('✅ Correspondance:', savedToken === token)
-        } else {
-          console.error('❌ ÉCHEC : getTokenIfValid() retourne NULL juste après sauvegarde!')
-          console.error('🔍 Vérifions le localStorage...')
-          console.log('auth_token existe?', localStorage.getItem('auth_token') !== null)
-          console.log(
-            'auth_token_expiry existe?',
-            localStorage.getItem('auth_token_expiry') !== null,
-          )
-          console.log('auth_token value:', localStorage.getItem('auth_token'))
-          console.log('auth_token_expiry value:', localStorage.getItem('auth_token_expiry'))
-        }
-
-        // 4. Mettre à jour le store
-        console.log('📝 Mise à jour du store...')
-        this.setAuthData(user)
-        rateLimiter.reset('login')
-
-        console.log('🎉 Login réussi!')
+        console.log('🎉 Login réussi:', user.email)
         console.groupEnd()
 
         return { success: true, data: response.data }
       } catch (error: any) {
-        console.error('❌ Erreur de login:', error)
+        console.error('❌ Erreur login:', error.message)
         console.groupEnd()
 
         this.error = error.message
-        if (error.response?.data?.errors) {
-          this.validationErrors = error.response.data.errors
-        }
         return { success: false, message: error.message }
       } finally {
         this.loading = false
       }
     },
 
+    // ==========================================
+    // REGISTER
+    // ==========================================
     async register(userData: RegisterData): Promise<AuthResult> {
-      if (!rateLimiter.canAttempt('register', 3, 60)) {
-        const waitTime = rateLimiter.getWaitTime('register', 60)
-        return {
-          success: false,
-          message: `Trop de tentatives d'inscription. Réessayez dans ${waitTime} minutes.`,
-        }
-      }
-
       this.loading = true
       this.error = null
       this.validationErrors = {}
@@ -203,9 +210,11 @@ export const useAuthStore = defineStore('auth', {
 
         if (response.success && response.data) {
           const { user, token } = response.data
-          await setTokenWithExpiry(token, 24 * 7)
-          this.setAuthData(user)
-          rateLimiter.reset('register')
+          saveToken(token, 168)
+          this.user = this.cloneUser(user)
+          this.isAuthenticated = true
+          this.isInitialized = true
+          localStorage.setItem('user', JSON.stringify(this.user))
           console.log('✅ Inscription réussie:', user.name)
           return { success: true, data: response.data }
         }
@@ -222,133 +231,78 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async logout(): Promise<void> {
-      try {
-        await api.post('/auth/logout')
-      } catch (error) {
-        console.warn('⚠️ Logout serveur échoué:', error)
-      } finally {
-        this.clearAuthData()
-        console.log('🚪 Déconnexion locale effectuée')
+    // ==========================================
+    // LOAD USER
+    // ==========================================
+    async loadUser(): Promise<AuthResult> {
+      const token = getToken()
+      if (!token) {
+        return { success: false, message: 'Aucun token' }
       }
-    },
-
-    /**
-     * 🔐 INIT AUTH AVEC FLAG INITIALIZED
-     */
-    async initAuth(): Promise<boolean> {
-      // Éviter double init
-      if (this.isInitialized) {
-        console.log('🔐 Auth déjà initialisée')
-        return this.isAuthenticated
-      }
-
-      console.group('🔐 === INIT AUTH ===')
 
       try {
-        const token = await getTokenIfValid()
-        console.log('Token récupéré:', token ? token.substring(0, 20) + '...' : 'NULL')
-
-        if (!token) {
-          console.log('❌ Aucun token valide trouvé')
-          this.clearAuthData()
-          return false
-        }
-
-        const userStr = localStorage.getItem('user')
-        if (!userStr) {
-          console.log('❌ Aucun cache utilisateur')
-          this.clearAuthData()
-          return false
-        }
-
-        this.user = JSON.parse(userStr)
-        this.isAuthenticated = true
-        console.log('✅ État restauré:', this.user?.name)
-
-        console.log('🌐 Vérification API...')
-        const result = await this.loadUser()
-
-        if (result.success) {
-          console.log('✅ Session valide!')
-          setupMultiTabLogout(() => {
-            this.clearAuthData()
-            window.location.href = '/login'
-          })
-          return true
-        } else {
-          console.log('❌ Session invalide:', result.message)
-          this.clearAuthData()
-          return false
-        }
-      } catch (error) {
-        console.error('❌ Erreur initAuth:', error)
-        this.clearAuthData()
-        return false
-      } finally {
-        this.isInitialized = true // ← TOUJOURS MARQUER COMME INIT
-        console.groupEnd()
-      }
-    },
-
-    async refreshUser(): Promise<void> {
-      if (this.isAuthenticated) {
-        await this.loadUser()
-      }
-    },
-
-    async updateProfile(updates: Partial<User>): Promise<AuthResult> {
-      if (!this.isAuthenticated) {
-        return { success: false, message: 'Non authentifié' }
-      }
-
-      this.loading = true
-      this.error = null
-
-      try {
-        const response = await api.put('/auth/profile', updates)
+        const response = await api.get<User>('/auth/me')
 
         if (response.success && response.data) {
           this.user = this.cloneUser(response.data)
+          this.isAuthenticated = true
           localStorage.setItem('user', JSON.stringify(this.user))
-          console.log('✅ Profil mis à jour')
           return { success: true, data: this.user }
         }
 
-        throw new Error(response.message || 'Erreur mise à jour profil')
+        throw new Error(response.message || "Impossible de charger l'utilisateur")
       } catch (error: any) {
-        this.error = error.message
+        console.warn('⚠️ loadUser failed:', error.message)
         return { success: false, message: error.message }
-      } finally {
-        this.loading = false
       }
     },
 
-    async getCurrentToken(): Promise<string | null> {
-      return await getTokenIfValid()
+    // ==========================================
+    // LOGOUT
+    // ==========================================
+    async logout(): Promise<void> {
+      try {
+        await api.post('/auth/logout')
+      } catch {
+        console.warn('⚠️ Logout serveur échoué')
+      } finally {
+        this.clearAuthData()
+        console.log('🚪 Déconnecté')
+      }
     },
 
+    // ==========================================
+    // TEST CONNECTION
+    // ==========================================
+    async testConnection(): Promise<AuthResult> {
+      try {
+        const response = await api.get('/health')
+        return { success: true, data: response, message: 'API connectée' }
+      } catch (error: any) {
+        return { success: false, message: error.message }
+      }
+    },
+
+    // ==========================================
+    // HELPERS
+    // ==========================================
     setAuthData(user: User): void {
       this.user = this.cloneUser(user)
       this.isAuthenticated = true
-      this.error = null
-      this.validationErrors = {}
+      this.isInitialized = true
       localStorage.setItem('user', JSON.stringify(this.user))
     },
 
     clearAuthData(): void {
       this.user = null
       this.isAuthenticated = false
-      // NE PAS reset isInitialized ici
       this.error = null
       this.validationErrors = {}
-      localStorage.removeItem('user')
-      secureStorage.removeItem('auth_token')
+      clearToken()
     },
 
     cloneUser(user: any): User | null {
       if (!user) return null
-
       return {
         id: Number(user.id),
         name: String(user.name || ''),

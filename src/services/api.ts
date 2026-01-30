@@ -1,37 +1,49 @@
+// src/services/api.ts - VERSION FINALE
 import axios, { type AxiosInstance, type AxiosResponse, type AxiosError } from 'axios'
-import { getTokenIfValid } from '@/services/secureStorage'
+import { getTokenIfValid, secureStorage } from '@/services/secureStorage'
 
 // ==========================================
 // CONFIGURATION API
 // ==========================================
 
-// ⚠️ IMPORTANT: VITE_API_BASE_URL doit pointer vers la racine (sans /api)
-// Les routes ajoutent déjà le préfixe /api dans les appels
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://budget-api.test'
+const getApiBaseUrl = (): string => {
+  // 1. Priorité à la variable d'environnement
+  const envUrl = import.meta.env.VITE_API_BASE_URL
+  if (envUrl) {
+    return envUrl.endsWith('/') ? envUrl.slice(0, -1) : envUrl
+  }
 
-// Nettoyer l'URL pour éviter le double /api
-const cleanBaseURL = API_BASE_URL.endsWith('/api')
-  ? API_BASE_URL.slice(0, -4)
-  : API_BASE_URL.endsWith('/api/')
-    ? API_BASE_URL.slice(0, -5)
-    : API_BASE_URL
+  // 2. Fallback selon le mode
+  if (import.meta.env.PROD) {
+    // ✅ TON URL DE PRODUCTION FORGE (avec /api)
+    return 'https://laravel-budget-api-saqbqlbw.on-forge.com/api'
+  }
 
-console.log('🔧 API Base URL original:', API_BASE_URL)
-console.log('🔧 API Base URL cleaned:', cleanBaseURL)
-console.log('🔧 Environment:', import.meta.env.MODE)
+  // 3. Dev local (avec /api car Laravel utilise ce préfixe)
+  return 'http://budget-api.test/api'
+}
+
+const API_BASE_URL = getApiBaseUrl()
+
+console.log('🔧 API Configuration:', {
+  baseURL: API_BASE_URL,
+  mode: import.meta.env.MODE,
+  isProd: import.meta.env.PROD,
+})
 
 // ==========================================
 // INSTANCE AXIOS
 // ==========================================
 
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: cleanBaseURL,
-  timeout: 60000, // 60 secondes
+  baseURL: API_BASE_URL,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
   },
-  withCredentials: true,
+  // ✅ FIX: Désactivé pour éviter les problèmes CORS en production
+  withCredentials: false,
 })
 
 // ==========================================
@@ -41,18 +53,19 @@ const axiosInstance: AxiosInstance = axios.create({
 // Request interceptor
 axiosInstance.interceptors.request.use(
   async (config) => {
-    // ✅ Récupérer le token depuis secureStorage
+    // Récupérer le token depuis secureStorage
     const token = await getTokenIfValid()
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
 
-    console.log(`📤 ${config.method?.toUpperCase()} ${config.url}`)
+    // Log uniquement en dev
+    if (import.meta.env.DEV) {
+      console.log(`📤 ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`)
+    }
 
-    // Timestamp pour mesurer durée
     config.metadata = { startTime: Date.now() }
-
     return config
   },
   (error) => {
@@ -65,9 +78,12 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     const duration = Date.now() - (response.config.metadata?.startTime || 0)
-    console.log(
-      `✅ ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status} (${duration}ms)`,
-    )
+
+    if (import.meta.env.DEV) {
+      console.log(
+        `✅ ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status} (${duration}ms)`,
+      )
+    }
 
     return response
   },
@@ -75,29 +91,20 @@ axiosInstance.interceptors.response.use(
     const duration = Date.now() - (error.config?.metadata?.startTime || 0)
 
     if (error.code === 'ECONNABORTED') {
-      console.error(
-        `⏱️ TIMEOUT ${error.config?.method?.toUpperCase()} ${error.config?.url} après ${duration}ms`,
-      )
+      console.error(`⏱️ TIMEOUT après ${duration}ms`)
     } else {
       console.error(
-        `❌ ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${error.response?.status} (${duration}ms)`,
+        `❌ ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${error.response?.status || 'NETWORK'} (${duration}ms)`,
       )
     }
 
-    // 401 = Non authentifié
+    // ✅ 401 = Token invalide - NE PAS rediriger automatiquement ici
+    // Laisser le code appelant (authStore) gérer la redirection
     if (error.response?.status === 401) {
-      console.log('🔒 Session expirée - Redirection login')
-
-      // ✅ Nettoyer le storage sécurisé
-      import('@/services/secureStorage').then(({ secureStorage }) => {
-        secureStorage.removeItem('auth_token')
-        localStorage.removeItem('user')
-      })
-
-      // Redirection
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login'
-      }
+      console.log('🔒 401 reçu - Token invalide ou expiré')
+      // Nettoyer le storage
+      secureStorage.removeItem('auth_token')
+      localStorage.removeItem('user')
     }
 
     return Promise.reject(error)
@@ -128,7 +135,6 @@ declare module 'axios' {
 // ==========================================
 
 export const api = {
-  // GET
   async get<T = any>(url: string, config = {}): Promise<ApiResponse<T>> {
     try {
       const response = await axiosInstance.get<ApiResponse<T>>(url, config)
@@ -138,7 +144,6 @@ export const api = {
     }
   },
 
-  // POST
   async post<T = any>(url: string, data?: any, config = {}): Promise<ApiResponse<T>> {
     try {
       const response = await axiosInstance.post<ApiResponse<T>>(url, data, config)
@@ -148,7 +153,6 @@ export const api = {
     }
   },
 
-  // PUT
   async put<T = any>(url: string, data?: any, config = {}): Promise<ApiResponse<T>> {
     try {
       const response = await axiosInstance.put<ApiResponse<T>>(url, data, config)
@@ -158,7 +162,6 @@ export const api = {
     }
   },
 
-  // PATCH
   async patch<T = any>(url: string, data?: any, config = {}): Promise<ApiResponse<T>> {
     try {
       const response = await axiosInstance.patch<ApiResponse<T>>(url, data, config)
@@ -168,7 +171,6 @@ export const api = {
     }
   },
 
-  // DELETE
   async delete<T = any>(url: string, config = {}): Promise<ApiResponse<T>> {
     try {
       const response = await axiosInstance.delete<ApiResponse<T>>(url, config)
@@ -178,12 +180,17 @@ export const api = {
     }
   },
 
-  // ==========================================
-  // HELPER ERROR HANDLING
-  // ==========================================
+  // Utile pour debug
+  getEnvironmentConfig() {
+    return {
+      mode: import.meta.env.MODE,
+      apiBaseUrl: API_BASE_URL,
+      isSecure: API_BASE_URL.startsWith('https'),
+      isProd: import.meta.env.PROD,
+    }
+  },
 
   handleError(error: any): ApiResponse {
-    // Timeout
     if (error.code === 'ECONNABORTED') {
       return {
         success: false,
@@ -191,7 +198,6 @@ export const api = {
       }
     }
 
-    // Network error
     if (!error.response) {
       return {
         success: false,
@@ -199,7 +205,6 @@ export const api = {
       }
     }
 
-    // Server error
     return {
       success: false,
       message: error.response?.data?.message || error.message || 'Erreur serveur',
