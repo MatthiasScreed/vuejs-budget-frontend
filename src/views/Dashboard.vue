@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, computed, watch } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import { useDashboardStore } from '@/stores/dashboardStore'
 import { useTransactionStore } from '@/stores/transactionStore'
 import { useGoalStore } from '@/stores/goalStore'
@@ -15,14 +15,19 @@ const goalStore = useGoalStore()
 const authStore = useAuthStore()
 
 // ==========================================
-// COMPUTED - DONNÉES DASHBOARD
+// DEBUG STATE
+// ==========================================
+
+const showDebug = ref(false)
+const rawApiResponse = ref<any>(null)
+
+// ==========================================
+// COMPUTED
 // ==========================================
 
 const isLoading = computed(
   () => dashboardStore.loading || transactionStore.loading || goalStore.loading,
 )
-
-const hasError = computed(() => dashboardStore.error || transactionStore.error || goalStore.error)
 
 const stats = computed(() => dashboardStore.stats)
 const hasData = computed(() => dashboardStore.hasData)
@@ -32,89 +37,156 @@ const hasData = computed(() => dashboardStore.hasData)
 // ==========================================
 
 /**
- * Charger toutes les données du dashboard
- * ✅ Protégé : attend que l'auth soit prête
+ * Charger les données avec debug
  */
 async function loadDashboardData(): Promise<void> {
-  console.group('📊 === CHARGEMENT DASHBOARD ===')
+  console.group('📊 === CHARGEMENT DASHBOARD (DEBUG MODE) ===')
 
   try {
-    // ✅ S'assurer que l'auth est prête
     if (!authStore.isAuthenticated) {
-      console.warn('⚠️ [Dashboard] Utilisateur non authentifié, annulation du chargement')
+      console.warn('⚠️ Non authentifié')
       console.groupEnd()
       return
     }
 
-    console.log('👤 User authentifié:', authStore.user?.email)
-    console.log('🔄 Début chargement des données...')
+    console.log('🔄 Chargement des stats...')
 
-    // Charger en parallèle (plus rapide)
+    // Charger les stats dashboard
+    await dashboardStore.fetchStats()
+
+    // Capturer la réponse brute pour debug
+    rawApiResponse.value = {
+      stats: dashboardStore.stats,
+      summary: dashboardStore.summary,
+      hasData: dashboardStore.hasData,
+      error: dashboardStore.error,
+    }
+
+    console.log('📦 Données reçues:', rawApiResponse.value)
+
+    // Charger les autres données en parallèle
     await Promise.allSettled([
-      dashboardStore.fetchStats(),
       transactionStore.fetchTransactions().catch((err) => {
-        console.warn('⚠️ Erreur transactions (non bloquante):', err.message)
+        console.warn('⚠️ Erreur transactions:', err.message)
       }),
       goalStore.fetchGoals().catch((err) => {
-        console.warn('⚠️ Erreur objectifs (non bloquante):', err.message)
+        console.warn('⚠️ Erreur objectifs:', err.message)
       }),
     ])
 
-    console.log('✅ Chargement dashboard terminé')
+    console.log('✅ Chargement terminé')
   } catch (err: any) {
-    console.error('❌ Erreur chargement dashboard:', err)
+    console.error('❌ Erreur:', err)
   } finally {
     console.groupEnd()
   }
 }
 
 /**
- * Rafraîchir les données
+ * Rafraîchir
  */
 async function refreshData(): Promise<void> {
-  console.log('🔄 Rafraîchissement manuel...')
   await loadDashboardData()
+}
+
+/**
+ * Toggle debug panel
+ */
+function toggleDebug(): void {
+  showDebug.value = !showDebug.value
 }
 
 // ==========================================
 // LIFECYCLE
 // ==========================================
 
-/**
- * ✅ CHARGEMENT INITIAL SÉCURISÉ
- */
 onMounted(async () => {
   console.log('🎯 Dashboard monté')
 
-  // ✅ Vérifier que l'auth est prête
   if (authStore.isAuthenticated) {
-    console.log('✅ Auth prête, chargement des données...')
     await loadDashboardData()
-  } else {
-    console.warn('⚠️ Auth non prête au montage, attente...')
   }
 })
-
-/**
- * ✅ WATCHER : Charger les données quand l'auth devient prête
- */
-watch(
-  () => authStore.isAuthenticated,
-  async (isAuth, wasAuth) => {
-    console.log('🔄 Auth state changed:', { wasAuth, isAuth })
-
-    // Charger seulement si on vient de devenir authentifié
-    if (isAuth && !wasAuth && !hasData.value) {
-      console.log('✅ Authentification détectée, chargement des données...')
-      await loadDashboardData()
-    }
-  },
-  { immediate: false },
-)
 </script>
 
 <template>
   <div class="dashboard-container">
+    <!-- ==========================================
+         HEADER
+         ========================================== -->
+    <div class="dashboard-header">
+      <h1>📊 Tableau de bord</h1>
+      <div class="header-actions">
+        <button @click="toggleDebug" class="debug-button" :class="{ active: showDebug }">
+          🐛 Debug
+        </button>
+        <button @click="refreshData" :disabled="isLoading" class="refresh-button">
+          <span v-if="!isLoading">🔄 Actualiser</span>
+          <span v-else>⏳ Chargement...</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         PANEL DEBUG (TEMPORAIRE)
+         ========================================== -->
+    <div v-if="showDebug" class="debug-panel">
+      <h3>🐛 Debug Panel</h3>
+
+      <div class="debug-section">
+        <h4>📡 État Auth</h4>
+        <pre>{{
+          {
+            isAuthenticated: authStore.isAuthenticated,
+            isInitialized: authStore.isInitialized,
+            user: authStore.user?.email,
+          }
+        }}</pre>
+      </div>
+
+      <div class="debug-section">
+        <h4>📦 Réponse API Brute</h4>
+        <pre>{{ rawApiResponse }}</pre>
+      </div>
+
+      <div class="debug-section">
+        <h4>📊 Dashboard Store State</h4>
+        <pre>{{
+          {
+            hasData: dashboardStore.hasData,
+            loading: dashboardStore.loading,
+            error: dashboardStore.error,
+            totalBalance: dashboardStore.totalBalance,
+            savingsCapacity: dashboardStore.savingsCapacity,
+            monthlyIncome: dashboardStore.monthlyIncome,
+            monthlyExpenses: dashboardStore.monthlyExpenses,
+          }
+        }}</pre>
+      </div>
+
+      <div class="debug-section">
+        <h4>💳 Transactions</h4>
+        <pre>{{
+          {
+            count: transactionStore.transactions.length,
+            loading: transactionStore.loading,
+            error: transactionStore.error,
+          }
+        }}</pre>
+      </div>
+
+      <div class="debug-section">
+        <h4>🎯 Objectifs</h4>
+        <pre>{{
+          {
+            count: goalStore.goals.length,
+            loading: goalStore.loading,
+            error: goalStore.error,
+          }
+        }}</pre>
+      </div>
+    </div>
+
     <!-- ==========================================
          ÉTAT DE CHARGEMENT
          ========================================== -->
@@ -124,39 +196,23 @@ watch(
     </div>
 
     <!-- ==========================================
-         ERREUR
-         ========================================== -->
-    <div v-else-if="hasError && !hasData" class="error-state">
-      <div class="error-icon">⚠️</div>
-      <h3>Impossible de charger les données</h3>
-      <p>{{ hasError }}</p>
-      <button @click="refreshData" class="retry-button">🔄 Réessayer</button>
-    </div>
-
-    <!-- ==========================================
          CONTENU PRINCIPAL
          ========================================== -->
     <div v-else class="dashboard-content">
-      <!-- Header avec bouton refresh -->
-      <div class="dashboard-header">
-        <h1>📊 Tableau de bord</h1>
-        <button @click="refreshData" :disabled="isLoading" class="refresh-button">
-          <span v-if="!isLoading">🔄 Actualiser</span>
-          <span v-else>⏳ Chargement...</span>
-        </button>
-      </div>
-
       <!-- Stats principales -->
       <div v-if="stats" class="stats-grid">
         <div class="stat-card">
-          <h3>💰 Solde total</h3>
+          <div class="stat-icon">💰</div>
+          <h3>Solde total</h3>
           <p class="stat-value">
             {{ dashboardStore.formatCurrency(stats.total_balance) }}
           </p>
+          <p class="stat-detail">Balance de tous vos comptes</p>
         </div>
 
         <div class="stat-card">
-          <h3>🎯 Capacité d'épargne</h3>
+          <div class="stat-icon">🎯</div>
+          <h3>Capacité d'épargne</h3>
           <p
             class="stat-value"
             :class="{
@@ -166,61 +222,156 @@ watch(
           >
             {{ dashboardStore.formatCurrency(stats.savings_capacity.amount) }}
           </p>
+          <p class="stat-detail">
+            {{ stats.savings_capacity.calculation.formula }}
+          </p>
         </div>
 
         <div class="stat-card">
-          <h3>📈 Revenus du mois</h3>
+          <div class="stat-icon">📈</div>
+          <h3>Revenus du mois</h3>
           <p class="stat-value positive">
             {{ dashboardStore.formatCurrency(stats.current_month.income) }}
           </p>
+          <p class="stat-detail">{{ stats.current_month.transactions_count }} transactions</p>
         </div>
 
         <div class="stat-card">
-          <h3>📉 Dépenses du mois</h3>
+          <div class="stat-icon">📉</div>
+          <h3>Dépenses du mois</h3>
           <p class="stat-value negative">
             {{ dashboardStore.formatCurrency(stats.current_month.expenses) }}
           </p>
+          <p class="stat-detail">
+            Net: {{ dashboardStore.formatCurrency(stats.current_month.net) }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Comparaison avec le mois dernier -->
+      <div v-if="stats" class="comparison-card">
+        <h2>📊 Évolution vs mois dernier</h2>
+        <div class="comparison-content">
+          <div class="comparison-item">
+            <span class="label">Tendance</span>
+            <span class="value" :class="`trend-${stats.comparison.trend}`">
+              {{
+                stats.comparison.trend === 'up'
+                  ? '📈'
+                  : stats.comparison.trend === 'down'
+                    ? '📉'
+                    : '➡️'
+              }}
+              {{ dashboardStore.formatPercent(stats.comparison.change_percent) }}
+            </span>
+          </div>
+          <div class="comparison-item">
+            <span class="label">Mois dernier</span>
+            <span class="value">
+              {{ dashboardStore.formatCurrency(stats.comparison.last_month_capacity) }}
+            </span>
+          </div>
+          <div class="comparison-item">
+            <span class="label">Ce mois</span>
+            <span class="value">
+              {{ dashboardStore.formatCurrency(stats.comparison.current_month_capacity) }}
+            </span>
+          </div>
         </div>
       </div>
 
       <!-- Objectifs -->
-      <div v-if="stats" class="goals-section">
+      <div v-if="stats" class="goals-card">
         <h2>🎯 Vos objectifs</h2>
-        <div class="goals-stats">
-          <p>
-            Objectifs actifs : <strong>{{ stats.goals.active_count }}</strong>
-          </p>
-          <p>
-            Total épargné :
-            <strong>{{ dashboardStore.formatCurrency(stats.goals.total_saved) }}</strong>
-          </p>
-          <p>
-            Objectif total :
-            <strong>{{ dashboardStore.formatCurrency(stats.goals.total_target) }}</strong>
-          </p>
+        <div class="goals-content">
+          <div class="goal-stat">
+            <span class="goal-label">Objectifs actifs</span>
+            <span class="goal-value">{{ stats.goals.active_count }}</span>
+          </div>
+          <div class="goal-stat">
+            <span class="goal-label">Avec contributions</span>
+            <span class="goal-value">{{ stats.goals.goals_with_target }}</span>
+          </div>
+          <div class="goal-stat">
+            <span class="goal-label">Total épargné</span>
+            <span class="goal-value">
+              {{ dashboardStore.formatCurrency(stats.goals.total_saved) }}
+            </span>
+          </div>
+          <div class="goal-stat">
+            <span class="goal-label">Objectif total</span>
+            <span class="goal-value">
+              {{ dashboardStore.formatCurrency(stats.goals.total_target) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Status de la capacité -->
+        <div class="capacity-status" :class="`status-${stats.goals.capacity_status.status}`">
+          <div class="status-icon">
+            {{
+              stats.goals.capacity_status.status === 'excellent'
+                ? '✅'
+                : stats.goals.capacity_status.status === 'warning'
+                  ? '⚠️'
+                  : '❌'
+            }}
+          </div>
+          <div class="status-message">
+            {{ stats.goals.capacity_status.message }}
+          </div>
         </div>
       </div>
 
       <!-- Gaming -->
-      <div v-if="stats" class="gaming-section">
-        <h2>🎮 Gaming</h2>
-        <div class="gaming-stats">
-          <p>
-            Niveau : <strong>{{ stats.user.level }}</strong>
-          </p>
-          <p>
-            XP : <strong>{{ stats.user.xp }}</strong>
-          </p>
-          <p>
-            Succès : <strong>{{ stats.user.achievements }}</strong>
-          </p>
+      <div v-if="stats" class="gaming-card">
+        <h2>🎮 Progression Gaming</h2>
+        <div class="gaming-content">
+          <div class="gaming-stat">
+            <span class="gaming-icon">🏆</span>
+            <div>
+              <span class="gaming-label">Niveau</span>
+              <span class="gaming-value">{{ stats.user.level }}</span>
+            </div>
+          </div>
+          <div class="gaming-stat">
+            <span class="gaming-icon">⭐</span>
+            <div>
+              <span class="gaming-label">XP</span>
+              <span class="gaming-value">{{ stats.user.xp }}</span>
+            </div>
+          </div>
+          <div class="gaming-stat">
+            <span class="gaming-icon">🎯</span>
+            <div>
+              <span class="gaming-label">Succès</span>
+              <span class="gaming-value">{{ stats.user.achievements }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Streak -->
+        <div v-if="stats.streak" class="streak-info">
+          <span class="streak-icon">🔥</span>
+          <span class="streak-text"> Série active : {{ stats.streak.days }} jours </span>
         </div>
       </div>
 
-      <!-- Placeholder si pas de données -->
-      <div v-if="!stats" class="no-data">
-        <p>Aucune donnée disponible</p>
-        <button @click="refreshData" class="retry-button">🔄 Charger les données</button>
+      <!-- Période -->
+      <div v-if="stats" class="period-info">
+        <p>📅 Période : {{ stats.period.label }}</p>
+        <p class="period-dates">
+          Du {{ new Date(stats.period.start).toLocaleDateString('fr-FR') }} au
+          {{ new Date(stats.period.end).toLocaleDateString('fr-FR') }}
+        </p>
+      </div>
+
+      <!-- Message si vraiment aucune donnée -->
+      <div v-if="!stats && !isLoading" class="no-data">
+        <div class="no-data-icon">📊</div>
+        <h3>Aucune donnée disponible</h3>
+        <p>Commencez par ajouter des transactions ou créer des objectifs</p>
+        <button @click="refreshData" class="retry-button">🔄 Recharger</button>
       </div>
     </div>
   </div>
@@ -229,12 +380,103 @@ watch(
 <style scoped>
 .dashboard-container {
   padding: 2rem;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
-.loading-state,
-.error-state {
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.debug-button,
+.refresh-button,
+.retry-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.debug-button {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.debug-button.active {
+  background: #fbbf24;
+  color: #111827;
+}
+
+.refresh-button,
+.retry-button {
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  color: white;
+}
+
+.refresh-button:hover:not(:disabled),
+.retry-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+}
+
+.refresh-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Debug Panel */
+.debug-panel {
+  background: #1f2937;
+  color: #f9fafb;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.debug-panel h3 {
+  margin-bottom: 1rem;
+  color: #fbbf24;
+}
+
+.debug-section {
+  margin-bottom: 1.5rem;
+}
+
+.debug-section h4 {
+  color: #a855f7;
+  margin-bottom: 0.5rem;
+}
+
+.debug-section pre {
+  background: #111827;
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Loading State */
+.loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -262,49 +504,10 @@ watch(
   }
 }
 
-.error-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-}
-
-.retry-button,
-.refresh-button {
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
-  transition: transform 0.2s;
-}
-
-.retry-button:hover,
-.refresh-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-}
-
-.refresh-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.dashboard-header h1 {
-  font-size: 2rem;
-  font-weight: 700;
-}
-
+/* Stats Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -314,18 +517,31 @@ watch(
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
 }
 
 .stat-card h3 {
   font-size: 0.875rem;
   color: #6b7280;
   margin-bottom: 0.5rem;
+  font-weight: 600;
 }
 
 .stat-value {
-  font-size: 1.875rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #111827;
+  margin-bottom: 0.5rem;
 }
 
 .stat-value.positive {
@@ -336,31 +552,226 @@ watch(
   color: #ef4444;
 }
 
-.goals-section,
-.gaming-section {
+.stat-detail {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* Comparison Card */
+.comparison-card {
   background: white;
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-.goals-section h2,
-.gaming-section h2 {
-  font-size: 1.5rem;
+.comparison-card h2 {
+  font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 1rem;
 }
 
-.goals-stats,
-.gaming-stats {
+.comparison-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.comparison-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.comparison-item .label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.comparison-item .value {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.trend-up {
+  color: #10b981;
+}
+.trend-down {
+  color: #ef4444;
+}
+.trend-stable {
+  color: #6b7280;
+}
+
+/* Goals Card */
+.goals-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.goals-card h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.goals-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.goal-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.goal-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.goal-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.capacity-status {
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.status-excellent {
+  background: #d1fae5;
+  border: 1px solid #10b981;
+}
+
+.status-warning {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+}
+
+.status-deficit,
+.status-insufficient {
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+}
+
+.status-icon {
+  font-size: 1.5rem;
+}
+
+.status-message {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* Gaming Card */
+.gaming-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.gaming-card h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.gaming-content {
   display: flex;
   gap: 2rem;
   flex-wrap: wrap;
+  margin-bottom: 1rem;
 }
 
+.gaming-stat {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.gaming-icon {
+  font-size: 2rem;
+}
+
+.gaming-label {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.gaming-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.streak-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+}
+
+.streak-icon {
+  font-size: 1.5rem;
+}
+
+/* Period Info */
+.period-info {
+  text-align: center;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.period-dates {
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
+/* No Data */
 .no-data {
   text-align: center;
-  padding: 3rem;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.no-data-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.no-data h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #111827;
+}
+
+.no-data p {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
 }
 </style>
