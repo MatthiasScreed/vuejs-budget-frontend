@@ -1,4 +1,4 @@
-// src/stores/authStore.ts - VERSION CORRIGÉE
+// src/stores/authStore.ts - VERSION OPTIMISÉE
 import { defineStore } from 'pinia'
 import { api } from '@/services/api'
 import type { User, LoginCredentials, RegisterData } from '@/types/entities/auth'
@@ -83,41 +83,44 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     // ==========================================
-    // ✅ INIT AUTH - VERSION ROBUSTE
+    // ✅ INIT AUTH - VERSION OPTIMISÉE
     // ==========================================
     async initAuth(): Promise<boolean> {
       // Éviter double init
       if (this.isInitialized) {
-        console.log('🔐 Auth déjà initialisée, skip')
+        console.log('🔄 Auth déjà initialisée')
         return this.isAuthenticated
       }
 
       console.group('🔐 === INIT AUTH ===')
+      this.loading = true
 
       try {
-        // 1. Vérifier le token local
+        // 1️⃣ Vérifier le token local
         const token = getToken()
         console.log('Token local:', token ? '✅ Présent' : '❌ Absent')
 
         if (!token) {
-          console.log('Pas de token, utilisateur non connecté')
+          console.log('❌ Pas de token → utilisateur non connecté')
           this.clearAuthData()
           return false
         }
 
-        // 2. Charger le user depuis le cache
+        // 2️⃣ Charger le user depuis le cache (affichage rapide)
         const userStr = localStorage.getItem('user')
         if (userStr) {
           try {
-            this.user = JSON.parse(userStr)
+            const cachedUser = JSON.parse(userStr)
+            this.user = this.cloneUser(cachedUser)
             this.isAuthenticated = true
             console.log('👤 User chargé depuis cache:', this.user?.email)
-          } catch {
-            console.warn('Cache user corrompu')
+          } catch (err) {
+            console.warn('⚠️ Cache user corrompu, ignoré')
+            localStorage.removeItem('user')
           }
         }
 
-        // 3. Valider avec l'API (en background)
+        // 3️⃣ Valider avec l'API (vérification serveur)
         console.log('🌐 Validation API...')
         const result = await this.loadUser()
 
@@ -126,21 +129,27 @@ export const useAuthStore = defineStore('auth', {
           return true
         } else {
           console.log('❌ Session invalide:', result.message)
-          // Token invalide côté serveur
+          // Token invalide côté serveur → clear
           this.clearAuthData()
           return false
         }
       } catch (error: any) {
         console.error('❌ Erreur initAuth:', error.message)
-        // En cas d'erreur réseau, garder la session locale
-        if (this.user) {
-          console.log('⚠️ Erreur réseau, session locale conservée')
+
+        // 🔥 IMPORTANT: En cas d'erreur réseau, conserver la session cache
+        if (this.user && getToken()) {
+          console.log('⚠️ Erreur réseau mais session locale présente')
+          console.log('→ Démarrage en mode dégradé (hors ligne)')
           return true
         }
+
+        // Pas de session cache → clear
         this.clearAuthData()
         return false
       } finally {
+        // ✅ TOUJOURS marquer comme initialisé (même en erreur)
         this.isInitialized = true
+        this.loading = false
         console.groupEnd()
       }
     },
@@ -166,7 +175,7 @@ export const useAuthStore = defineStore('auth', {
         }
 
         if (!response.data?.token || !response.data?.user) {
-          console.error('Réponse invalide:', response.data)
+          console.error('❌ Réponse invalide:', response.data)
           throw new Error('Réponse serveur invalide')
         }
 
@@ -191,6 +200,17 @@ export const useAuthStore = defineStore('auth', {
         console.groupEnd()
 
         this.error = error.message
+
+        // Gérer les erreurs de validation
+        if (error.response?.data?.errors) {
+          this.validationErrors = error.response.data.errors
+          return {
+            success: false,
+            message: error.message,
+            errors: error.response.data.errors,
+          }
+        }
+
         return { success: false, message: error.message }
       } finally {
         this.loading = false
@@ -201,30 +221,51 @@ export const useAuthStore = defineStore('auth', {
     // REGISTER
     // ==========================================
     async register(userData: RegisterData): Promise<AuthResult> {
+      console.group('📝 === REGISTER ===')
+
       this.loading = true
       this.error = null
       this.validationErrors = {}
 
       try {
+        console.log('📤 Envoi inscription...')
         const response = await api.post('/auth/register', userData)
 
-        if (response.success && response.data) {
-          const { user, token } = response.data
-          saveToken(token, 168)
-          this.user = this.cloneUser(user)
-          this.isAuthenticated = true
-          this.isInitialized = true
-          localStorage.setItem('user', JSON.stringify(this.user))
-          console.log('✅ Inscription réussie:', user.name)
-          return { success: true, data: response.data }
+        if (!response.success || !response.data) {
+          throw new Error(response.message || "Erreur d'enregistrement")
         }
 
-        throw new Error(response.message || "Erreur d'enregistrement")
+        const { user, token } = response.data
+
+        // Sauvegarder (7 jours par défaut)
+        saveToken(token, 168)
+
+        // Mettre à jour le store
+        this.user = this.cloneUser(user)
+        this.isAuthenticated = true
+        this.isInitialized = true
+        localStorage.setItem('user', JSON.stringify(this.user))
+
+        console.log('✅ Inscription réussie:', user.email)
+        console.groupEnd()
+
+        return { success: true, data: response.data }
       } catch (error: any) {
+        console.error('❌ Erreur inscription:', error.message)
+        console.groupEnd()
+
         this.error = error.message
+
+        // Erreurs de validation
         if (error.response?.data?.errors) {
           this.validationErrors = error.response.data.errors
+          return {
+            success: false,
+            message: error.message,
+            errors: error.response.data.errors,
+          }
         }
+
         return { success: false, message: error.message }
       } finally {
         this.loading = false
@@ -243,14 +284,16 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await api.get<User>('/auth/me')
 
-        if (response.success && response.data) {
-          this.user = this.cloneUser(response.data)
-          this.isAuthenticated = true
-          localStorage.setItem('user', JSON.stringify(this.user))
-          return { success: true, data: this.user }
+        if (!response.success || !response.data) {
+          throw new Error(response.message || "Impossible de charger l'utilisateur")
         }
 
-        throw new Error(response.message || "Impossible de charger l'utilisateur")
+        // Mise à jour du store
+        this.user = this.cloneUser(response.data)
+        this.isAuthenticated = true
+        localStorage.setItem('user', JSON.stringify(this.user))
+
+        return { success: true, data: this.user }
       } catch (error: any) {
         console.warn('⚠️ loadUser failed:', error.message)
         return { success: false, message: error.message }
@@ -261,14 +304,33 @@ export const useAuthStore = defineStore('auth', {
     // LOGOUT
     // ==========================================
     async logout(): Promise<void> {
+      console.log('🚪 Déconnexion...')
+
       try {
+        // Notifier le serveur
         await api.post('/auth/logout')
-      } catch {
-        console.warn('⚠️ Logout serveur échoué')
+        console.log('✅ Logout serveur OK')
+      } catch (err) {
+        console.warn('⚠️ Logout serveur échoué (pas grave)')
       } finally {
+        // Toujours clear local
         this.clearAuthData()
-        console.log('🚪 Déconnecté')
+        console.log('✅ Session locale effacée')
       }
+    },
+
+    // ==========================================
+    // REFRESH USER (reload depuis API)
+    // ==========================================
+    async refreshUser(): Promise<boolean> {
+      console.log('🔄 Refresh user data...')
+      const result = await this.loadUser()
+      if (result.success) {
+        console.log('✅ User data refreshed')
+        return true
+      }
+      console.warn('⚠️ Failed to refresh user data')
+      return false
     },
 
     // ==========================================
@@ -303,6 +365,7 @@ export const useAuthStore = defineStore('auth', {
 
     cloneUser(user: any): User | null {
       if (!user) return null
+
       return {
         id: Number(user.id),
         name: String(user.name || ''),

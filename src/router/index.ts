@@ -143,6 +143,10 @@ const routes = [
         path: 'savings',
         name: 'Savings',
         component: () => import('@/views/SavingsDashboard.vue'),
+        meta: {
+          title: 'Épargne - Budget Gaming',
+          icon: 'PiggyBankIcon',
+        },
       },
       {
         path: 'profile',
@@ -195,73 +199,79 @@ const router = createRouter({
 })
 
 // ==========================================
-// GUARD DE NAVIGATION AVEC INIT AUTH
+// 🛡️ GUARD DE NAVIGATION OPTIMISÉ
 // ==========================================
 
 router.beforeEach(async (to, from, next) => {
   console.group('🧭 === ROUTER GUARD ===')
-  console.log('From:', from.path)
-  console.log('To:', to.path)
+  console.log('From:', from.path, '→ To:', to.path)
 
   const authStore = useAuthStore()
   const requiresAuth = to.matched.some((r) => r.meta.requiresAuth)
 
-  console.log('Route requires auth?', requiresAuth)
+  console.log('Requires auth?', requiresAuth)
   console.log('isInitialized?', authStore.isInitialized)
   console.log('isAuthenticated?', authStore.isAuthenticated)
+  console.log('User:', authStore.user?.email || 'null')
 
-  // ⏳ Si auth pas initialisée, ATTENDRE (max 10 secondes)
-  // App.vue appelle initAuth() au démarrage, le router attend juste qu'elle termine
-  if (!authStore.isInitialized && requiresAuth) {
-    console.log('⏳ Auth pas encore initialisée, attente de App.vue...')
+  // ⏳ Attendre l'initialisation (normalement déjà faite par App.vue)
+  if (!authStore.isInitialized) {
+    console.log('⏳ Attente initialisation auth...')
 
     let attempts = 0
-    const maxAttempts = 100 // 100 * 100ms = 10 secondes
+    const maxAttempts = 50 // 50 * 100ms = 5 secondes
 
     while (!authStore.isInitialized && attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise((resolve) => setTimeout(resolve, 100))
       attempts++
     }
 
+    // Si toujours pas initialisé après 5s → forcer (fallback de sécurité)
     if (!authStore.isInitialized) {
-      console.error('❌ TIMEOUT: Auth non initialisée après 10s')
-      console.error('→ Forçant initAuth() depuis le router')
+      console.error('❌ TIMEOUT: Auth non initialisée après 5s')
+      console.warn('⚠️ Forçage initAuth() depuis le router (fallback)')
       await authStore.initAuth()
+      console.log('✅ initAuth() forcée terminée')
+    } else {
+      console.log(`✅ Auth initialisée après ${attempts * 100}ms`)
     }
-
-    console.log(`✅ Auth initialisée après ${attempts * 100}ms`)
   }
 
-  console.log('User:', authStore.user?.email || 'null')
-
-  // Route protégée sans auth → login
+  // 🔒 Route protégée sans authentification → redirection /login
   if (requiresAuth && !authStore.isAuthenticated) {
-    console.log('❌ BLOCAGE : Route protégée, utilisateur non authentifié')
+    console.log('❌ BLOCAGE: Route protégée, utilisateur non authentifié')
     console.log('→ Redirection vers /login')
     console.groupEnd()
-    next({ path: '/login', query: { redirect: to.fullPath } })
-    return
+    return next({
+      path: '/login',
+      query: { redirect: to.fullPath },
+    })
   }
 
-  // Déjà connecté sur login/register → dashboard
+  // ✅ Déjà connecté sur login/register → redirection dashboard
   if (authStore.isAuthenticated && (to.path === '/login' || to.path === '/register')) {
-    console.log('✅ Utilisateur déjà connecté, redirection vers dashboard')
+    console.log('✅ Utilisateur déjà connecté')
+    console.log('→ Redirection vers /app/dashboard')
     console.groupEnd()
-    next('/app/dashboard')
-    return
+    return next('/app/dashboard')
   }
 
+  // ✅ Navigation autorisée
   console.log('✅ Navigation autorisée')
   console.groupEnd()
   next()
 })
 
-router.afterEach(async (to) => {
-  // Mettre à jour le titre
-  const title = to.meta.title as string
-  document.title = title || 'Budget Gaming'
+// ==========================================
+// 📄 APRÈS NAVIGATION
+// ==========================================
 
-  // Gérer le gaming
+router.afterEach(async (to) => {
+  // Mettre à jour le titre de la page
+  const title = (to.meta.title as string) || 'Budget Gaming'
+  document.title = title
+
+  // Tracker la navigation dans le gaming store (si applicable)
   if (to.meta.requiresAuth) {
     try {
       const { useGamingStore } = await import('@/stores/gamingStore')
@@ -280,10 +290,16 @@ router.afterEach(async (to) => {
   }
 })
 
+// ==========================================
+// ❌ GESTION DES ERREURS ROUTER
+// ==========================================
+
 router.onError((error) => {
   console.error('❌ Erreur du routeur:', error)
 
-  if (error.message.includes('Loading chunk')) {
+  // Si chunk loading failed (après un déploiement) → reload
+  if (error.message.includes('Loading chunk') || error.message.includes('Failed to fetch')) {
+    console.warn('⚠️ Chunk loading failed, rechargement de la page...')
     window.location.reload()
   }
 })

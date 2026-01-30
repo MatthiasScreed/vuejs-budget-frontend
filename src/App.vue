@@ -8,7 +8,6 @@
       <div class="text-center">
         <!-- Logo animé -->
         <div class="mb-8 relative">
-          <!-- ✅ FIX: Utiliser l'import ES au lieu du chemin relatif -->
           <div class="w-32 h-32 mx-auto animate-pulse">
             <img :src="iconUrl" alt="CoinQuest" class="w-full h-full drop-shadow-2xl" />
           </div>
@@ -68,7 +67,7 @@
       </div>
     </div>
 
-    <!-- 🎯 CONTENU PRINCIPAL -->
+    <!-- 🎯 CONTENU PRINCIPAL - Affiché seulement après init complète -->
     <Transition name="fade" mode="out-in">
       <router-view v-if="appInitialized" />
     </Transition>
@@ -76,57 +75,98 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
+import { onBeforeMount, ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
+import { useRouter } from 'vue-router'
 
-// ✅ FIX: Import ES du logo pour que Vite le process correctement
+// Import du logo
 import iconSvg from '@/assets/images/icon/icon.svg'
 
-// URL du logo (sera correctement hashée en production)
 const iconUrl = computed(() => iconSvg)
-
 const authStore = useAuthStore()
+const router = useRouter()
 
 const appInitialized = ref(false)
 const initializationError = ref<string | null>(null)
 const initProgress = ref(0)
 const loadingMessage = ref('Préparation de ton aventure...')
 
+/**
+ * 🔐 Initialiser l'application AVANT le premier rendu
+ * Cela garantit que authStore.isInitialized = true avant que le router guard ne s'exécute
+ */
 async function initializeApp(): Promise<void> {
+  console.group('🚀 === APP INITIALIZATION ===')
+
   try {
-    console.log("🚀 Initialisation de l'application...")
     initializationError.value = null
     initProgress.value = 10
+    loadingMessage.value = "Vérification de l'API..."
 
-    // Simuler progression
-    const messages = ["Vérification de l'API...", 'Chargement de ton profil...', 'Presque prêt...']
+    // 1️⃣ Test de connexion API (optionnel mais recommandé)
+    await new Promise((r) => setTimeout(r, 300))
+    initProgress.value = 30
 
-    for (let i = 0; i < messages.length; i++) {
-      loadingMessage.value = messages[i]
-      initProgress.value = 20 + (i + 1) * 25
-      await new Promise((r) => setTimeout(r, 300))
-    }
+    // 2️⃣ Initialiser l'authentification (CRITIQUE)
+    loadingMessage.value = 'Chargement de ton profil...'
+    console.log('📍 Début initAuth()')
 
-    // Initialiser l'authentification
-    await authStore.initAuth()
+    const authResult = await authStore.initAuth()
 
+    console.log('📍 initAuth() terminée:', authResult)
+    console.log('📍 isAuthenticated:', authStore.isAuthenticated)
+    console.log('📍 user:', authStore.user?.email || 'null')
+
+    initProgress.value = 70
+
+    // 3️⃣ Autres initialisations (stores, config, etc.)
+    loadingMessage.value = 'Presque prêt...'
+    await new Promise((r) => setTimeout(r, 300))
+    initProgress.value = 90
+
+    // 4️⃣ Finalisation
     initProgress.value = 100
+    loadingMessage.value = 'Prêt ! 🎮'
+
+    // Petit délai pour que l'utilisateur voit le 100%
+    await new Promise((r) => setTimeout(r, 200))
+
     appInitialized.value = true
-    console.log('✅ Application initialisée')
+
+    console.log('✅ Application initialisée avec succès')
+    console.groupEnd()
   } catch (error: any) {
     console.error("❌ Erreur lors de l'initialisation:", error)
-    initializationError.value = error.message || 'Une erreur est survenue'
+    console.groupEnd()
+
+    initializationError.value = error.message || 'Une erreur est survenue lors du chargement'
+
+    // En cas d'erreur réseau mais avec token local, on peut quand même laisser l'app démarrer
+    if (authStore.user && error.message?.includes('réseau')) {
+      console.warn('⚠️ Erreur réseau mais session locale présente, démarrage en mode dégradé')
+      await new Promise((r) => setTimeout(r, 1000))
+      appInitialized.value = true
+    }
   }
 }
 
+/**
+ * 🔄 Réessayer l'initialisation en cas d'erreur
+ */
 async function retryInitialization(): Promise<void> {
   initProgress.value = 0
   loadingMessage.value = 'Nouvelle tentative...'
   await initializeApp()
 }
 
-onMounted(async () => {
+/**
+ * 🎯 IMPORTANT: Utiliser onBeforeMount au lieu de onMounted
+ * Cela garantit que l'init se fait AVANT que le router ne tente la première navigation
+ */
+onBeforeMount(async () => {
+  console.log('📍 App.vue - BEFORE MOUNT')
   await initializeApp()
+  console.log('📍 App.vue - Initialization complete, ready for navigation')
 })
 </script>
 
