@@ -1,6 +1,7 @@
-// src/stores/goalStore.ts - VERSION COMPLÈTE ET CORRIGÉE
+// src/stores/goalStore.ts - VERSION CORRIGÉE AVEC AUTH GUARD
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
+import { useAuthStore } from '@/stores/authStore'
 import api from '@/services/api'
 import type { ApiResponse } from '@/types/base'
 
@@ -44,7 +45,7 @@ export interface GoalContribution {
 }
 
 // ==========================================
-// STORE DEFINITION - ✅ EXPORT CORRECT
+// STORE DEFINITION - VERSION SÉCURISÉE ✅
 // ==========================================
 
 export const useGoalStore = defineStore('goal', () => {
@@ -67,6 +68,43 @@ export const useGoalStore = defineStore('goal', () => {
   const validationErrors = ref<Record<string, string[]>>({})
 
   // ==========================================
+  // 🔐 AUTH GUARD HELPER
+  // ==========================================
+
+  /**
+   * Vérifier que l'utilisateur est authentifié avant un appel API
+   */
+  async function ensureAuthenticated(): Promise<boolean> {
+    const authStore = useAuthStore()
+
+    // 1️⃣ Attendre l'initialisation de l'auth
+    if (!authStore.isInitialized) {
+      console.log('⏳ [Goals] Attente initialisation auth...')
+
+      let attempts = 0
+      const maxAttempts = 30 // 3 secondes max
+
+      while (!authStore.isInitialized && attempts < maxAttempts) {
+        await new Promise((r) => setTimeout(r, 100))
+        attempts++
+      }
+
+      if (!authStore.isInitialized) {
+        console.error('❌ [Goals] Auth non initialisée après timeout')
+        return false
+      }
+    }
+
+    // 2️⃣ Vérifier l'authentification
+    if (!authStore.isAuthenticated) {
+      console.warn('⚠️ [Goals] Utilisateur non authentifié')
+      return false
+    }
+
+    return true
+  }
+
+  // ==========================================
   // GETTERS
   // ==========================================
 
@@ -74,21 +112,21 @@ export const useGoalStore = defineStore('goal', () => {
    * Objectifs actifs
    */
   const activeGoals = computed(() => {
-    return goals.value.filter(goal => goal.status === 'active')
+    return goals.value.filter((goal) => goal.status === 'active')
   })
 
   /**
    * Objectifs terminés
    */
   const completedGoals = computed(() => {
-    return goals.value.filter(goal => goal.status === 'completed')
+    return goals.value.filter((goal) => goal.status === 'completed')
   })
 
   /**
    * Objectifs en pause
    */
   const pausedGoals = computed(() => {
-    return goals.value.filter(goal => goal.status === 'paused')
+    return goals.value.filter((goal) => goal.status === 'paused')
   })
 
   /**
@@ -118,63 +156,67 @@ export const useGoalStore = defineStore('goal', () => {
    * Nombre d'objectifs sur la bonne voie
    */
   const goalsOnTrack = computed(() => {
-    return activeGoals.value.filter(goal => {
+    return activeGoals.value.filter((goal) => {
       const progress = (goal.current_amount / goal.target_amount) * 100
       const daysRemaining = Math.ceil(
-        (new Date(goal.target_date).getTime() - new Date().getTime()) /
-        (1000 * 60 * 60 * 24)
+        (new Date(goal.target_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
       )
-      const expectedProgress = daysRemaining > 0
-        ? 100 - (daysRemaining / 365) * 100
-        : 100
+      const expectedProgress = daysRemaining > 0 ? 100 - (daysRemaining / 365) * 100 : 100
 
       return progress >= expectedProgress * 0.8
     }).length
   })
 
   // ==========================================
-  // ACTIONS
+  // ACTIONS - AVEC AUTH GUARD
   // ==========================================
 
   /**
    * Récupérer tous les objectifs
+   * 🔐 Protégé par auth guard
    */
   async function fetchGoals(): Promise<void> {
-    if (loading.value) return
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Goals] fetchGoals annulé - utilisateur non authentifié')
+      error.value = 'Authentification requise'
+      return
+    }
+
+    if (loading.value) {
+      console.log('⏳ [Goals] Chargement déjà en cours, ignoré')
+      return
+    }
 
     loading.value = true
     error.value = null
 
     try {
-      console.log('🎯 Chargement des objectifs...')
+      console.log('🎯 [Goals] Chargement des objectifs...')
 
       const response = await api.get<any>('/financial-goals')
 
-      // ✅ Vérification complète de la réponse
       if (!response) {
-        console.warn('⚠️ Aucune réponse de l\'API')
+        console.warn("⚠️ [Goals] Aucune réponse de l'API")
         goals.value = []
         return
       }
 
       if (response.success && response.data) {
         // Gérer les deux formats possibles
-        const goalsData = Array.isArray(response.data)
-          ? response.data
-          : response.data.data || []
+        const goalsData = Array.isArray(response.data) ? response.data : response.data.data || []
 
         goals.value = goalsData
-        console.log('✅ Objectifs chargés:', goals.value.length)
+        console.log('✅ [Goals] Objectifs chargés:', goals.value.length)
       } else {
-        console.warn('⚠️ API returned no data')
+        console.warn('⚠️ [Goals] API returned no data')
         goals.value = []
       }
-
     } catch (err: any) {
-      console.error('❌ Erreur chargement objectifs:', err)
+      console.error('❌ [Goals] Erreur chargement objectifs:', err)
       error.value = err.message || 'Erreur lors du chargement des objectifs'
-      goals.value = [] // ✅ Toujours initialiser
-
+      goals.value = []
     } finally {
       loading.value = false
     }
@@ -182,15 +224,23 @@ export const useGoalStore = defineStore('goal', () => {
 
   /**
    * Récupérer un objectif par son ID
+   * 🔐 Protégé par auth guard
    */
   async function fetchGoal(goalId: number): Promise<FinancialGoal | null> {
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Goals] fetchGoal annulé - utilisateur non authentifié')
+      return null
+    }
+
     try {
-      console.log('🎯 Chargement objectif:', goalId)
+      console.log('🎯 [Goals] Chargement objectif:', goalId)
 
       const response = await api.get<FinancialGoal>(`/financial-goals/${goalId}`)
 
       if (!response) {
-        throw new Error('Aucune réponse de l\'API')
+        throw new Error("Aucune réponse de l'API")
       }
 
       if (response.success && response.data) {
@@ -199,9 +249,8 @@ export const useGoalStore = defineStore('goal', () => {
       }
 
       return null
-
     } catch (err: any) {
-      console.error('❌ Erreur chargement objectif:', err)
+      console.error('❌ [Goals] Erreur chargement objectif:', err)
       error.value = err.message
       return null
     }
@@ -209,24 +258,33 @@ export const useGoalStore = defineStore('goal', () => {
 
   /**
    * Créer un nouvel objectif
+   * 🔐 Protégé par auth guard
    */
   async function createGoal(data: CreateGoalData): Promise<boolean> {
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Goals] createGoal annulé - utilisateur non authentifié')
+      error.value = 'Authentification requise'
+      return false
+    }
+
     creating.value = true
     error.value = null
     validationErrors.value = {}
 
     try {
-      console.log('📝 Création objectif:', data)
+      console.log('📝 [Goals] Création objectif:', data)
 
       const response = await api.post<FinancialGoal>('/financial-goals', data)
 
       if (!response) {
-        throw new Error('Aucune réponse de l\'API')
+        throw new Error("Aucune réponse de l'API")
       }
 
       if (response.success && response.data) {
         goals.value.push(response.data)
-        console.log('✅ Objectif créé:', response.data)
+        console.log('✅ [Goals] Objectif créé:', response.data)
         return true
       }
 
@@ -236,19 +294,17 @@ export const useGoalStore = defineStore('goal', () => {
 
       error.value = response.message || 'Erreur lors de la création'
       return false
-
     } catch (err: any) {
-      console.error('❌ Erreur création objectif:', err)
+      console.error('❌ [Goals] Erreur création objectif:', err)
 
       if (err.response?.status === 422 && err.response?.data?.errors) {
         validationErrors.value = err.response.data.errors
         error.value = 'Erreur de validation'
       } else {
-        error.value = err.message || 'Erreur lors de la création de l\'objectif'
+        error.value = err.message || "Erreur lors de la création de l'objectif"
       }
 
       return false
-
     } finally {
       creating.value = false
     }
@@ -256,29 +312,32 @@ export const useGoalStore = defineStore('goal', () => {
 
   /**
    * Mettre à jour un objectif
+   * 🔐 Protégé par auth guard
    */
-  async function updateGoal(
-    goalId: number,
-    data: UpdateGoalData
-  ): Promise<boolean> {
+  async function updateGoal(goalId: number, data: UpdateGoalData): Promise<boolean> {
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Goals] updateGoal annulé - utilisateur non authentifié')
+      error.value = 'Authentification requise'
+      return false
+    }
+
     updating.value = true
     error.value = null
     validationErrors.value = {}
 
     try {
-      console.log('✏️ Mise à jour objectif:', goalId, data)
+      console.log('✏️ [Goals] Mise à jour objectif:', goalId, data)
 
-      const response = await api.put<FinancialGoal>(
-        `/financial-goals/${goalId}`,
-        data
-      )
+      const response = await api.put<FinancialGoal>(`/financial-goals/${goalId}`, data)
 
       if (!response) {
-        throw new Error('Aucune réponse de l\'API')
+        throw new Error("Aucune réponse de l'API")
       }
 
       if (response.success && response.data) {
-        const index = goals.value.findIndex(g => g.id === goalId)
+        const index = goals.value.findIndex((g) => g.id === goalId)
         if (index !== -1) {
           goals.value[index] = response.data
         }
@@ -287,7 +346,7 @@ export const useGoalStore = defineStore('goal', () => {
           currentGoal.value = response.data
         }
 
-        console.log('✅ Objectif mis à jour')
+        console.log('✅ [Goals] Objectif mis à jour')
         return true
       }
 
@@ -297,9 +356,8 @@ export const useGoalStore = defineStore('goal', () => {
 
       error.value = response.message || 'Erreur lors de la mise à jour'
       return false
-
     } catch (err: any) {
-      console.error('❌ Erreur mise à jour objectif:', err)
+      console.error('❌ [Goals] Erreur mise à jour objectif:', err)
 
       if (err.response?.status === 422 && err.response?.data?.errors) {
         validationErrors.value = err.response.data.errors
@@ -309,7 +367,6 @@ export const useGoalStore = defineStore('goal', () => {
       }
 
       return false
-
     } finally {
       updating.value = false
     }
@@ -317,39 +374,46 @@ export const useGoalStore = defineStore('goal', () => {
 
   /**
    * Supprimer un objectif
+   * 🔐 Protégé par auth guard
    */
   async function deleteGoal(goalId: number): Promise<boolean> {
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Goals] deleteGoal annulé - utilisateur non authentifié')
+      error.value = 'Authentification requise'
+      return false
+    }
+
     deleting.value = true
     error.value = null
 
     try {
-      console.log('🗑️ Suppression objectif:', goalId)
+      console.log('🗑️ [Goals] Suppression objectif:', goalId)
 
       const response = await api.delete(`/financial-goals/${goalId}`)
 
       if (!response) {
-        throw new Error('Aucune réponse de l\'API')
+        throw new Error("Aucune réponse de l'API")
       }
 
       if (response.success) {
-        goals.value = goals.value.filter(g => g.id !== goalId)
+        goals.value = goals.value.filter((g) => g.id !== goalId)
 
         if (currentGoal.value?.id === goalId) {
           currentGoal.value = null
         }
 
-        console.log('✅ Objectif supprimé')
+        console.log('✅ [Goals] Objectif supprimé')
         return true
       }
 
       error.value = response.message || 'Erreur lors de la suppression'
       return false
-
     } catch (err: any) {
-      console.error('❌ Erreur suppression objectif:', err)
+      console.error('❌ [Goals] Erreur suppression objectif:', err)
       error.value = err.message || 'Erreur lors de la suppression'
       return false
-
     } finally {
       deleting.value = false
     }
@@ -357,66 +421,74 @@ export const useGoalStore = defineStore('goal', () => {
 
   /**
    * Ajouter une contribution à un objectif
+   * 🔐 Protégé par auth guard
    */
   async function addContribution(
     goalId: number,
-    data: { amount: number; description?: string }
+    data: { amount: number; description?: string },
   ): Promise<boolean> {
-    try {
-      console.log('💰 Ajout contribution:', { goalId, ...data })
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Goals] addContribution annulé - utilisateur non authentifié')
+      error.value = 'Authentification requise'
+      return false
+    }
 
-      const response = await api.post(
-        `/financial-goals/${goalId}/contributions`,
-        data
-      )
+    try {
+      console.log('💰 [Goals] Ajout contribution:', { goalId, ...data })
+
+      const response = await api.post(`/financial-goals/${goalId}/contributions`, data)
 
       if (!response) {
-        throw new Error('Aucune réponse de l\'API')
+        throw new Error("Aucune réponse de l'API")
       }
 
       if (response.success) {
         // Recharger les objectifs pour avoir les montants à jour
         await fetchGoals()
-        console.log('✅ Contribution ajoutée')
+        console.log('✅ [Goals] Contribution ajoutée')
         return true
       }
 
-      error.value = response.message || 'Erreur lors de l\'ajout'
+      error.value = response.message || "Erreur lors de l'ajout"
       return false
-
     } catch (err: any) {
-      console.error('❌ Erreur ajout contribution:', err)
-      error.value = err.message || 'Erreur lors de l\'ajout de la contribution'
+      console.error('❌ [Goals] Erreur ajout contribution:', err)
+      error.value = err.message || "Erreur lors de l'ajout de la contribution"
       return false
     }
   }
 
   /**
    * Récupérer les contributions d'un objectif
+   * 🔐 Protégé par auth guard
    */
   async function fetchContributions(goalId: number): Promise<void> {
-    try {
-      console.log('💰 Chargement contributions:', goalId)
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Goals] fetchContributions annulé - utilisateur non authentifié')
+      return
+    }
 
-      const response = await api.get<GoalContribution[]>(
-        `/financial-goals/${goalId}/contributions`
-      )
+    try {
+      console.log('💰 [Goals] Chargement contributions:', goalId)
+
+      const response = await api.get<GoalContribution[]>(`/financial-goals/${goalId}/contributions`)
 
       if (!response) {
-        throw new Error('Aucune réponse de l\'API')
+        throw new Error("Aucune réponse de l'API")
       }
 
       if (response.success && response.data) {
-        contributions.value = Array.isArray(response.data)
-          ? response.data
-          : []
-        console.log('✅ Contributions chargées:', contributions.value.length)
+        contributions.value = Array.isArray(response.data) ? response.data : []
+        console.log('✅ [Goals] Contributions chargées:', contributions.value.length)
       } else {
         contributions.value = []
       }
-
     } catch (err: any) {
-      console.error('❌ Erreur chargement contributions:', err)
+      console.error('❌ [Goals] Erreur chargement contributions:', err)
       contributions.value = []
     }
   }
@@ -426,7 +498,7 @@ export const useGoalStore = defineStore('goal', () => {
    */
   async function changeStatus(
     goalId: number,
-    status: 'active' | 'completed' | 'paused'
+    status: 'active' | 'completed' | 'paused',
   ): Promise<boolean> {
     return updateGoal(goalId, { status })
   }
@@ -465,10 +537,11 @@ export const useGoalStore = defineStore('goal', () => {
     deleting.value = false
     error.value = null
     validationErrors.value = {}
+    console.log('🔄 [Goals] Store réinitialisé')
   }
 
   // ==========================================
-  // RETURN - ✅ EXPOSER TOUTES LES VARIABLES
+  // RETURN
   // ==========================================
 
   return {
@@ -504,12 +577,8 @@ export const useGoalStore = defineStore('goal', () => {
     completeGoal,
     pauseGoal,
     resumeGoal,
-    $reset
+    $reset,
   }
 })
-
-// ==========================================
-// EXPORT DEFAULT - Pour compatibilité
-// ==========================================
 
 export default useGoalStore

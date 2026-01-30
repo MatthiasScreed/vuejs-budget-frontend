@@ -1,10 +1,12 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { categoryService } from '@/services/categoryService'
+import { useAuthGuard } from '@/composables/useAuthGuard'
 import type { Category, CreateCategoryData, UpdateCategoryData } from '@/types/entities/category'
 import type { ApiResponse } from '@/types/base'
 
 export const useCategoryStore = defineStore('category', () => {
+  const { ensureAuthenticated } = useAuthGuard()
 
   // ==========================================
   // STATE
@@ -35,7 +37,7 @@ export const useCategoryStore = defineStore('category', () => {
       is_template: true,
       user_customized: false,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     },
     {
       id: 'transport',
@@ -46,7 +48,7 @@ export const useCategoryStore = defineStore('category', () => {
       is_template: true,
       user_customized: false,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     },
     {
       id: 'entertainment',
@@ -57,7 +59,7 @@ export const useCategoryStore = defineStore('category', () => {
       is_template: true,
       user_customized: false,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     },
     {
       id: 'salary',
@@ -68,8 +70,8 @@ export const useCategoryStore = defineStore('category', () => {
       is_template: true,
       user_customized: false,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
+      updated_at: new Date().toISOString(),
+    },
   ])
 
   // ==========================================
@@ -79,41 +81,31 @@ export const useCategoryStore = defineStore('category', () => {
   /**
    * Catégories par type
    */
-  const incomeCategories = computed(() =>
-    categories.value.filter(c => c.type === 'income')
-  )
+  const incomeCategories = computed(() => categories.value.filter((c) => c.type === 'income'))
 
-  const expenseCategories = computed(() =>
-    categories.value.filter(c => c.type === 'expense')
-  )
+  const expenseCategories = computed(() => categories.value.filter((c) => c.type === 'expense'))
 
-  const transferCategories = computed(() =>
-    categories.value.filter(c => c.type === 'transfer')
-  )
+  const transferCategories = computed(() => categories.value.filter((c) => c.type === 'transfer'))
 
   /**
    * Catégories personnalisées par l'utilisateur
    */
-  const customCategories = computed(() =>
-    categories.value.filter(c => c.user_customized)
-  )
+  const customCategories = computed(() => categories.value.filter((c) => c.user_customized))
 
   /**
    * Catégories templates
    */
-  const templateCategories = computed(() =>
-    categories.value.filter(c => c.is_template)
-  )
+  const templateCategories = computed(() => categories.value.filter((c) => c.is_template))
 
   /**
    * Hiérarchie des catégories (parents/enfants)
    */
   const categoryHierarchy = computed(() => {
-    const parentCategories = categories.value.filter(c => !c.parent_id)
+    const parentCategories = categories.value.filter((c) => !c.parent_id)
 
-    return parentCategories.map(parent => ({
+    return parentCategories.map((parent) => ({
       ...parent,
-      children: categories.value.filter(c => c.parent_id === parent.id)
+      children: categories.value.filter((c) => c.parent_id === parent.id),
     }))
   })
 
@@ -122,7 +114,7 @@ export const useCategoryStore = defineStore('category', () => {
    */
   const popularCategories = computed(() => {
     return categories.value
-      .filter(c => c.usage_count && c.usage_count > 0)
+      .filter((c) => c.usage_count && c.usage_count > 0)
       .sort((a, b) => (b.usage_count || 0) - (a.usage_count || 0))
       .slice(0, 5)
   })
@@ -137,7 +129,7 @@ export const useCategoryStore = defineStore('category', () => {
       expense: expenseCategories.value.length,
       transfer: transferCategories.value.length,
       custom: customCategories.value.length,
-      templates: templateCategories.value.length
+      templates: templateCategories.value.length,
     }
   })
 
@@ -146,9 +138,18 @@ export const useCategoryStore = defineStore('category', () => {
   // ==========================================
 
   /**
-   * Charger toutes les catégories
+   * ✅ Charger toutes les catégories
    */
   async function fetchCategories(): Promise<void> {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip fetchCategories: utilisateur non authentifié')
+      // Fallback sur les catégories par défaut
+      categories.value = defaultCategories.value
+      return
+    }
+
     loading.value = true
     error.value = null
 
@@ -172,9 +173,17 @@ export const useCategoryStore = defineStore('category', () => {
   }
 
   /**
-   * Charger les templates de catégories
+   * ✅ Charger les templates de catégories
    */
   async function fetchTemplates(): Promise<void> {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip fetchTemplates: utilisateur non authentifié')
+      templates.value = defaultCategories.value
+      return
+    }
+
     try {
       const response = await categoryService.getTemplates()
 
@@ -188,9 +197,16 @@ export const useCategoryStore = defineStore('category', () => {
   }
 
   /**
-   * Créer une nouvelle catégorie
+   * ✅ Créer une nouvelle catégorie
    */
   async function createCategory(data: CreateCategoryData): Promise<boolean> {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip createCategory: utilisateur non authentifié')
+      return false
+    }
+
     creating.value = true
     error.value = null
     validationErrors.value = {}
@@ -217,9 +233,16 @@ export const useCategoryStore = defineStore('category', () => {
   }
 
   /**
-   * Mettre à jour une catégorie
+   * ✅ Mettre à jour une catégorie
    */
   async function updateCategory(id: string, data: UpdateCategoryData): Promise<boolean> {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip updateCategory: utilisateur non authentifié')
+      return false
+    }
+
     updating.value = true
     error.value = null
     validationErrors.value = {}
@@ -228,7 +251,7 @@ export const useCategoryStore = defineStore('category', () => {
       const response = await categoryService.updateCategory(id, data)
 
       if (response.success) {
-        const index = categories.value.findIndex(c => c.id === id)
+        const index = categories.value.findIndex((c) => c.id === id)
         if (index !== -1) {
           categories.value[index] = response.data
         }
@@ -254,9 +277,16 @@ export const useCategoryStore = defineStore('category', () => {
   }
 
   /**
-   * Supprimer une catégorie
+   * ✅ Supprimer une catégorie
    */
   async function deleteCategory(id: string): Promise<boolean> {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip deleteCategory: utilisateur non authentifié')
+      return false
+    }
+
     deleting.value = true
     error.value = null
 
@@ -264,7 +294,7 @@ export const useCategoryStore = defineStore('category', () => {
       const response = await categoryService.deleteCategory(id)
 
       if (response.success) {
-        categories.value = categories.value.filter(c => c.id !== id)
+        categories.value = categories.value.filter((c) => c.id !== id)
 
         if (currentCategory.value?.id === id) {
           currentCategory.value = null
@@ -285,9 +315,13 @@ export const useCategoryStore = defineStore('category', () => {
 
   /**
    * Créer une catégorie depuis un template
+   * Note: Hérite de la vérification auth via createCategory()
    */
-  async function createFromTemplate(templateId: string, customizations?: Partial<CreateCategoryData>): Promise<boolean> {
-    const template = templates.value.find(t => t.id === templateId)
+  async function createFromTemplate(
+    templateId: string,
+    customizations?: Partial<CreateCategoryData>,
+  ): Promise<boolean> {
+    const template = templates.value.find((t) => t.id === templateId)
     if (!template) {
       error.value = 'Template non trouvé'
       return false
@@ -299,46 +333,47 @@ export const useCategoryStore = defineStore('category', () => {
       color: template.color,
       type: template.type,
       parent_id: template.parent_id,
-      ...customizations
+      ...customizations,
     }
 
     return createCategory(categoryData)
   }
 
   /**
-   * Rechercher des catégories
+   * Rechercher des catégories (local)
    */
   function searchCategories(query: string): Category[] {
     const lowerQuery = query.toLowerCase()
-    return categories.value.filter(category =>
-      category.name.toLowerCase().includes(lowerQuery) ||
-      (category.description && category.description.toLowerCase().includes(lowerQuery))
+    return categories.value.filter(
+      (category) =>
+        category.name.toLowerCase().includes(lowerQuery) ||
+        (category.description && category.description.toLowerCase().includes(lowerQuery)),
     )
   }
 
   /**
-   * Obtenir une catégorie par ID
+   * Obtenir une catégorie par ID (local)
    */
   function getCategoryById(id: string): Category | null {
-    return categories.value.find(c => c.id === id) || null
+    return categories.value.find((c) => c.id === id) || null
   }
 
   /**
-   * Obtenir les catégories enfants
+   * Obtenir les catégories enfants (local)
    */
   function getChildCategories(parentId: string): Category[] {
-    return categories.value.filter(c => c.parent_id === parentId)
+    return categories.value.filter((c) => c.parent_id === parentId)
   }
 
   /**
-   * Vérifier si une catégorie a des enfants
+   * Vérifier si une catégorie a des enfants (local)
    */
   function hasChildren(categoryId: string): boolean {
-    return categories.value.some(c => c.parent_id === categoryId)
+    return categories.value.some((c) => c.parent_id === categoryId)
   }
 
   /**
-   * Obtenir le chemin complet d'une catégorie (parent > enfant)
+   * Obtenir le chemin complet d'une catégorie (local)
    */
   function getCategoryPath(categoryId: string): string {
     const category = getCategoryById(categoryId)
@@ -353,7 +388,7 @@ export const useCategoryStore = defineStore('category', () => {
   }
 
   /**
-   * Initialiser avec les catégories par défaut
+   * Initialiser avec les catégories par défaut (local)
    */
   async function initializeDefaults(): Promise<void> {
     if (categories.value.length === 0) {
@@ -362,7 +397,7 @@ export const useCategoryStore = defineStore('category', () => {
   }
 
   /**
-   * Nettoyer les erreurs
+   * Nettoyer les erreurs (local)
    */
   function clearErrors(): void {
     error.value = null
@@ -370,7 +405,7 @@ export const useCategoryStore = defineStore('category', () => {
   }
 
   /**
-   * Réinitialiser le store
+   * Réinitialiser le store (local)
    */
   function $reset(): void {
     categories.value = []
@@ -425,6 +460,6 @@ export const useCategoryStore = defineStore('category', () => {
     getCategoryPath,
     initializeDefaults,
     clearErrors,
-    $reset
+    $reset,
   }
 })

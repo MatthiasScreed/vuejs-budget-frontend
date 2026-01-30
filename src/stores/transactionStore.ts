@@ -4,18 +4,20 @@ import { useApi } from '@/composables/core/useApi'
 import { useErrorHandler } from '@/composables/core/useErrorHandler'
 import { useCache } from '@/composables/core/useCache'
 import { eventBus } from '@/services/eventBus'
+import { useAuthGuard } from '@/composables/useAuthGuard'
 import type {
   Transaction,
   CreateTransactionData,
   UpdateTransactionData,
   TransactionFilters,
   TransactionStats,
-  PaginatedTransactions
+  PaginatedTransactions,
 } from '@/types/base'
 
 export const useTransactionStore = defineStore('transaction', () => {
   const { get, post, put, delete: del } = useApi()
   const { handleApiError } = useErrorHandler()
+  const { ensureAuthenticated } = useAuthGuard()
   const { remember, invalidateByTag } = useCache()
 
   // ==========================================
@@ -34,12 +36,12 @@ export const useTransactionStore = defineStore('transaction', () => {
     last_page: 1,
     from: 0,
     to: 0,
-    has_more_pages: false
+    has_more_pages: false,
   })
 
   const filters = ref<TransactionFilters>({
     per_page: 15,
-    page: 1
+    page: 1,
   })
 
   const loading = ref(false)
@@ -54,39 +56,34 @@ export const useTransactionStore = defineStore('transaction', () => {
   // GETTERS
   // ==========================================
 
-  const incomeTransactions = computed(() =>
-    transactions.value.filter(t => t.type === 'income')
-  )
+  const incomeTransactions = computed(() => transactions.value.filter((t) => t.type === 'income'))
 
-  const expenseTransactions = computed(() =>
-    transactions.value.filter(t => t.type === 'expense')
-  )
+  const expenseTransactions = computed(() => transactions.value.filter((t) => t.type === 'expense'))
 
   const recentTransactions = computed(() =>
     transactions.value
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, 10)
+      .slice(0, 10),
   )
 
-  // ✅ CORRECTION : Forcer la conversion en nombre
   const totalIncome = computed(() =>
     incomeTransactions.value.reduce((sum, t) => {
       const amount = Number(t.amount) || 0
       return sum + amount
-    }, 0)
+    }, 0),
   )
 
   const totalExpenses = computed(() =>
     expenseTransactions.value.reduce((sum, t) => {
       const amount = Number(t.amount) || 0
       return sum + amount
-    }, 0)
+    }, 0),
   )
 
   const balance = computed(() => totalIncome.value - totalExpenses.value)
 
-  const isLoading = computed(() =>
-    loading.value || creating.value || updating.value || deleting.value || syncing.value
+  const isLoading = computed(
+    () => loading.value || creating.value || updating.value || deleting.value || syncing.value,
   )
 
   const hasTransactions = computed(() => transactions.value.length > 0)
@@ -101,13 +98,18 @@ export const useTransactionStore = defineStore('transaction', () => {
    * 🏦 Récupérer les transactions d'une connexion bancaire
    */
   async function fetchBankTransactions(connectionId: number) {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip fetchBankTransactions: utilisateur non authentifié')
+      return null
+    }
+
     syncing.value = true
     error.value = null
 
     try {
-      const response = await get<any>(
-        `/bank/connections/${connectionId}/transactions`
-      )
+      const response = await get<any>(`/bank/connections/${connectionId}/transactions`)
 
       if (!response.success) {
         throw new Error(response.message || 'Erreur récupération transactions bancaires')
@@ -117,9 +119,7 @@ export const useTransactionStore = defineStore('transaction', () => {
 
       // Éviter les doublons
       bankTransactions.forEach((bankTx: any) => {
-        const exists = transactions.value.some(
-          t => t.bank_transaction_id === bankTx.id
-        )
+        const exists = transactions.value.some((t) => t.bank_transaction_id === bankTx.id)
 
         if (!exists) {
           transactions.value.push(bankTx)
@@ -143,6 +143,13 @@ export const useTransactionStore = defineStore('transaction', () => {
    * 🔄 Synchroniser toutes les connexions bancaires
    */
   async function syncAllBankConnections() {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip syncAllBankConnections: utilisateur non authentifié')
+      return null
+    }
+
     syncing.value = true
 
     try {
@@ -170,6 +177,14 @@ export const useTransactionStore = defineStore('transaction', () => {
    * ⏳ Récupérer les transactions en attente
    */
   async function fetchPendingTransactions() {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip fetchPendingTransactions: utilisateur non authentifié')
+      pendingTransactions.value = []
+      return []
+    }
+
     loading.value = true
 
     try {
@@ -182,6 +197,8 @@ export const useTransactionStore = defineStore('transaction', () => {
       return pendingTransactions.value
     } catch (err: any) {
       await handleApiError(err, 'fetch_pending_transactions')
+      pendingTransactions.value = []
+      return []
     } finally {
       loading.value = false
     }
@@ -192,25 +209,29 @@ export const useTransactionStore = defineStore('transaction', () => {
    */
   async function categorizeTransaction(
     transactionId: number,
-    categoryId: number
+    categoryId: number,
   ): Promise<boolean> {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip categorizeTransaction: utilisateur non authentifié')
+      return false
+    }
+
     updating.value = true
 
     try {
-      const response = await put<Transaction>(
-        `/transactions/${transactionId}/categorize`,
-        { category_id: categoryId }
-      )
+      const response = await put<Transaction>(`/transactions/${transactionId}/categorize`, {
+        category_id: categoryId,
+      })
 
       if (response.success && response.data) {
-        const index = transactions.value.findIndex(t => t.id === transactionId)
+        const index = transactions.value.findIndex((t) => t.id === transactionId)
         if (index !== -1) {
           transactions.value[index] = response.data
         }
 
-        pendingTransactions.value = pendingTransactions.value.filter(
-          t => t.id !== transactionId
-        )
+        pendingTransactions.value = pendingTransactions.value.filter((t) => t.id !== transactionId)
 
         invalidateByTag('transactions')
         eventBus.emit('transaction:categorized', response.data)
@@ -232,6 +253,13 @@ export const useTransactionStore = defineStore('transaction', () => {
    * 🤖 Catégorisation automatique (IA)
    */
   async function autoCategorize(transactionId?: number) {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip autoCategorize: utilisateur non authentifié')
+      return null
+    }
+
     updating.value = true
 
     try {
@@ -264,9 +292,16 @@ export const useTransactionStore = defineStore('transaction', () => {
   // ==========================================
 
   /**
-   * ✅ CORRIGÉ : Charger les transactions avec le BON format d'API
+   * ✅ Charger les transactions avec vérification auth
    */
   async function fetchTransactions(newFilters: TransactionFilters = {}) {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip fetchTransactions: utilisateur non authentifié')
+      return
+    }
+
     loading.value = true
     error.value = null
 
@@ -274,33 +309,22 @@ export const useTransactionStore = defineStore('transaction', () => {
       const mergedFilters = { ...filters.value, ...newFilters }
       filters.value = mergedFilters
 
-      console.log('📡 [STORE] Fetching transactions avec filtres:', mergedFilters)
+      console.log('📡 Fetching transactions...')
 
       const response = await get<any>('/transactions', {
-        params: mergedFilters
+        params: mergedFilters,
       })
-
-      console.log('📦 [STORE] Response brute:', response)
 
       if (!response.success) {
         throw new Error(response.message || 'Erreur chargement transactions')
       }
 
-      // ✅ CORRECTION : L'API Laravel retourne { success, data: [], meta: {} }
-      // Donc response.data est DIRECTEMENT l'array de transactions
-      // Et response.meta contient la pagination
-
       if (Array.isArray(response.data)) {
-        // ✅ Format correct: { success, data: [...], meta: {...} }
-        console.log('✅ [STORE] Format détecté: data direct array')
-
-        // Forcer la conversion des montants en nombre
         transactions.value = response.data.map((t: any) => ({
           ...t,
-          amount: Number(t.amount) || 0
+          amount: Number(t.amount) || 0,
         }))
 
-        // La pagination est au même niveau que data
         if (response.meta) {
           pagination.value = {
             current_page: response.meta.current_page || 1,
@@ -309,35 +333,26 @@ export const useTransactionStore = defineStore('transaction', () => {
             last_page: response.meta.last_page || 1,
             from: response.meta.from || 0,
             to: response.meta.to || 0,
-            has_more_pages: response.meta.has_more_pages || false
+            has_more_pages: response.meta.has_more_pages || false,
           }
         }
       } else if (response.data?.data) {
-        // Format alternatif: { success, data: { data: [...], meta: {...} } }
-        console.log('⚠️ [STORE] Format détecté: data.data nested')
-
         transactions.value = response.data.data.map((t: any) => ({
           ...t,
-          amount: Number(t.amount) || 0
+          amount: Number(t.amount) || 0,
         }))
 
         if (response.data.meta) {
           pagination.value = response.data.meta
         }
       } else {
-        console.warn('⚠️ [STORE] Format inattendu, utilisation fallback')
+        console.warn('⚠️ Format inattendu')
         transactions.value = []
       }
 
-      console.log('✅ [STORE] Transactions chargées:', transactions.value.length)
-      console.log('📄 [STORE] Pagination:', pagination.value)
-
-      if (transactions.value.length > 0) {
-        console.log('🔍 [STORE] Premier élément:', transactions.value[0])
-      }
-
+      console.log('✅ Transactions chargées:', transactions.value.length)
     } catch (err: any) {
-      console.error('❌ [STORE] Erreur fetchTransactions:', err)
+      console.error('❌ Erreur fetchTransactions:', err)
       await handleApiError(err, 'fetch_transactions')
       error.value = err.message
       transactions.value = []
@@ -347,9 +362,16 @@ export const useTransactionStore = defineStore('transaction', () => {
   }
 
   /**
-   * Créer une nouvelle transaction
+   * ✅ Créer une nouvelle transaction
    */
   async function createTransaction(data: CreateTransactionData): Promise<boolean> {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip createTransaction: utilisateur non authentifié')
+      return false
+    }
+
     creating.value = true
     error.value = null
     validationErrors.value = {}
@@ -358,10 +380,9 @@ export const useTransactionStore = defineStore('transaction', () => {
       const response = await post<Transaction>('/transactions', data)
 
       if (response.success && response.data) {
-        // Forcer la conversion du montant
         const newTransaction = {
           ...response.data,
-          amount: Number(response.data.amount) || 0
+          amount: Number(response.data.amount) || 0,
         }
 
         transactions.value.unshift(newTransaction)
@@ -394,12 +415,16 @@ export const useTransactionStore = defineStore('transaction', () => {
   }
 
   /**
-   * Mettre à jour une transaction
+   * ✅ Mettre à jour une transaction
    */
-  async function updateTransaction(
-    id: number,
-    data: UpdateTransactionData
-  ): Promise<boolean> {
+  async function updateTransaction(id: number, data: UpdateTransactionData): Promise<boolean> {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip updateTransaction: utilisateur non authentifié')
+      return false
+    }
+
     updating.value = true
     error.value = null
     validationErrors.value = {}
@@ -410,10 +435,10 @@ export const useTransactionStore = defineStore('transaction', () => {
       if (response.success && response.data) {
         const updatedTransaction = {
           ...response.data,
-          amount: Number(response.data.amount) || 0
+          amount: Number(response.data.amount) || 0,
         }
 
-        const index = transactions.value.findIndex(t => t.id === id)
+        const index = transactions.value.findIndex((t) => t.id === id)
         if (index !== -1) {
           transactions.value[index] = updatedTransaction
         }
@@ -448,9 +473,16 @@ export const useTransactionStore = defineStore('transaction', () => {
   }
 
   /**
-   * Supprimer une transaction
+   * ✅ Supprimer une transaction
    */
   async function deleteTransaction(id: number): Promise<boolean> {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip deleteTransaction: utilisateur non authentifié')
+      return false
+    }
+
     deleting.value = true
     error.value = null
 
@@ -458,7 +490,7 @@ export const useTransactionStore = defineStore('transaction', () => {
       const response = await del(`/transactions/${id}`)
 
       if (response.success) {
-        transactions.value = transactions.value.filter(t => t.id !== id)
+        transactions.value = transactions.value.filter((t) => t.id !== id)
 
         if (currentTransaction.value?.id === id) {
           currentTransaction.value = null
@@ -485,19 +517,27 @@ export const useTransactionStore = defineStore('transaction', () => {
   }
 
   /**
-   * ✅ CORRIGÉ : Charger les statistiques
+   * ✅ Charger les statistiques
    */
   async function fetchStats() {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip fetchStats: utilisateur non authentifié')
+      stats.value = null
+      return
+    }
+
     try {
       const response = await get<any>('/transactions/stats')
 
       if (response.success && response.data) {
-        console.log('📊 [STORE] Stats API:', response.data)
+        console.log('📊 Stats API:', response.data)
         stats.value = response.data
         return
       }
     } catch (err: any) {
-      console.warn('⚠️ [STORE] Stats API failed, calcul local:', err.message)
+      console.warn('⚠️ Stats API failed, calcul local:', err.message)
     }
 
     // Fallback : calculer localement
@@ -505,17 +545,17 @@ export const useTransactionStore = defineStore('transaction', () => {
     const currentMonth = now.getMonth()
     const currentYear = now.getFullYear()
 
-    const monthlyTransactions = transactions.value.filter(t => {
+    const monthlyTransactions = transactions.value.filter((t) => {
       const date = new Date(t.transaction_date)
       return date.getMonth() === currentMonth && date.getFullYear() === currentYear
     })
 
     const monthlyIncome = monthlyTransactions
-      .filter(t => t.type === 'income')
+      .filter((t) => t.type === 'income')
       .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
 
     const monthlyExpenses = monthlyTransactions
-      .filter(t => t.type === 'expense')
+      .filter((t) => t.type === 'expense')
       .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
 
     stats.value = {
@@ -525,16 +565,23 @@ export const useTransactionStore = defineStore('transaction', () => {
       balance: balance.value,
       monthly_income: monthlyIncome,
       monthly_expenses: monthlyExpenses,
-      calculated_locally: true
+      calculated_locally: true,
     }
 
-    console.log('✅ [STORE] Stats calculées localement:', stats.value)
+    console.log('✅ Stats calculées localement:', stats.value)
   }
 
   /**
-   * Charger une transaction spécifique
+   * ✅ Charger une transaction spécifique
    */
   async function fetchTransaction(id: number) {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip fetchTransaction: utilisateur non authentifié')
+      return
+    }
+
     loading.value = true
 
     try {
@@ -543,7 +590,7 @@ export const useTransactionStore = defineStore('transaction', () => {
       if (response.success) {
         currentTransaction.value = {
           ...response.data,
-          amount: Number(response.data.amount) || 0
+          amount: Number(response.data.amount) || 0,
         }
       }
     } catch (err: any) {
@@ -575,11 +622,7 @@ export const useTransactionStore = defineStore('transaction', () => {
   async function refresh() {
     invalidateByTag('transactions')
 
-    await Promise.all([
-      fetchTransactions(filters.value),
-      fetchPendingTransactions(),
-      fetchStats()
-    ])
+    await Promise.all([fetchTransactions(filters.value), fetchPendingTransactions(), fetchStats()])
   }
 
   /**
@@ -605,7 +648,7 @@ export const useTransactionStore = defineStore('transaction', () => {
       last_page: 1,
       from: 0,
       to: 0,
-      has_more_pages: false
+      has_more_pages: false,
     }
     filters.value = { per_page: 15, page: 1 }
     loading.value = false
@@ -663,6 +706,6 @@ export const useTransactionStore = defineStore('transaction', () => {
     applyFilters,
     refresh,
     clearErrors,
-    $reset
+    $reset,
   }
 })

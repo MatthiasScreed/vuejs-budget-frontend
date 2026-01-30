@@ -1,7 +1,8 @@
-// src/stores/dashboardStore.ts
+// src/stores/dashboardStore.ts - VERSION CORRIGÉE AVEC AUTH GUARD
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import api from '@/services/api'
+import { useAuthStore } from '@/stores/authStore'
 
 // ==========================================
 // TYPES - ✅ Alignés avec DashboardController
@@ -93,6 +94,44 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const lastUpdated = ref<Date | null>(null)
 
   // ==========================================
+  // 🔐 AUTH GUARD HELPER
+  // ==========================================
+
+  /**
+   * Vérifier que l'utilisateur est authentifié avant un appel API
+   */
+  async function ensureAuthenticated(): Promise<boolean> {
+    const authStore = useAuthStore()
+
+    // 1️⃣ Attendre l'initialisation de l'auth
+    if (!authStore.isInitialized) {
+      console.log('⏳ [Dashboard] Attente initialisation auth...')
+
+      let attempts = 0
+      const maxAttempts = 30 // 3 secondes max
+
+      while (!authStore.isInitialized && attempts < maxAttempts) {
+        await new Promise((r) => setTimeout(r, 100))
+        attempts++
+      }
+
+      if (!authStore.isInitialized) {
+        console.error('❌ [Dashboard] Auth non initialisée après timeout')
+        return false
+      }
+    }
+
+    // 2️⃣ Vérifier l'authentification
+    if (!authStore.isAuthenticated) {
+      console.warn('⚠️ [Dashboard] Utilisateur non authentifié')
+      return false
+    }
+
+    console.log('✅ [Dashboard] Utilisateur authentifié:', authStore.user?.email)
+    return true
+  }
+
+  // ==========================================
   // GETTERS
   // ==========================================
 
@@ -118,62 +157,49 @@ export const useDashboardStore = defineStore('dashboard', () => {
   /**
    * Solde bancaire total
    */
-  const totalBalance = computed(() =>
-    stats.value?.total_balance ?? 0
-  )
+  const totalBalance = computed(() => stats.value?.total_balance ?? 0)
 
   /**
    * ✅ Capacité d'épargne (Solde - Dépenses du mois)
    */
-  const savingsCapacity = computed(() =>
-    stats.value?.savings_capacity.amount ?? 0
-  )
+  const savingsCapacity = computed(() => stats.value?.savings_capacity.amount ?? 0)
 
   /**
    * Capacité d'épargne est positive ?
    */
-  const isPositive = computed(() =>
-    stats.value?.savings_capacity.is_positive ?? true
-  )
+  const isPositive = computed(() => stats.value?.savings_capacity.is_positive ?? true)
 
   /**
    * Détails du calcul de capacité
    */
-  const capacityCalculation = computed(() =>
+  const capacityCalculation = computed(
+    () =>
       stats.value?.savings_capacity.calculation ?? {
         total_balance: 0,
         monthly_expenses: 0,
-        formula: ''
-      }
+        formula: '',
+      },
   )
 
   /**
    * Revenus du mois actuel
    */
-  const monthlyIncome = computed(() =>
-    stats.value?.current_month.income ?? 0
-  )
+  const monthlyIncome = computed(() => stats.value?.current_month.income ?? 0)
 
   /**
    * Dépenses du mois actuel
    */
-  const monthlyExpenses = computed(() =>
-    stats.value?.current_month.expenses ?? 0
-  )
+  const monthlyExpenses = computed(() => stats.value?.current_month.expenses ?? 0)
 
   /**
    * Net du mois (Revenus - Dépenses)
    */
-  const monthlyNet = computed(() =>
-    stats.value?.current_month.net ?? 0
-  )
+  const monthlyNet = computed(() => stats.value?.current_month.net ?? 0)
 
   /**
    * Nombre de transactions du mois
    */
-  const transactionCount = computed(() =>
-    stats.value?.current_month.transactions_count ?? 0
-  )
+  const transactionCount = computed(() => stats.value?.current_month.transactions_count ?? 0)
 
   /**
    * ✅ Taux d'épargne basé sur la capacité / revenus
@@ -194,28 +220,25 @@ export const useDashboardStore = defineStore('dashboard', () => {
   /**
    * Comparaison avec le mois dernier
    */
-  const comparison = computed(() =>
+  const comparison = computed(
+    () =>
       stats.value?.comparison ?? {
         last_month_capacity: 0,
         current_month_capacity: 0,
         change_percent: 0,
-        trend: 'stable' as const
-      }
+        trend: 'stable' as const,
+      },
   )
 
   /**
    * Changement en %
    */
-  const changePercent = computed(() =>
-    comparison.value.change_percent
-  )
+  const changePercent = computed(() => comparison.value.change_percent)
 
   /**
    * Tendance (up/down/stable)
    */
-  const trend = computed(() =>
-    comparison.value.trend
-  )
+  const trend = computed(() => comparison.value.trend)
 
   // ==========================================
   // OBJECTIFS
@@ -224,54 +247,43 @@ export const useDashboardStore = defineStore('dashboard', () => {
   /**
    * Nombre d'objectifs actifs
    */
-  const activeGoalsCount = computed(() =>
-    stats.value?.goals.active_count ?? 0
-  )
+  const activeGoalsCount = computed(() => stats.value?.goals.active_count ?? 0)
 
   /**
    * Nombre d'objectifs avec contribution mensuelle
    */
-  const goalsWithTarget = computed(() =>
-    stats.value?.goals.goals_with_target ?? 0
-  )
+  const goalsWithTarget = computed(() => stats.value?.goals.goals_with_target ?? 0)
 
   /**
    * Montant disponible pour objectifs
    */
-  const availableToAllocate = computed(() =>
-    stats.value?.goals.available_capacity ?? 0
-  )
+  const availableToAllocate = computed(() => stats.value?.goals.available_capacity ?? 0)
 
   /**
    * Total des contributions mensuelles
    */
-  const totalMonthlyTargets = computed(() =>
-    stats.value?.goals.total_monthly_targets ?? 0
-  )
+  const totalMonthlyTargets = computed(() => stats.value?.goals.total_monthly_targets ?? 0)
 
   /**
    * Total épargné sur les objectifs
    */
-  const totalSaved = computed(() =>
-    stats.value?.goals.total_saved ?? 0
-  )
+  const totalSaved = computed(() => stats.value?.goals.total_saved ?? 0)
 
   /**
    * Total des objectifs
    */
-  const totalTarget = computed(() =>
-    stats.value?.goals.total_target ?? 0
-  )
+  const totalTarget = computed(() => stats.value?.goals.total_target ?? 0)
 
   /**
    * Status de la capacité vs contributions
    */
-  const capacityStatus = computed(() =>
+  const capacityStatus = computed(
+    () =>
       stats.value?.goals.capacity_status ?? {
         status: 'not_configured',
         message: 'Pas de données',
-        color: 'gray'
-      }
+        color: 'gray',
+      },
   )
 
   // ==========================================
@@ -281,9 +293,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   /**
    * Série active
    */
-  const activeStreak = computed(() =>
-    stats.value?.streak ?? null
-  )
+  const activeStreak = computed(() => stats.value?.streak ?? null)
 
   // ==========================================
   // PÉRIODE & USER
@@ -292,12 +302,13 @@ export const useDashboardStore = defineStore('dashboard', () => {
   /**
    * Informations de période
    */
-  const period = computed(() =>
+  const period = computed(
+    () =>
       stats.value?.period ?? {
         start: '',
         end: '',
-        label: ''
-      }
+        label: '',
+      },
   )
 
   /**
@@ -310,14 +321,14 @@ export const useDashboardStore = defineStore('dashboard', () => {
       return {
         level: 1,
         xp: 0,
-        achievements: 0
+        achievements: 0,
       }
     }
 
     return {
       level: typeof userInfo.level === 'number' ? userInfo.level : 1,
       xp: typeof userInfo.xp === 'number' ? userInfo.xp : 0,
-      achievements: typeof userInfo.achievements === 'number' ? userInfo.achievements : 0
+      achievements: typeof userInfo.achievements === 'number' ? userInfo.achievements : 0,
     }
   })
 
@@ -334,7 +345,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
       amount: balance,
       color: balance >= 0 ? 'success' : 'danger',
       icon: balance >= 0 ? '💰' : '⚠️',
-      formatted: formatCurrency(balance)
+      formatted: formatCurrency(balance),
     }
   })
 
@@ -348,7 +359,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
       color: capacity >= 0 ? 'success' : 'danger',
       icon: capacity >= 0 ? '🎯' : '⚠️',
       formatted: formatCurrency(capacity),
-      rate: savingsRate.value
+      rate: savingsRate.value,
     }
   })
 
@@ -365,55 +376,73 @@ export const useDashboardStore = defineStore('dashboard', () => {
     monthlyExpenses: monthlyExpenses.value,
     activeGoals: activeGoalsCount.value,
     level: user.value.level,
-    xp: user.value.xp
+    xp: user.value.xp,
   }))
 
   // ==========================================
-  // ACTIONS
+  // ACTIONS - AVEC AUTH GUARD
   // ==========================================
 
   /**
    * Charger les statistiques du dashboard
+   * 🔐 Protégé par auth guard
    */
   async function fetchStats(refresh: boolean = false): Promise<void> {
-    if (loading.value) return
+    // 🔐 VÉRIFICATION AUTH AVANT APPEL API
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Dashboard] fetchStats annulé - utilisateur non authentifié')
+      error.value = 'Authentification requise'
+      return
+    }
+
+    // Éviter les appels multiples simultanés
+    if (loading.value) {
+      console.log('⏳ [Dashboard] Chargement déjà en cours, ignoré')
+      return
+    }
 
     loading.value = true
     error.value = null
 
     try {
-      console.log('📊 Chargement des stats dashboard...')
+      console.log('📊 [Dashboard] Chargement des stats...')
 
-      const response = await api.get<DashboardStats>(
-        '/dashboard/stats',
-        { params: { refresh } }
-      )
+      const response = await api.get<DashboardStats>('/dashboard/stats', {
+        params: { refresh },
+      })
 
       if (!response) {
-        throw new Error('Aucune réponse de l\'API')
+        throw new Error("Aucune réponse de l'API")
       }
 
       if (response.success && response.data) {
         stats.value = response.data
         lastUpdated.value = new Date()
 
-        console.log('✅ Stats chargées:', {
+        console.log('✅ [Dashboard] Stats chargées:', {
           balance: response.data.total_balance,
           savingsCapacity: response.data.savings_capacity.amount,
           income: response.data.current_month.income,
           expenses: response.data.current_month.expenses,
-          goals: response.data.goals.active_count
+          goals: response.data.goals.active_count,
         })
       } else {
-        console.warn('⚠️ Stats non disponibles')
+        console.warn('⚠️ [Dashboard] Stats non disponibles')
         stats.value = null
       }
-
     } catch (err: any) {
-      console.error('❌ Erreur chargement stats:', err)
-      error.value = err.message || 'Erreur lors du chargement des statistiques'
-      stats.value = null
+      console.error('❌ [Dashboard] Erreur chargement stats:', err)
 
+      // Ne pas considérer les erreurs 401 comme des erreurs dashboard
+      if (err.response?.status === 401) {
+        console.log('🔐 [Dashboard] 401 détecté - session expirée')
+        error.value = 'Session expirée'
+      } else {
+        error.value = err.message || 'Erreur lors du chargement des statistiques'
+      }
+
+      stats.value = null
     } finally {
       loading.value = false
     }
@@ -421,18 +450,34 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   /**
    * Charger toutes les données
+   * 🔐 Protégé par auth guard
    */
   async function fetchAll(): Promise<void> {
-    console.log('🔄 Chargement complet dashboard...')
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Dashboard] fetchAll annulé - utilisateur non authentifié')
+      return
+    }
+
+    console.log('🔄 [Dashboard] Chargement complet dashboard...')
     await fetchStats()
-    console.log('✅ Dashboard chargé')
+    console.log('✅ [Dashboard] Dashboard chargé')
   }
 
   /**
    * Rafraîchir le dashboard
+   * 🔐 Protégé par auth guard
    */
   async function refresh(): Promise<void> {
-    console.log('🔄 Rafraîchissement dashboard...')
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Dashboard] refresh annulé - utilisateur non authentifié')
+      return
+    }
+
+    console.log('🔄 [Dashboard] Rafraîchissement dashboard...')
 
     try {
       const response = await api.post<DashboardStats>('/dashboard/refresh')
@@ -440,13 +485,13 @@ export const useDashboardStore = defineStore('dashboard', () => {
       if (response?.success && response.data) {
         stats.value = response.data
         lastUpdated.value = new Date()
-        console.log('✅ Dashboard rafraîchi')
+        console.log('✅ [Dashboard] Dashboard rafraîchi')
       } else {
+        console.log('⚠️ [Dashboard] Refresh API failed, fallback sur fetchAll')
         await fetchAll()
       }
-
     } catch (err) {
-      console.error('❌ Erreur refresh, fallback sur fetchAll')
+      console.error('❌ [Dashboard] Erreur refresh, fallback sur fetchAll')
       await fetchAll()
     }
   }
@@ -459,6 +504,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     loading.value = false
     error.value = null
     lastUpdated.value = null
+    console.log('🔄 [Dashboard] Store réinitialisé')
   }
 
   // ==========================================
@@ -538,7 +584,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
     // Utilitaires
     formatCurrency,
-    formatPercent
+    formatPercent,
   }
 })
 

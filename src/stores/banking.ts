@@ -1,10 +1,12 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { bankService } from '@/services/BankService'
+import { useAuthGuard } from '@/composables/useAuthGuard'
 import type { BankConnection, BankTransaction, BankingStats } from '@/services/BankService'
 import type { ApiResponse } from '@/types/base'
 
 export const useBankingStore = defineStore('banking', () => {
+  const { ensureAuthenticated } = useAuthGuard()
 
   // ==========================================
   // STATE
@@ -24,7 +26,7 @@ export const useBankingStore = defineStore('banking', () => {
     pending_transactions: 0,
     total_imported: 0,
     total_processed: 0,
-    sync_health: 'good'
+    sync_health: 'good',
   })
 
   // États de chargement
@@ -35,15 +37,17 @@ export const useBankingStore = defineStore('banking', () => {
 
   // Erreurs et alertes
   const error = ref<string | null>(null)
-  const alerts = ref<Array<{
-    id: string
-    type: 'info' | 'warning' | 'error' | 'success'
-    title: string
-    message: string
-    action?: string
-    actionText?: string
-    timestamp: number
-  }>>([])
+  const alerts = ref<
+    Array<{
+      id: string
+      type: 'info' | 'warning' | 'error' | 'success'
+      title: string
+      message: string
+      action?: string
+      actionText?: string
+      timestamp: number
+    }>
+  >([])
 
   // Cache et optimisation
   const lastSync = ref<string | null>(null)
@@ -55,30 +59,26 @@ export const useBankingStore = defineStore('banking', () => {
 
   const isConnected = computed(() => connections.value.length > 0)
 
-  const activeConnections = computed(() =>
-    connections.value.filter(c => c.status === 'active')
-  )
+  const activeConnections = computed(() => connections.value.filter((c) => c.status === 'active'))
 
   const connectionsNeedingSync = computed(() =>
-    connections.value.filter(c => c.needs_sync && c.status === 'active')
+    connections.value.filter((c) => c.needs_sync && c.status === 'active'),
   )
 
   const highConfidenceTransactions = computed(() =>
-    pendingTransactions.value.filter(t => (t.confidence_score || 0) >= 0.8)
+    pendingTransactions.value.filter((t) => (t.confidence_score || 0) >= 0.8),
   )
 
   const lowConfidenceTransactions = computed(() =>
-    pendingTransactions.value.filter(t => (t.confidence_score || 0) < 0.5)
+    pendingTransactions.value.filter((t) => (t.confidence_score || 0) < 0.5),
   )
 
   const totalPendingAmount = computed(() =>
-    pendingTransactions.value.reduce((sum, t) => sum + Math.abs(t.amount), 0)
+    pendingTransactions.value.reduce((sum, t) => sum + Math.abs(t.amount), 0),
   )
 
   const recentAlerts = computed(() =>
-    alerts.value
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, 5)
+    alerts.value.sort((a, b) => b.timestamp - a.timestamp).slice(0, 5),
   )
 
   // ==========================================
@@ -86,9 +86,17 @@ export const useBankingStore = defineStore('banking', () => {
   // ==========================================
 
   /**
-   * Charger toutes les connexions bancaires
+   * ✅ Charger toutes les connexions bancaires
    */
   async function fetchConnections(): Promise<boolean> {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip fetchConnections: utilisateur non authentifié')
+      connections.value = []
+      return false
+    }
+
     loading.value = true
     error.value = null
 
@@ -102,7 +110,6 @@ export const useBankingStore = defineStore('banking', () => {
       }
 
       throw new Error(response.message || 'Erreur lors du chargement des connexions')
-
     } catch (err: any) {
       error.value = err.message
       console.error('Erreur fetchConnections:', err)
@@ -113,15 +120,22 @@ export const useBankingStore = defineStore('banking', () => {
   }
 
   /**
-   * Initier une nouvelle connexion bancaire
+   * ✅ Initier une nouvelle connexion bancaire
    */
   async function initiateConnection(provider: string): Promise<string | null> {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip initiateConnection: utilisateur non authentifié')
+      return null
+    }
+
     connecting.value = true
     error.value = null
 
     try {
       const response = await bankService.initiateConnection({
-        provider: provider as 'bridge' | 'budget_insight' | 'nordigen'
+        provider: provider as 'bridge' | 'budget_insight' | 'nordigen',
       })
 
       if (response.success && response.data?.connect_url) {
@@ -134,14 +148,13 @@ export const useBankingStore = defineStore('banking', () => {
         return response.data.connect_url
       }
 
-      throw new Error(response.message || 'Impossible d\'initier la connexion')
-
+      throw new Error(response.message || "Impossible d'initier la connexion")
     } catch (err: any) {
       error.value = err.message
       addAlert({
         type: 'error',
         title: 'Échec connexion bancaire',
-        message: err.message || 'Erreur lors de l\'initiation'
+        message: err.message || "Erreur lors de l'initiation",
       })
       return null
     } finally {
@@ -150,9 +163,16 @@ export const useBankingStore = defineStore('banking', () => {
   }
 
   /**
-   * Synchroniser une connexion bancaire
+   * ✅ Synchroniser une connexion bancaire
    */
   async function syncConnection(connectionId: number): Promise<boolean> {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip syncConnection: utilisateur non authentifié')
+      return false
+    }
+
     if (syncInProgress.value.has(connectionId)) {
       return false
     }
@@ -167,16 +187,13 @@ export const useBankingStore = defineStore('banking', () => {
         const { imported, processed, message } = response.data
 
         // Mettre à jour les stats
-        await Promise.all([
-          fetchConnections(),
-          fetchPendingTransactions()
-        ])
+        await Promise.all([fetchConnections(), fetchPendingTransactions()])
 
         // Alerte de succès
         addAlert({
           type: 'success',
           title: 'Synchronisation terminée',
-          message: `${imported} transactions importées, ${processed} traitées`
+          message: `${imported} transactions importées, ${processed} traitées`,
         })
 
         lastSync.value = new Date().toISOString()
@@ -184,12 +201,11 @@ export const useBankingStore = defineStore('banking', () => {
       }
 
       throw new Error(response.message || 'Erreur de synchronisation')
-
     } catch (err: any) {
       addAlert({
         type: 'error',
         title: 'Échec synchronisation',
-        message: err.message || 'Impossible de synchroniser'
+        message: err.message || 'Impossible de synchroniser',
       })
       return false
     } finally {
@@ -199,9 +215,16 @@ export const useBankingStore = defineStore('banking', () => {
   }
 
   /**
-   * Supprimer une connexion bancaire
+   * ✅ Supprimer une connexion bancaire
    */
   async function removeConnection(connectionId: number): Promise<boolean> {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip removeConnection: utilisateur non authentifié')
+      return false
+    }
+
     loading.value = true
 
     try {
@@ -209,12 +232,12 @@ export const useBankingStore = defineStore('banking', () => {
 
       if (response.success) {
         // Retirer de la liste locale
-        connections.value = connections.value.filter(c => c.id !== connectionId)
+        connections.value = connections.value.filter((c) => c.id !== connectionId)
 
         addAlert({
           type: 'success',
           title: 'Connexion supprimée',
-          message: 'La connexion bancaire a été supprimée avec succès'
+          message: 'La connexion bancaire a été supprimée avec succès',
         })
 
         await updateStats()
@@ -222,12 +245,11 @@ export const useBankingStore = defineStore('banking', () => {
       }
 
       throw new Error(response.message || 'Impossible de supprimer')
-
     } catch (err: any) {
       addAlert({
         type: 'error',
         title: 'Échec suppression',
-        message: err.message
+        message: err.message,
       })
       return false
     } finally {
@@ -240,9 +262,17 @@ export const useBankingStore = defineStore('banking', () => {
   // ==========================================
 
   /**
-   * Charger les transactions en attente
+   * ✅ Charger les transactions en attente
    */
   async function fetchPendingTransactions(): Promise<boolean> {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip fetchPendingTransactions: utilisateur non authentifié')
+      pendingTransactions.value = []
+      return false
+    }
+
     loading.value = true
 
     try {
@@ -264,13 +294,20 @@ export const useBankingStore = defineStore('banking', () => {
   }
 
   /**
-   * Traiter une transaction en attente
+   * ✅ Traiter une transaction en attente
    */
   async function processTransaction(
     transactionId: number,
     action: 'convert' | 'ignore',
-    data?: any
+    data?: any,
   ): Promise<boolean> {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip processTransaction: utilisateur non authentifié')
+      return false
+    }
+
     processing.value = true
 
     try {
@@ -284,7 +321,7 @@ export const useBankingStore = defineStore('banking', () => {
 
       if (response.success) {
         // Retirer de la liste en attente
-        pendingTransactions.value = pendingTransactions.value.filter(t => t.id !== transactionId)
+        pendingTransactions.value = pendingTransactions.value.filter((t) => t.id !== transactionId)
 
         // Ajouter aux traitées si conversion
         if (action === 'convert' && response.data) {
@@ -296,7 +333,6 @@ export const useBankingStore = defineStore('banking', () => {
       }
 
       throw new Error(response.message || `Impossible de ${action} la transaction`)
-
     } catch (err: any) {
       error.value = err.message
       return false
@@ -306,9 +342,16 @@ export const useBankingStore = defineStore('banking', () => {
   }
 
   /**
-   * Traitement automatique des transactions haute confiance
+   * ✅ Traitement automatique des transactions haute confiance
    */
   async function processHighConfidenceTransactions(): Promise<number> {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip processHighConfidenceTransactions: utilisateur non authentifié')
+      return 0
+    }
+
     const highConfidence = highConfidenceTransactions.value
     let processed = 0
 
@@ -319,7 +362,7 @@ export const useBankingStore = defineStore('banking', () => {
         if (transaction.suggested_category_id) {
           const success = await processTransaction(transaction.id, 'convert', {
             category_id: transaction.suggested_category_id,
-            description: transaction.formatted_description
+            description: transaction.formatted_description,
           })
 
           if (success) {
@@ -332,7 +375,7 @@ export const useBankingStore = defineStore('banking', () => {
         addAlert({
           type: 'success',
           title: 'Traitement automatique terminé',
-          message: `${processed} transactions traitées automatiquement`
+          message: `${processed} transactions traitées automatiquement`,
         })
       }
 
@@ -347,9 +390,16 @@ export const useBankingStore = defineStore('banking', () => {
   // ==========================================
 
   /**
-   * Mettre à jour les statistiques
+   * ✅ Mettre à jour les statistiques
    */
   async function updateStats(): Promise<void> {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip updateStats: utilisateur non authentifié')
+      return
+    }
+
     try {
       const response = await bankService.getBankingStats()
 
@@ -362,7 +412,7 @@ export const useBankingStore = defineStore('banking', () => {
           pending_transactions: pendingTransactions.value.length,
           total_imported: connections.value.reduce((sum, c) => sum + c.transactions_count, 0),
           total_processed: processedTransactions.value.length,
-          sync_health: getSyncHealth()
+          sync_health: getSyncHealth(),
         }
       }
     } catch (err) {
@@ -374,7 +424,7 @@ export const useBankingStore = defineStore('banking', () => {
    * Déterminer l'état de santé des syncs
    */
   function getSyncHealth(): 'good' | 'warning' | 'error' {
-    const errorConnections = connections.value.filter(c => c.status === 'error').length
+    const errorConnections = connections.value.filter((c) => c.status === 'error').length
     const totalConnections = connections.value.length
 
     if (errorConnections === 0) return 'good'
@@ -395,19 +445,19 @@ export const useBankingStore = defineStore('banking', () => {
         title: 'Nombreuses transactions en attente',
         message: `${pendingTransactions.value.length} transactions nécessitent votre attention`,
         action: 'view-pending',
-        actionText: 'Traiter'
+        actionText: 'Traiter',
       })
     }
 
     // Alerte si sync en échec
-    const failedConnections = connections.value.filter(c => c.status === 'error')
+    const failedConnections = connections.value.filter((c) => c.status === 'error')
     if (failedConnections.length > 0) {
       addAlert({
         type: 'error',
         title: 'Connexions en erreur',
         message: `${failedConnections.length} connexion(s) nécessitent votre intervention`,
         action: 'fix-connections',
-        actionText: 'Corriger'
+        actionText: 'Corriger',
       })
     }
 
@@ -418,7 +468,7 @@ export const useBankingStore = defineStore('banking', () => {
         title: 'Synchronisation recommandée',
         message: `${connectionsNeedingSync.value.length} compte(s) peuvent être synchronisés`,
         action: 'sync-all',
-        actionText: 'Synchroniser'
+        actionText: 'Synchroniser',
       })
     }
   }
@@ -430,11 +480,11 @@ export const useBankingStore = defineStore('banking', () => {
   /**
    * Ajouter une alerte
    */
-  function addAlert(alert: Omit<typeof alerts.value[0], 'id' | 'timestamp'>) {
+  function addAlert(alert: Omit<(typeof alerts.value)[0], 'id' | 'timestamp'>) {
     alerts.value.unshift({
       ...alert,
       id: `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     })
 
     // Limiter à 10 alertes max
@@ -447,15 +497,15 @@ export const useBankingStore = defineStore('banking', () => {
    * Supprimer une alerte
    */
   function removeAlert(alertId: string): void {
-    alerts.value = alerts.value.filter(a => a.id !== alertId)
+    alerts.value = alerts.value.filter((a) => a.id !== alertId)
   }
 
   /**
    * Nettoyer les anciennes alertes (> 24h)
    */
   function cleanupAlerts(): void {
-    const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000)
-    alerts.value = alerts.value.filter(a => a.timestamp > oneDayAgo)
+    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000
+    alerts.value = alerts.value.filter((a) => a.timestamp > oneDayAgo)
   }
 
   /**
@@ -471,8 +521,8 @@ export const useBankingStore = defineStore('banking', () => {
           name: 'Bridge',
           logo: '/logos/bridge.png',
           supported: true,
-          description: 'Connexion bancaire sécurisée via Bridge API'
-        }
+          description: 'Connexion bancaire sécurisée via Bridge API',
+        },
       ]
 
       return { success: true, providers }
@@ -495,7 +545,7 @@ export const useBankingStore = defineStore('banking', () => {
       pending_transactions: 0,
       total_imported: 0,
       total_processed: 0,
-      sync_health: 'good'
+      sync_health: 'good',
     }
     alerts.value = []
     error.value = null
@@ -504,14 +554,17 @@ export const useBankingStore = defineStore('banking', () => {
   }
 
   /**
-   * Actualiser toutes les données
+   * ✅ Actualiser toutes les données
    */
   async function refreshAll(): Promise<void> {
-    await Promise.all([
-      fetchConnections(),
-      fetchPendingTransactions(),
-      updateStats()
-    ])
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip refreshAll: utilisateur non authentifié')
+      return
+    }
+
+    await Promise.all([fetchConnections(), fetchPendingTransactions(), updateStats()])
 
     await checkAutoAlerts()
     cleanupAlerts()
@@ -522,11 +575,18 @@ export const useBankingStore = defineStore('banking', () => {
   // ==========================================
 
   /**
-   * Synchroniser toutes les connexions actives
+   * ✅ Synchroniser toutes les connexions actives
    */
   async function syncAllConnections(): Promise<void> {
-    const activeSyncable = connections.value.filter(c =>
-      c.status === 'active' && (c.needs_sync || c.auto_sync_enabled)
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip syncAllConnections: utilisateur non authentifié')
+      return
+    }
+
+    const activeSyncable = connections.value.filter(
+      (c) => c.status === 'active' && (c.needs_sync || c.auto_sync_enabled),
     )
 
     for (const connection of activeSyncable) {
@@ -535,18 +595,22 @@ export const useBankingStore = defineStore('banking', () => {
   }
 
   /**
-   * Auto-refresh périodique (appelé depuis un interval)
+   * ✅ Auto-refresh périodique (appelé depuis un interval)
    */
   async function periodicRefresh(): Promise<void> {
+    // 🔥 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ Skip periodicRefresh: utilisateur non authentifié')
+      return
+    }
+
     if (loading.value || syncing.value) {
       return // Éviter la concurrence
     }
 
     try {
-      await Promise.all([
-        fetchConnections(),
-        fetchPendingTransactions()
-      ])
+      await Promise.all([fetchConnections(), fetchPendingTransactions()])
 
       await checkAutoAlerts()
     } catch (err) {
@@ -605,6 +669,6 @@ export const useBankingStore = defineStore('banking', () => {
     reset,
     refreshAll,
     syncAllConnections,
-    periodicRefresh
+    periodicRefresh,
   }
 })

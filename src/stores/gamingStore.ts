@@ -1,5 +1,7 @@
+// src/stores/gamingStore.ts - VERSION CORRIGÉE AVEC AUTH GUARD
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
+import { useAuthStore } from '@/stores/authStore'
 import { gamingService } from '@/services/gamingService'
 import type { Achievement, Challenge, Level, Streak } from '@/types'
 
@@ -21,7 +23,7 @@ interface NavigationReward {
 }
 
 // ==========================================
-// STORE GAMING - VERSION ENRICHIE ✅
+// STORE GAMING - VERSION SÉCURISÉE ✅
 // ==========================================
 
 export const useGamingStore = defineStore('gaming', () => {
@@ -44,24 +46,53 @@ export const useGamingStore = defineStore('gaming', () => {
   const error = ref<string | null>(null)
 
   // ==========================================
+  // 🔐 AUTH GUARD HELPER
+  // ==========================================
+
+  /**
+   * Vérifier que l'utilisateur est authentifié avant un appel API
+   */
+  async function ensureAuthenticated(): Promise<boolean> {
+    const authStore = useAuthStore()
+
+    // 1️⃣ Attendre l'initialisation de l'auth
+    if (!authStore.isInitialized) {
+      console.log('⏳ [Gaming] Attente initialisation auth...')
+
+      let attempts = 0
+      const maxAttempts = 30 // 3 secondes max
+
+      while (!authStore.isInitialized && attempts < maxAttempts) {
+        await new Promise((r) => setTimeout(r, 100))
+        attempts++
+      }
+
+      if (!authStore.isInitialized) {
+        console.error('❌ [Gaming] Auth non initialisée après timeout')
+        return false
+      }
+    }
+
+    // 2️⃣ Vérifier l'authentification
+    if (!authStore.isAuthenticated) {
+      console.warn('⚠️ [Gaming] Utilisateur non authentifié')
+      return false
+    }
+
+    return true
+  }
+
+  // ==========================================
   // GETTERS
   // ==========================================
 
-  const unlockedAchievements = computed(() =>
-    achievements.value.filter(a => a.unlocked_at)
-  )
+  const unlockedAchievements = computed(() => achievements.value.filter((a) => a.unlocked_at))
 
-  const lockedAchievements = computed(() =>
-    achievements.value.filter(a => !a.unlocked_at)
-  )
+  const lockedAchievements = computed(() => achievements.value.filter((a) => !a.unlocked_at))
 
-  const activeChallenges = computed(() =>
-    challenges.value.filter(c => c.status === 'active')
-  )
+  const activeChallenges = computed(() => challenges.value.filter((c) => c.status === 'active'))
 
-  const activeStreaks = computed(() =>
-    streaks.value.filter(s => s.is_active)
-  )
+  const activeStreaks = computed(() => streaks.value.filter((s) => s.is_active))
 
   const levelProgress = computed(() => {
     if (!currentLevel.value) return 0
@@ -74,68 +105,73 @@ export const useGamingStore = defineStore('gaming', () => {
   // NAVIGATION REWARDS CONFIGURATION
   // ==========================================
 
-  /**
-   * ✅ Configuration des récompenses par route
-   */
   const navigationRewards: Record<string, NavigationReward> = {
-    'Dashboard': {
+    Dashboard: {
       routeName: 'Dashboard',
       xpBonus: 5,
       reason: '🏠 Visite du dashboard',
-      achievements: ['daily_login']
+      achievements: ['daily_login'],
     },
-    'Transactions': {
+    Transactions: {
       routeName: 'Transactions',
       xpBonus: 8,
       reason: '💳 Gestion des transactions',
-      achievements: ['transaction_manager']
+      achievements: ['transaction_manager'],
     },
-    'Goals': {
+    Goals: {
       routeName: 'Goals',
       xpBonus: 10,
       reason: '🎯 Planification des objectifs',
-      achievements: ['goal_setter']
+      achievements: ['goal_setter'],
     },
-    'Gaming': {
+    Gaming: {
       routeName: 'Gaming',
       xpBonus: 15,
       reason: '🎮 Visite du Gaming Center',
-      achievements: ['gaming_explorer', 'gaming_first_visit']
+      achievements: ['gaming_explorer', 'gaming_first_visit'],
     },
-    'Achievements': {
+    Achievements: {
       routeName: 'Achievements',
       xpBonus: 10,
       reason: '🏆 Consultation des succès',
-      achievements: ['achievement_hunter']
+      achievements: ['achievement_hunter'],
     },
-    'Challenges': {
+    Challenges: {
       routeName: 'Challenges',
       xpBonus: 10,
       reason: '🎯 Découverte des défis',
-      achievements: ['challenge_seeker']
+      achievements: ['challenge_seeker'],
     },
-    'Profile': {
+    Profile: {
       routeName: 'Profile',
       xpBonus: 8,
       reason: '👤 Mise à jour du profil',
-      achievements: ['profile_editor']
+      achievements: ['profile_editor'],
     },
-    'Analytics': {
+    Analytics: {
       routeName: 'Analytics',
       xpBonus: 12,
       reason: '📊 Analyse des données',
-      achievements: ['data_analyst']
-    }
+      achievements: ['data_analyst'],
+    },
   }
 
   // ==========================================
-  // ACTIONS PRINCIPALES
+  // ACTIONS PRINCIPALES - AVEC AUTH GUARD
   // ==========================================
 
   /**
-   * ✅ NOUVEAU : Gérer la navigation avec récompenses gaming
+   * Gérer la navigation avec récompenses gaming
+   * 🔐 Protégé par auth guard
    */
   async function handleNavigation(context: NavigationContext): Promise<void> {
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Gaming] handleNavigation annulé - utilisateur non authentifié')
+      return
+    }
+
     try {
       const { routeName, isGaming } = context
 
@@ -143,7 +179,7 @@ export const useGamingStore = defineStore('gaming', () => {
       const reward = navigationRewards[routeName]
 
       if (!reward) {
-        console.log(`ℹ️ Pas de récompense pour ${routeName}`)
+        console.log(`ℹ️ [Gaming] Pas de récompense pour ${routeName}`)
         return
       }
 
@@ -153,12 +189,12 @@ export const useGamingStore = defineStore('gaming', () => {
       const hasNavigatedToday = localStorage.getItem(navigationKey)
 
       if (hasNavigatedToday) {
-        console.log(`⏰ Déjà récompensé pour ${routeName} aujourd'hui`)
+        console.log(`⏰ [Gaming] Déjà récompensé pour ${routeName} aujourd'hui`)
         return
       }
 
       // ✅ Ajouter l'XP
-      console.log(`🎮 Récompense navigation: ${reward.reason} (+${reward.xpBonus} XP)`)
+      console.log(`🎮 [Gaming] Récompense navigation: ${reward.reason} (+${reward.xpBonus} XP)`)
       await addXP(reward.xpBonus, reward.reason)
 
       // ✅ Marquer comme visité aujourd'hui
@@ -178,14 +214,14 @@ export const useGamingStore = defineStore('gaming', () => {
       if (routeName === 'Dashboard') {
         await updateStreak('daily_login')
       }
-
     } catch (error) {
-      console.error('❌ Erreur handleNavigation:', error)
+      console.error('❌ [Gaming] Erreur handleNavigation:', error)
     }
   }
 
   /**
-   * ✅ Gérer les routes gaming spécifiques
+   * Gérer les routes gaming spécifiques
+   * 🔐 Protégé par auth guard (appelé depuis handleNavigation déjà protégé)
    */
   async function handleGamingRoutes(routeName: string): Promise<void> {
     // Initialiser le gaming si nécessaire
@@ -202,7 +238,7 @@ export const useGamingStore = defineStore('gaming', () => {
           await unlockAchievement('gaming_first_visit', {
             name: '🎮 Premier joueur',
             description: 'Visitez le Gaming Center pour la première fois',
-            xp_reward: 50
+            xp_reward: 50,
           })
         }, 2000)
 
@@ -213,26 +249,31 @@ export const useGamingStore = defineStore('gaming', () => {
 
   /**
    * Initialiser le système gaming
+   * 🔐 Protégé par auth guard
    */
   async function initializeGaming(): Promise<void> {
-    if (isInitialized.value) return
+    if (isInitialized.value) {
+      console.log('ℹ️ [Gaming] Déjà initialisé')
+      return
+    }
+
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Gaming] initializeGaming annulé - utilisateur non authentifié')
+      return
+    }
 
     try {
       loading.value = true
-      console.log('🎮 Initialisation du système gaming...')
+      console.log('🎮 [Gaming] Initialisation du système gaming...')
 
-      await Promise.allSettled([
-        loadAchievements(),
-        loadChallenges(),
-        loadLevels(),
-        loadStreaks()
-      ])
+      await Promise.allSettled([loadAchievements(), loadChallenges(), loadLevels(), loadStreaks()])
 
       isInitialized.value = true
-      console.log('✅ Gaming initialisé')
-
+      console.log('✅ [Gaming] Gaming initialisé')
     } catch (err: any) {
-      console.error('❌ Erreur initialisation gaming:', err)
+      console.error('❌ [Gaming] Erreur initialisation:', err)
       error.value = err.message
     } finally {
       loading.value = false
@@ -241,66 +282,103 @@ export const useGamingStore = defineStore('gaming', () => {
 
   /**
    * Charger tous les achievements
+   * 🔐 Protégé par auth guard
    */
   async function loadAchievements(): Promise<void> {
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Gaming] loadAchievements annulé - utilisateur non authentifié')
+      return
+    }
+
     try {
       const response = await gamingService.getAchievements()
 
       if (response.success && response.data) {
         achievements.value = response.data
+        console.log('✅ [Gaming] Achievements chargés:', achievements.value.length)
       }
     } catch (err) {
-      console.error('❌ Erreur chargement achievements:', err)
+      console.error('❌ [Gaming] Erreur chargement achievements:', err)
     }
   }
 
   /**
    * Charger tous les challenges
+   * 🔐 Protégé par auth guard
    */
   async function loadChallenges(): Promise<void> {
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Gaming] loadChallenges annulé - utilisateur non authentifié')
+      return
+    }
+
     try {
       const response = await gamingService.getChallenges()
 
       if (response.success && response.data) {
         challenges.value = response.data
+        console.log('✅ [Gaming] Challenges chargés:', challenges.value.length)
       }
     } catch (err) {
-      console.error('❌ Erreur chargement challenges:', err)
+      console.error('❌ [Gaming] Erreur chargement challenges:', err)
     }
   }
 
   /**
    * Charger les niveaux
+   * 🔐 Protégé par auth guard
    */
   async function loadLevels(): Promise<void> {
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Gaming] loadLevels annulé - utilisateur non authentifié')
+      return
+    }
+
     try {
       const response = await gamingService.getLevels()
 
       if (response.success && response.data) {
         levels.value = response.data
+        console.log('✅ [Gaming] Levels chargés:', levels.value.length)
       }
     } catch (err) {
-      console.error('❌ Erreur chargement levels:', err)
+      console.error('❌ [Gaming] Erreur chargement levels:', err)
     }
   }
 
   /**
    * Charger les streaks
+   * 🔐 Protégé par auth guard
    */
   async function loadStreaks(): Promise<void> {
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Gaming] loadStreaks annulé - utilisateur non authentifié')
+      return
+    }
+
     try {
       const response = await gamingService.getStreaks()
 
       if (response.success && response.data) {
         streaks.value = response.data
+        console.log('✅ [Gaming] Streaks chargés:', streaks.value.length)
       }
     } catch (err) {
-      console.error('❌ Erreur chargement streaks:', err)
+      console.error('❌ [Gaming] Erreur chargement streaks:', err)
     }
   }
 
   /**
    * Charger toutes les données gaming
+   * 🔐 Protégé par auth guard
    */
   async function loadAchievementData(): Promise<void> {
     await initializeGaming()
@@ -308,8 +386,16 @@ export const useGamingStore = defineStore('gaming', () => {
 
   /**
    * Ajouter de l'XP
+   * 🔐 Protégé par auth guard
    */
   async function addXP(amount: number, reason: string): Promise<void> {
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Gaming] addXP annulé - utilisateur non authentifié')
+      return
+    }
+
     try {
       const response = await gamingService.addXP(amount, reason)
 
@@ -320,34 +406,42 @@ export const useGamingStore = defineStore('gaming', () => {
         // Vérifier level up
         if (response.data.level_up) {
           currentLevel.value = response.data.new_level
-          console.log('🎉 LEVEL UP!', response.data.new_level)
+          console.log('🎉 [Gaming] LEVEL UP!', response.data.new_level)
         }
 
-        console.log(`✅ +${amount} XP : ${reason}`)
+        console.log(`✅ [Gaming] +${amount} XP : ${reason}`)
       }
     } catch (err) {
-      console.error('❌ Erreur ajout XP:', err)
+      console.error('❌ [Gaming] Erreur ajout XP:', err)
     }
   }
 
   /**
    * Débloquer un achievement
+   * 🔐 Protégé par auth guard
    */
   async function unlockAchievement(
     achievementId: string,
-    fallbackData?: Partial<Achievement>
+    fallbackData?: Partial<Achievement>,
   ): Promise<void> {
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Gaming] unlockAchievement annulé - utilisateur non authentifié')
+      return
+    }
+
     try {
       const response = await gamingService.unlockAchievement(achievementId)
 
       if (response.success && response.data) {
         // Mettre à jour la liste
-        const index = achievements.value.findIndex(a => a.id === achievementId)
+        const index = achievements.value.findIndex((a) => a.id === achievementId)
         if (index !== -1) {
           achievements.value[index] = {
             ...achievements.value[index],
             ...response.data,
-            unlocked_at: response.data.unlocked_at || new Date().toISOString()
+            unlocked_at: response.data.unlocked_at || new Date().toISOString(),
           }
         }
 
@@ -357,20 +451,21 @@ export const useGamingStore = defineStore('gaming', () => {
           recentUnlocks.value = recentUnlocks.value.slice(0, 5)
         }
 
-        console.log('🏆 Achievement débloqué:', response.data.name)
+        console.log('🏆 [Gaming] Achievement débloqué:', response.data.name)
       }
     } catch (err) {
-      console.error('❌ Erreur unlock achievement:', err)
+      console.error('❌ [Gaming] Erreur unlock achievement:', err)
     }
   }
 
   /**
    * Vérifier plusieurs achievements
+   * 🔐 Protégé par auth guard (appelé depuis handleNavigation déjà protégé)
    */
   async function checkAchievements(achievementIds: string[]): Promise<void> {
     try {
       for (const id of achievementIds) {
-        const achievement = achievements.value.find(a => a.id === id)
+        const achievement = achievements.value.find((a) => a.id === id)
 
         // Si déjà débloqué, skip
         if (achievement?.unlocked_at) continue
@@ -379,19 +474,27 @@ export const useGamingStore = defineStore('gaming', () => {
         await unlockAchievement(id)
       }
     } catch (err) {
-      console.error('❌ Erreur check achievements:', err)
+      console.error('❌ [Gaming] Erreur check achievements:', err)
     }
   }
 
   /**
    * Mettre à jour un streak
+   * 🔐 Protégé par auth guard
    */
   async function updateStreak(streakType: string): Promise<void> {
+    // 🔐 VÉRIFICATION AUTH
+    const isAuth = await ensureAuthenticated()
+    if (!isAuth) {
+      console.warn('⚠️ [Gaming] updateStreak annulé - utilisateur non authentifié')
+      return
+    }
+
     try {
       const response = await gamingService.updateStreak(streakType)
 
       if (response.success && response.data) {
-        const index = streaks.value.findIndex(s => s.type === streakType)
+        const index = streaks.value.findIndex((s) => s.type === streakType)
 
         if (index !== -1) {
           streaks.value[index] = response.data
@@ -399,10 +502,10 @@ export const useGamingStore = defineStore('gaming', () => {
           streaks.value.push(response.data)
         }
 
-        console.log(`🔥 Streak ${streakType} mis à jour:`, response.data.current_count)
+        console.log(`🔥 [Gaming] Streak ${streakType} mis à jour:`, response.data.current_count)
       }
     } catch (err) {
-      console.error('❌ Erreur update streak:', err)
+      console.error('❌ [Gaming] Erreur update streak:', err)
     }
   }
 
@@ -421,6 +524,7 @@ export const useGamingStore = defineStore('gaming', () => {
     loading.value = false
     isInitialized.value = false
     error.value = null
+    console.log('🔄 [Gaming] Store réinitialisé')
   }
 
   // ==========================================
@@ -449,7 +553,7 @@ export const useGamingStore = defineStore('gaming', () => {
     levelProgress,
 
     // Actions principales
-    handleNavigation, // ✅ NOUVEAU
+    handleNavigation,
     initializeGaming,
     loadAchievementData,
 
@@ -462,7 +566,7 @@ export const useGamingStore = defineStore('gaming', () => {
     unlockAchievement,
     checkAchievements,
     updateStreak,
-    reset
+    reset,
   }
 })
 
