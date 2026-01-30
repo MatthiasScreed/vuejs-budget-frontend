@@ -4,7 +4,7 @@
       <!-- Logo et titre -->
       <div class="text-center mb-8">
         <div class="flex justify-center mb-4">
-          <img src="../assets/images/logo/logo.svg" alt="CoinQuest Logo" class="w-32 h-32" />
+          <img src="@/assets/images/logo/logo.svg" alt="CoinQuest Logo" class="w-32 h-32" />
         </div>
         <h2 class="text-3xl font-bold text-gray-900 mb-2">Créer un compte</h2>
         <p class="text-gray-600">Rejoins CoinQuest et commence ton aventure 🎮</p>

@@ -9,9 +9,15 @@ import { getTokenIfValid } from '@/services/secureStorage'
 // Les routes ajoutent déjà le préfixe /api dans les appels
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://budget-api.test'
 
-// Vérifier si /api est déjà dans l'URL
-const baseURL = API_BASE_URL.endsWith('/api') ? API_BASE_URL : API_BASE_URL
-console.log('🔧 API Base URL:', baseURL)
+// Nettoyer l'URL pour éviter le double /api
+const cleanBaseURL = API_BASE_URL.endsWith('/api')
+  ? API_BASE_URL.slice(0, -4)
+  : API_BASE_URL.endsWith('/api/')
+    ? API_BASE_URL.slice(0, -5)
+    : API_BASE_URL
+
+console.log('🔧 API Base URL original:', API_BASE_URL)
+console.log('🔧 API Base URL cleaned:', cleanBaseURL)
 console.log('🔧 Environment:', import.meta.env.MODE)
 
 // ==========================================
@@ -19,7 +25,7 @@ console.log('🔧 Environment:', import.meta.env.MODE)
 // ==========================================
 
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: baseURL,
+  baseURL: cleanBaseURL,
   timeout: 60000, // 60 secondes
   headers: {
     'Content-Type': 'application/json',

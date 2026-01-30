@@ -141,7 +141,7 @@ onMounted(() => {
     <div class="max-w-md w-full">
       <div class="text-center mb-8">
         <div class="flex justify-center mb-4">
-          <img src="../assets/images/logo/logo.svg" alt="CoinQuest Logo" class="w-32 h-32" />
+          <img src="@/assets/images/logo/logo.svg" alt="CoinQuest Logo" class="w-32 h-32" />
         </div>
         <h2 class="text-3xl font-bold text-gray-900 mb-2">Connexion</h2>
         <p class="text-gray-600">Connecte-toi pour continuer ton aventure 🎮</p>
