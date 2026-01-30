@@ -3,9 +3,6 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore.ts'
 
-// ✅ Import ES du logo pour la production
-import logoSvg from '@/assets/images/logo/logo.svg'
-
 const router = useRouter()
 const authStore = useAuthStore()
 
@@ -76,8 +73,8 @@ const handleRegister = async (): Promise<void> => {
       <!-- Logo et titre -->
       <div class="text-center mb-8">
         <div class="flex justify-center mb-4">
-          <!-- ✅ FIX: Utiliser :src avec la variable importée -->
-          <img :src="logoSvg" alt="CoinQuest Logo" class="w-32 h-32" />
+          <!-- ✅ Chemin statique depuis public/ -->
+          <img src="/images/logo.svg" alt="CoinQuest Logo" class="w-32 h-32" />
         </div>
         <h2 class="text-3xl font-bold text-gray-900 mb-2">Créer un compte</h2>
         <p class="text-gray-600">Rejoins CoinQuest et commence ton aventure 🎮</p>
