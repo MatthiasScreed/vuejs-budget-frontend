@@ -35,7 +35,9 @@
         <p class="text-gray-600 mb-4">{{ autoSyncEnabled ? 'Activée' : 'Désactivée' }}</p>
         <button
           @click="toggleAutoSync"
-          :class="autoSyncEnabled ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-400 hover:bg-gray-500'"
+          :class="
+            autoSyncEnabled ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-400 hover:bg-gray-500'
+          "
           class="text-white px-4 py-2 rounded-lg font-medium transition-colors"
         >
           {{ autoSyncEnabled ? 'Désactiver' : 'Activer' }}
@@ -46,7 +48,9 @@
       <div class="bg-white border border-gray-200 rounded-lg p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-2 flex items-center">
           ⏳ En attente
-          <span class="ml-2 bg-orange-100 text-orange-800 text-xs font-medium px-2 py-1 rounded-full">
+          <span
+            class="ml-2 bg-orange-100 text-orange-800 text-xs font-medium px-2 py-1 rounded-full"
+          >
             {{ pendingTransactions.length }}
           </span>
         </h3>
@@ -76,7 +80,9 @@
       <div v-else-if="connections.length === 0" class="p-6 text-center">
         <div class="text-gray-400 text-6xl mb-4">🏦</div>
         <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun compte connecté</h3>
-        <p class="text-gray-600 mb-4">Connecte tes comptes bancaires pour automatiser ta gestion de budget</p>
+        <p class="text-gray-600 mb-4">
+          Connecte tes comptes bancaires pour automatiser ta gestion de budget
+        </p>
         <button
           @click="showAddConnectionModal = true"
           class="bg-blue-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors"
@@ -127,8 +133,13 @@
                 </p>
 
                 <!-- Message d'erreur si présent -->
-                <p v-if="connection.last_error && (connection.status === 'error' || connection.status === 'expired')"
-                   class="text-xs text-red-600 mt-1">
+                <p
+                  v-if="
+                    connection.last_error &&
+                    (connection.status === 'error' || connection.status === 'expired')
+                  "
+                  class="text-xs text-red-600 mt-1"
+                >
                   {{ connection.last_error }}
                 </p>
               </div>
@@ -187,24 +198,31 @@
           </div>
 
           <!-- Indicateur de sync needed -->
-          <div v-if="connection.needs_sync && connection.status === 'active'"
-               class="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+          <div
+            v-if="connection.needs_sync && connection.status === 'active'"
+            class="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3"
+          >
             <p class="text-sm text-yellow-800">
-              ⚠️ Synchronisation recommandée - Dernière sync il y a {{ getTimeSinceSync(connection.last_sync_at) }}
+              ⚠️ Synchronisation recommandée - Dernière sync il y a
+              {{ getTimeSinceSync(connection.last_sync_at) }}
             </p>
           </div>
 
           <!-- Message expiration -->
-          <div v-if="connection.status === 'expired'"
-               class="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
+          <div
+            v-if="connection.status === 'expired'"
+            class="mt-4 bg-red-50 border border-red-200 rounded-lg p-3"
+          >
             <p class="text-sm text-red-800">
               ⏰ Cette connexion a expiré. Clique sur "Reconnecter" pour la réactiver.
             </p>
           </div>
 
           <!-- Message erreur -->
-          <div v-if="connection.status === 'error'"
-               class="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
+          <div
+            v-if="connection.status === 'error'"
+            class="mt-4 bg-red-50 border border-red-200 rounded-lg p-3"
+          >
             <p class="text-sm text-red-800">
               ❌ Une erreur s'est produite. Essaie de reconnecter ce compte.
             </p>
@@ -214,7 +232,10 @@
     </div>
 
     <!-- Modal ajout connexion -->
-    <div v-if="showAddConnectionModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div
+      v-if="showAddConnectionModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
       <div class="bg-white rounded-lg p-6 w-full max-w-md">
         <h3 class="text-lg font-medium text-gray-900 mb-4">Connecter un compte bancaire</h3>
 
@@ -245,7 +266,8 @@
           <div v-if="isDevelopment" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <h4 class="font-medium text-yellow-900 mb-2">🚧 Mode Développement</h4>
             <p class="text-sm text-yellow-800 mb-3">
-              Bridge API nécessite des clés valides. Tu peux simuler une connexion pour tester l'interface.
+              Bridge API nécessite des clés valides. Tu peux simuler une connexion pour tester
+              l'interface.
             </p>
             <button
               @click="simulateConnection"
@@ -396,7 +418,7 @@ const getSyncButtonTooltip = (connection: BankConnection): string => {
   }
 
   if (initializingConnections.value.has(connection.id)) {
-    return '⏳ Connexion en cours d\'initialisation...'
+    return "⏳ Connexion en cours d'initialisation..."
   }
 
   if (connection.status !== 'active') {
@@ -433,7 +455,6 @@ const loadConnections = async (): Promise<void> => {
     } else {
       connections.value = []
     }
-
   } catch (error: any) {
     console.error('❌ Erreur connexions:', error)
     toast.error('Erreur lors du chargement')
@@ -455,7 +476,6 @@ const loadPendingTransactions = async (): Promise<void> => {
     } else {
       pendingTransactions.value = []
     }
-
   } catch (error: any) {
     console.error('❌ Erreur pending:', error)
     pendingTransactions.value = []
@@ -473,7 +493,7 @@ const simulateConnection = async (): Promise<void> => {
   connecting.value = true
 
   try {
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    await new Promise((resolve) => setTimeout(resolve, 2000))
 
     const mockConnection: BankConnection = {
       id: Date.now(),
@@ -481,13 +501,12 @@ const simulateConnection = async (): Promise<void> => {
       status: 'active',
       transactions_count: 42,
       last_sync_at: new Date().toISOString(),
-      needs_sync: false
+      needs_sync: false,
     }
 
     connections.value.push(mockConnection)
     showAddConnectionModal.value = false
     toast.success('🧪 Connexion simulée ajoutée !')
-
   } catch (error: any) {
     console.error('❌ Erreur simulation:', error)
     toast.error('Erreur lors de la simulation')
@@ -505,9 +524,13 @@ const initiateConnection = async (): Promise<void> => {
   try {
     console.log('🔗 Initiation connexion bancaire...')
 
+    // ✅ Construire le return_url vers cette page
+    const returnUrl = `${window.location.origin}/app/banking`
+
     const response = await bankService.initiateConnection({
       provider: selectedProvider.value as 'bridge',
-      country: 'FR'
+      country: 'FR',
+      return_url: returnUrl, // ✅ AJOUTER CECI !
     })
 
     console.log('📡 Réponse:', response)
@@ -518,14 +541,12 @@ const initiateConnection = async (): Promise<void> => {
 
       // Redirection complète vers Bridge Connect
       window.location.href = response.data.connect_url
-
     } else {
       throw new Error(response.message || 'Erreur initiation')
     }
-
   } catch (error: any) {
     console.error('❌ Erreur initiation:', error)
-    toast.error(error.message || 'Impossible d\'initier la connexion')
+    toast.error(error.message || "Impossible d'initier la connexion")
   } finally {
     connecting.value = false
   }
@@ -551,7 +572,6 @@ const syncConnection = async (connectionId: number): Promise<void> => {
       }
 
       await refreshData()
-
     } else {
       // ✅ Gérer les cas spécifiques
       const status = response.status
@@ -560,7 +580,6 @@ const syncConnection = async (connectionId: number): Promise<void> => {
         // Gone - Connexion expirée
         toast.error('🔄 ' + (response.message || 'Connexion expirée - Reconnecter'))
         await refreshData()
-
       } else if (status === 425) {
         // Too Early - En initialisation
         toast.warning('⏳ ' + (response.message || 'Connexion en initialisation'))
@@ -569,16 +588,13 @@ const syncConnection = async (connectionId: number): Promise<void> => {
         setTimeout(() => {
           initializingConnections.value.delete(connectionId)
         }, 10000)
-
       } else if (status === 429) {
         // Too Many Requests
         toast.warning('⏱️ ' + (response.message || 'Sync déjà en cours'))
-
       } else {
         toast.error(response.message || 'Erreur sync')
       }
     }
-
   } catch (error: any) {
     console.error('❌ Erreur sync:', error)
 
@@ -589,14 +605,13 @@ const syncConnection = async (connectionId: number): Promise<void> => {
       toast.error('🔄 Connexion expirée. Clique sur "Reconnecter".')
       await refreshData()
     } else if (status === 425) {
-      toast.warning('⏳ Connexion en cours d\'initialisation...')
+      toast.warning("⏳ Connexion en cours d'initialisation...")
       initializingConnections.value.add(connectionId)
     } else if (status === 429) {
       toast.warning('⏱️ Une synchronisation est déjà en cours')
     } else {
       toast.error(error.message || 'Impossible de synchroniser')
     }
-
   } finally {
     syncing.value = false
   }
@@ -617,7 +632,6 @@ const reconnectBank = async (connection: BankConnection): Promise<void> => {
     // Puis initier une nouvelle connexion
     toast.info('🔄 Reconnexion en cours...')
     await initiateConnection()
-
   } catch (error) {
     console.error('❌ Erreur reconnexion:', error)
     toast.error('Impossible de reconnecter')
@@ -644,12 +658,11 @@ const deleteConnection = async (connection: BankConnection): Promise<void> => {
     const response = await bankService.deleteConnection(connection.id)
 
     if (response.success) {
-      connections.value = connections.value.filter(c => c.id !== connection.id)
+      connections.value = connections.value.filter((c) => c.id !== connection.id)
       toast.success('✅ Connexion supprimée')
     } else {
       toast.error(response.message || 'Erreur suppression')
     }
-
   } catch (error: any) {
     console.error('❌ Erreur suppression:', error)
     toast.error(error.message || 'Erreur')
@@ -657,7 +670,7 @@ const deleteConnection = async (connection: BankConnection): Promise<void> => {
 }
 
 const toggleOptionsMenu = (connectionId: number): void => {
-  Object.keys(showOptionsMenu).forEach(id => {
+  Object.keys(showOptionsMenu).forEach((id) => {
     const numId = Number(id)
     if (numId !== connectionId) {
       showOptionsMenu[numId] = false
@@ -672,22 +685,22 @@ const toggleOptionsMenu = (connectionId: number): void => {
 
 const getStatusClass = (status: string): string => {
   const classes: Record<string, string> = {
-    'active': 'bg-green-100 text-green-800',
-    'expired': 'bg-red-100 text-red-800',
-    'error': 'bg-red-100 text-red-800',
-    'disabled': 'bg-gray-100 text-gray-800',
-    'pending': 'bg-yellow-100 text-yellow-800'
+    active: 'bg-green-100 text-green-800',
+    expired: 'bg-red-100 text-red-800',
+    error: 'bg-red-100 text-red-800',
+    disabled: 'bg-gray-100 text-gray-800',
+    pending: 'bg-yellow-100 text-yellow-800',
   }
   return classes[status] || 'bg-gray-100 text-gray-800'
 }
 
 const getStatusText = (status: string): string => {
   const texts: Record<string, string> = {
-    'active': '✅ Actif',
-    'expired': '⏰ Expiré',
-    'error': '❌ Erreur',
-    'disabled': '⏸️ Désactivé',
-    'pending': '⏳ En attente'
+    active: '✅ Actif',
+    expired: '⏰ Expiré',
+    error: '❌ Erreur',
+    disabled: '⏸️ Désactivé',
+    pending: '⏳ En attente',
   }
   return texts[status] || status
 }
@@ -698,7 +711,7 @@ const formatDate = (dateString: string | null): string => {
     day: 'numeric',
     month: 'short',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
   })
 }
 
@@ -709,7 +722,7 @@ const getTimeSinceSync = (dateString: string | null): string => {
   const syncDate = new Date(dateString)
   const hours = Math.floor((now.getTime() - syncDate.getTime()) / (1000 * 60 * 60))
 
-  if (hours < 1) return 'moins d\'1h'
+  if (hours < 1) return "moins d'1h"
   if (hours < 24) return `${hours}h`
 
   const days = Math.floor(hours / 24)
@@ -717,10 +730,7 @@ const getTimeSinceSync = (dateString: string | null): string => {
 }
 
 const refreshData = async (): Promise<void> => {
-  await Promise.all([
-    loadConnections(),
-    loadPendingTransactions()
-  ])
+  await Promise.all([loadConnections(), loadPendingTransactions()])
 }
 
 /**
@@ -750,7 +760,6 @@ const handleBridgeCallback = async (): Promise<void> => {
 
     // Nettoyer l'URL
     window.history.replaceState({}, '', '/app/banking')
-
   } else if (success === 'false') {
     toast.warning('❌ Connexion annulée')
     window.history.replaceState({}, '', '/app/banking')
@@ -771,15 +780,20 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.2s;
 }
 
-.fade-enter-from, .fade-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
 
 .transition-colors {
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 </style>

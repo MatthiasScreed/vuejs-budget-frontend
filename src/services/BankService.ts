@@ -65,7 +65,6 @@ export const bankService = {
 
   /**
    * ✅ CORRIGÉ : Initier une connexion bancaire (Bridge v3 2025)
-   * Le backend gère le flow complet : user creation, token, connect session
    */
   async initiateConnection(data?: InitiateBankConnectionData): Promise<ApiResponse<{
     connect_url: string
@@ -75,12 +74,10 @@ export const bankService = {
     try {
       console.log('🔗 Initiating bank connection:', data)
 
-      // ✅ Backend gère tout, on envoie juste le provider
       const response = await api.post('/bank/initiate', {
         provider: data?.provider || 'bridge',
         country: data?.country || 'FR',
-        // ⚠️ Ne pas envoyer return_url sauf si tu veux un callback custom
-        // Bridge utilisera la config dashboard par défaut
+        return_url: data?.return_url  // ✅ ENVOYER LE RETURN_URL !
       })
 
       if (response.success) {
