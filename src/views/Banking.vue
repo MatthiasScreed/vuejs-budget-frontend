@@ -743,6 +743,22 @@ const handleBridgeCallback = async (): Promise<void> => {
   const success = urlParams.get('success')
   const error = urlParams.get('error')
 
+  // ✅ IMPORTANT: Restaurer la session après redirection Bridge
+  if (itemId || success || error) {
+    console.log('🔄 Retour de Bridge, restauration session...')
+
+    const authStore = useAuthStore()
+    await authStore.restoreSession()
+
+    if (!authStore.isAuthenticated) {
+      console.error('❌ Session perdue après Bridge')
+      toast.error('Session expirée, veuillez vous reconnecter')
+      // Optionnel: rediriger vers login
+      // router.push('/login')
+      return
+    }
+  }
+
   if (error) {
     console.error('❌ Bridge error:', error)
     toast.error(`Erreur Bridge: ${error}`)
@@ -753,13 +769,11 @@ const handleBridgeCallback = async (): Promise<void> => {
   if (success === 'true' && itemId) {
     console.log('✅ Connexion réussie ! Item ID:', itemId)
     toast.success('🎉 Compte bancaire connecté !')
-    toast.info('⏳ Synchronisation en cours, patiente quelques instants...')
+    toast.info('⏳ Synchronisation en cours...')
 
-    // Recharger les connexions
     await refreshData()
-
-    // Nettoyer l'URL
     window.history.replaceState({}, '', '/app/banking')
+
   } else if (success === 'false') {
     toast.warning('❌ Connexion annulée')
     window.history.replaceState({}, '', '/app/banking')
