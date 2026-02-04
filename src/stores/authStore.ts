@@ -1,16 +1,13 @@
-// src/stores/authStore.ts - VERSION CORRIGÉE COMPLÈTE
+// src/stores/authStore.ts - VERSION COMPLÈTE AVEC isInitialized
 import { defineStore } from 'pinia'
 import api from '@/services/api'
 import type { User, LoginCredentials, RegisterData } from '@/types/entities/auth'
-
-// ==========================================
-// TYPES
-// ==========================================
 
 interface AuthState {
   user: User | null
   token: string | null
   isAuthenticated: boolean
+  isInitialized: boolean // ✅ AJOUTÉ
   loading: boolean
   error: string | null
   validationErrors: Record<string, string[]>
@@ -23,14 +20,7 @@ interface AuthResult {
   errors?: Record<string, string[]>
 }
 
-// ==========================================
-// STORE
-// ==========================================
-
 export const useAuthStore = defineStore('auth', {
-  // ==========================================
-  // STATE - Initialisé depuis localStorage
-  // ==========================================
   state: (): AuthState => ({
     user: (() => {
       try {
@@ -42,14 +32,12 @@ export const useAuthStore = defineStore('auth', {
     })(),
     token: localStorage.getItem('auth_token'),
     isAuthenticated: !!localStorage.getItem('auth_token'),
+    isInitialized: false, // ✅ AJOUTÉ
     loading: false,
     error: null,
     validationErrors: {},
   }),
 
-  // ==========================================
-  // GETTERS
-  // ==========================================
   getters: {
     isLoggedIn: (state): boolean => state.isAuthenticated && state.user !== null,
     userName: (state): string => state.user?.name || '',
@@ -59,13 +47,9 @@ export const useAuthStore = defineStore('auth', {
     userXP: (state): number => state.user?.level?.total_xp || 0,
   },
 
-  // ==========================================
-  // ACTIONS
-  // ==========================================
   actions: {
     /**
-     * 🔐 INITIALISER L'AUTH - VERSION SÉCURISÉE
-     * ⚠️ Ne fait PAS d'appel API bloquant !
+     * 🔐 INITIALISER L'AUTH
      */
     async initAuth(): Promise<boolean> {
       console.log('🔐 initAuth() - Début')
@@ -73,43 +57,41 @@ export const useAuthStore = defineStore('auth', {
       const token = localStorage.getItem('auth_token')
       const userStr = localStorage.getItem('user')
 
-      // 1. Pas de données locales → pas d'auth
       if (!token || !userStr) {
         console.log('🔐 initAuth() - Pas de données locales')
         this.clearAuthData()
+        this.isInitialized = true // ✅ Marquer comme initialisé
         return false
       }
 
-      // 2. Restaurer depuis localStorage SANS appel API
       try {
         this.token = token
         this.user = JSON.parse(userStr)
         this.isAuthenticated = true
+        this.isInitialized = true // ✅ Marquer comme initialisé
 
         console.log('✅ initAuth() - Auth restaurée:', this.user?.email)
 
-        // 3. Rafraîchir en arrière-plan (non-bloquant)
+        // Rafraîchir en arrière-plan
         this.refreshUserInBackground()
 
         return true
       } catch (error) {
         console.error('❌ initAuth() - Erreur parsing:', error)
         this.clearAuthData()
+        this.isInitialized = true // ✅ Marquer comme initialisé même en erreur
         return false
       }
     },
 
     /**
-     * 🔄 Rafraîchir l'utilisateur en arrière-plan
-     * Ne bloque pas, ne déclenche pas de logout sur erreur
+     * 🔄 Rafraîchir en arrière-plan
      */
     async refreshUserInBackground(): Promise<void> {
-      // Délai pour laisser l'app se rendre
       await new Promise((r) => setTimeout(r, 500))
 
       try {
         console.log('🔄 Rafraîchissement user en arrière-plan...')
-
         const response = await api.get<User>('/auth/me')
 
         if (response.success && response.data) {
@@ -118,13 +100,12 @@ export const useAuthStore = defineStore('auth', {
           console.log('✅ User rafraîchi:', this.user?.name)
         }
       } catch (error: any) {
-        // ⚠️ NE PAS déclencher de logout ici !
         console.warn('⚠️ Rafraîchissement échoué (non critique):', error.message)
       }
     },
 
     /**
-     * 👤 Charger l'utilisateur depuis l'API
+     * 👤 Charger l'utilisateur
      */
     async loadUser(): Promise<AuthResult> {
       if (!this.token) {
@@ -140,14 +121,12 @@ export const useAuthStore = defineStore('auth', {
           this.user = JSON.parse(JSON.stringify(response.data))
           this.isAuthenticated = true
           localStorage.setItem('user', JSON.stringify(this.user))
-
           return { success: true, data: this.user }
         }
 
         throw new Error(response.message || 'Erreur chargement')
       } catch (error: any) {
         console.warn('⚠️ loadUser échoué:', error.message)
-        // ⚠️ NE PAS appeler logout() ici !
         return { success: false, message: error.message }
       } finally {
         this.loading = false
@@ -174,11 +153,9 @@ export const useAuthStore = defineStore('auth', {
         throw new Error(response.message || 'Erreur de connexion')
       } catch (error: any) {
         this.error = error.message
-
         if (error.response?.data?.errors) {
           this.validationErrors = error.response.data.errors
         }
-
         return { success: false, message: error.message }
       } finally {
         this.loading = false
@@ -205,11 +182,9 @@ export const useAuthStore = defineStore('auth', {
         throw new Error(response.message || 'Erreur inscription')
       } catch (error: any) {
         this.error = error.message
-
         if (error.response?.data?.errors) {
           this.validationErrors = error.response.data.errors
         }
-
         return { success: false, message: error.message }
       } finally {
         this.loading = false
@@ -223,40 +198,38 @@ export const useAuthStore = defineStore('auth', {
       try {
         await api.post('/auth/logout')
       } catch (error) {
-        console.warn('⚠️ Logout serveur échoué (pas grave)')
+        console.warn('⚠️ Logout serveur échoué')
       } finally {
         this.clearAuthData()
       }
     },
 
     /**
-     * 💾 Sauvegarder les données d'auth
+     * 💾 Sauvegarder l'auth
      */
     setAuthData(user: User, token: string): void {
       this.user = JSON.parse(JSON.stringify(user))
       this.token = token
       this.isAuthenticated = true
+      this.isInitialized = true // ✅
 
       localStorage.setItem('auth_token', token)
       localStorage.setItem('user', JSON.stringify(this.user))
-
-      console.log('✅ Auth data sauvegardée')
     },
 
     /**
-     * 🧹 Nettoyer les données d'auth
+     * 🧹 Nettoyer l'auth
      */
     clearAuthData(): void {
       this.user = null
       this.token = null
       this.isAuthenticated = false
+      // NE PAS reset isInitialized ici
       this.error = null
       this.validationErrors = {}
 
       localStorage.removeItem('auth_token')
       localStorage.removeItem('user')
-
-      console.log('🧹 Auth data nettoyée')
     },
 
     /**
@@ -283,7 +256,7 @@ export const useAuthStore = defineStore('auth', {
     },
 
     /**
-     * 🧪 Test de connexion API
+     * 🧪 Test connexion API
      */
     async testConnection(): Promise<AuthResult> {
       try {
