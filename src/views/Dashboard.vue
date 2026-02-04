@@ -32,15 +32,49 @@ const isLoading = computed(
 const stats = computed(() => dashboardStore.stats)
 const hasData = computed(() => dashboardStore.hasData)
 
+// ✅ COMPUTED SÉCURISÉS pour les valeurs gaming
+const userLevel = computed(() => {
+  const user = stats.value?.user
+  if (!user) return 1
+  // Si c'est un objet avec .level, extraire la valeur
+  if (typeof user.level === 'object' && user.level !== null) {
+    return user.level.level ?? 1
+  }
+  return user.level ?? 1
+})
+
+const userXp = computed(() => {
+  const user = stats.value?.user
+  if (!user) return 0
+  // Si c'est un objet avec .level qui contient total_xp
+  if (typeof user.level === 'object' && user.level !== null) {
+    return user.level.total_xp ?? 0
+  }
+  return user.xp ?? user.total_xp ?? 0
+})
+
+const userAchievements = computed(() => {
+  const user = stats.value?.user
+  if (!user) return 0
+  // Si c'est un array, retourner la longueur
+  if (Array.isArray(user.achievements)) {
+    return user.achievements.length
+  }
+  return user.achievements ?? 0
+})
+
+const streakDays = computed(() => {
+  const streak = stats.value?.streak
+  if (!streak) return 0
+  return streak.days ?? streak.current_count ?? 0
+})
+
 // ==========================================
 // MÉTHODES
 // ==========================================
 
-/**
- * Charger les données avec debug
- */
 async function loadDashboardData(): Promise<void> {
-  console.group('📊 === CHARGEMENT DASHBOARD (DEBUG MODE) ===')
+  console.group('📊 === CHARGEMENT DASHBOARD ===')
 
   try {
     if (!authStore.isAuthenticated) {
@@ -50,21 +84,16 @@ async function loadDashboardData(): Promise<void> {
     }
 
     console.log('🔄 Chargement des stats...')
-
-    // Charger les stats dashboard
     await dashboardStore.fetchStats()
 
-    // Capturer la réponse brute pour debug
     rawApiResponse.value = {
       stats: dashboardStore.stats,
-      summary: dashboardStore.summary,
       hasData: dashboardStore.hasData,
       error: dashboardStore.error,
     }
 
     console.log('📦 Données reçues:', rawApiResponse.value)
 
-    // Charger les autres données en parallèle
     await Promise.allSettled([
       transactionStore.fetchTransactions().catch((err) => {
         console.warn('⚠️ Erreur transactions:', err.message)
@@ -82,16 +111,10 @@ async function loadDashboardData(): Promise<void> {
   }
 }
 
-/**
- * Rafraîchir
- */
 async function refreshData(): Promise<void> {
   await loadDashboardData()
 }
 
-/**
- * Toggle debug panel
- */
 function toggleDebug(): void {
   showDebug.value = !showDebug.value
 }
@@ -111,14 +134,12 @@ onMounted(async () => {
 
 <template>
   <div class="dashboard-container">
-    <!-- ==========================================
-         HEADER
-         ========================================== -->
+    <!-- HEADER -->
     <div class="dashboard-header">
       <h1>📊 Tableau de bord</h1>
       <div class="header-actions">
         <button @click="toggleDebug" class="debug-button" :class="{ active: showDebug }">
-          🐛 Debug
+          🛠 Debug
         </button>
         <button @click="refreshData" :disabled="isLoading" class="refresh-button">
           <span v-if="!isLoading">🔄 Actualiser</span>
@@ -127,11 +148,9 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- ==========================================
-         PANEL DEBUG (TEMPORAIRE)
-         ========================================== -->
+    <!-- DEBUG PANEL -->
     <div v-if="showDebug" class="debug-panel">
-      <h3>🐛 Debug Panel</h3>
+      <h3>🛠 Debug Panel</h3>
 
       <div class="debug-section">
         <h4>📡 État Auth</h4>
@@ -150,54 +169,25 @@ onMounted(async () => {
       </div>
 
       <div class="debug-section">
-        <h4>📊 Dashboard Store State</h4>
+        <h4>🎮 Valeurs Gaming Computed</h4>
         <pre>{{
           {
-            hasData: dashboardStore.hasData,
-            loading: dashboardStore.loading,
-            error: dashboardStore.error,
-            totalBalance: dashboardStore.totalBalance,
-            savingsCapacity: dashboardStore.savingsCapacity,
-            monthlyIncome: dashboardStore.monthlyIncome,
-            monthlyExpenses: dashboardStore.monthlyExpenses,
-          }
-        }}</pre>
-      </div>
-
-      <div class="debug-section">
-        <h4>💳 Transactions</h4>
-        <pre>{{
-          {
-            count: transactionStore.transactions.length,
-            loading: transactionStore.loading,
-            error: transactionStore.error,
-          }
-        }}</pre>
-      </div>
-
-      <div class="debug-section">
-        <h4>🎯 Objectifs</h4>
-        <pre>{{
-          {
-            count: goalStore.goals.length,
-            loading: goalStore.loading,
-            error: goalStore.error,
+            userLevel: userLevel,
+            userXp: userXp,
+            userAchievements: userAchievements,
+            streakDays: streakDays,
           }
         }}</pre>
       </div>
     </div>
 
-    <!-- ==========================================
-         ÉTAT DE CHARGEMENT
-         ========================================== -->
+    <!-- LOADING -->
     <div v-if="isLoading && !hasData" class="loading-state">
       <div class="spinner"></div>
       <p>Chargement de votre tableau de bord...</p>
     </div>
 
-    <!-- ==========================================
-         CONTENU PRINCIPAL
-         ========================================== -->
+    <!-- CONTENU PRINCIPAL -->
     <div v-else class="dashboard-content">
       <!-- Stats principales -->
       <div v-if="stats" class="stats-grid">
@@ -216,14 +206,14 @@ onMounted(async () => {
           <p
             class="stat-value"
             :class="{
-              positive: stats.savings_capacity.is_positive,
-              negative: !stats.savings_capacity.is_positive,
+              positive: stats.savings_capacity?.is_positive,
+              negative: !stats.savings_capacity?.is_positive,
             }"
           >
-            {{ dashboardStore.formatCurrency(stats.savings_capacity.amount) }}
+            {{ dashboardStore.formatCurrency(stats.savings_capacity?.amount || 0) }}
           </p>
           <p class="stat-detail">
-            {{ stats.savings_capacity.calculation.formula }}
+            {{ stats.savings_capacity?.calculation?.formula || 'Revenus - Dépenses' }}
           </p>
         </div>
 
@@ -231,25 +221,25 @@ onMounted(async () => {
           <div class="stat-icon">📈</div>
           <h3>Revenus du mois</h3>
           <p class="stat-value positive">
-            {{ dashboardStore.formatCurrency(stats.current_month.income) }}
+            {{ dashboardStore.formatCurrency(stats.current_month?.income || 0) }}
           </p>
-          <p class="stat-detail">{{ stats.current_month.transactions_count }} transactions</p>
+          <p class="stat-detail">{{ stats.current_month?.transactions_count || 0 }} transactions</p>
         </div>
 
         <div class="stat-card">
           <div class="stat-icon">📉</div>
           <h3>Dépenses du mois</h3>
           <p class="stat-value negative">
-            {{ dashboardStore.formatCurrency(stats.current_month.expenses) }}
+            {{ dashboardStore.formatCurrency(stats.current_month?.expenses || 0) }}
           </p>
           <p class="stat-detail">
-            Net: {{ dashboardStore.formatCurrency(stats.current_month.net) }}
+            Net: {{ dashboardStore.formatCurrency(stats.current_month?.net || 0) }}
           </p>
         </div>
       </div>
 
-      <!-- Comparaison avec le mois dernier -->
-      <div v-if="stats" class="comparison-card">
+      <!-- Comparaison -->
+      <div v-if="stats?.comparison" class="comparison-card">
         <h2>📊 Évolution vs mois dernier</h2>
         <div class="comparison-content">
           <div class="comparison-item">
@@ -281,7 +271,7 @@ onMounted(async () => {
       </div>
 
       <!-- Objectifs -->
-      <div v-if="stats" class="goals-card">
+      <div v-if="stats?.goals" class="goals-card">
         <h2>🎯 Vos objectifs</h2>
         <div class="goals-content">
           <div class="goal-stat">
@@ -306,8 +296,11 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- Status de la capacité -->
-        <div class="capacity-status" :class="`status-${stats.goals.capacity_status.status}`">
+        <div
+          v-if="stats.goals.capacity_status"
+          class="capacity-status"
+          :class="`status-${stats.goals.capacity_status.status}`"
+        >
           <div class="status-icon">
             {{
               stats.goals.capacity_status.status === 'excellent'
@@ -323,42 +316,45 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- Gaming -->
-      <div v-if="stats" class="gaming-card">
+      <!-- ✅ Gaming avec valeurs SCALAIRES -->
+      <div v-if="stats?.user" class="gaming-card">
         <h2>🎮 Progression Gaming</h2>
         <div class="gaming-content">
           <div class="gaming-stat">
             <span class="gaming-icon">🏆</span>
             <div>
               <span class="gaming-label">Niveau</span>
-              <span class="gaming-value">{{ stats.user.level }}</span>
+              <!-- ✅ Utiliser le computed sécurisé -->
+              <span class="gaming-value">{{ userLevel }}</span>
             </div>
           </div>
           <div class="gaming-stat">
             <span class="gaming-icon">⭐</span>
             <div>
               <span class="gaming-label">XP</span>
-              <span class="gaming-value">{{ stats.user.xp }}</span>
+              <!-- ✅ Utiliser le computed sécurisé -->
+              <span class="gaming-value">{{ userXp }}</span>
             </div>
           </div>
           <div class="gaming-stat">
             <span class="gaming-icon">🎯</span>
             <div>
               <span class="gaming-label">Succès</span>
-              <span class="gaming-value">{{ stats.user.achievements }}</span>
+              <!-- ✅ Utiliser le computed sécurisé -->
+              <span class="gaming-value">{{ userAchievements }}</span>
             </div>
           </div>
         </div>
 
         <!-- Streak -->
-        <div v-if="stats.streak" class="streak-info">
+        <div v-if="stats.streak && streakDays > 0" class="streak-info">
           <span class="streak-icon">🔥</span>
-          <span class="streak-text"> Série active : {{ stats.streak.days }} jours </span>
+          <span class="streak-text"> Série active : {{ streakDays }} jours </span>
         </div>
       </div>
 
       <!-- Période -->
-      <div v-if="stats" class="period-info">
+      <div v-if="stats?.period" class="period-info">
         <p>📅 Période : {{ stats.period.label }}</p>
         <p class="period-dates">
           Du {{ new Date(stats.period.start).toLocaleDateString('fr-FR') }} au
@@ -366,7 +362,7 @@ onMounted(async () => {
         </p>
       </div>
 
-      <!-- Message si vraiment aucune donnée -->
+      <!-- Message si aucune donnée -->
       <div v-if="!stats && !isLoading" class="no-data">
         <div class="no-data-icon">📊</div>
         <h3>Aucune donnée disponible</h3>
@@ -378,25 +374,23 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+/* Styles identiques au Dashboard.vue original */
 .dashboard-container {
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
 }
-
 .dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
 }
-
 .dashboard-header h1 {
   font-size: 2rem;
   font-weight: 700;
   color: #111827;
 }
-
 .header-actions {
   display: flex;
   gap: 1rem;
@@ -413,35 +407,29 @@ onMounted(async () => {
   font-weight: 600;
   transition: all 0.2s;
 }
-
 .debug-button {
   background: #f3f4f6;
   color: #6b7280;
 }
-
 .debug-button.active {
   background: #fbbf24;
   color: #111827;
 }
-
 .refresh-button,
 .retry-button {
   background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
   color: white;
 }
-
 .refresh-button:hover:not(:disabled),
 .retry-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
 }
-
 .refresh-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-/* Debug Panel */
 .debug-panel {
   background: #1f2937;
   color: #f9fafb;
@@ -451,21 +439,17 @@ onMounted(async () => {
   max-height: 600px;
   overflow-y: auto;
 }
-
 .debug-panel h3 {
   margin-bottom: 1rem;
   color: #fbbf24;
 }
-
 .debug-section {
   margin-bottom: 1.5rem;
 }
-
 .debug-section h4 {
   color: #a855f7;
   margin-bottom: 0.5rem;
 }
-
 .debug-section pre {
   background: #111827;
   padding: 1rem;
@@ -475,7 +459,6 @@ onMounted(async () => {
   line-height: 1.5;
 }
 
-/* Loading State */
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -484,7 +467,6 @@ onMounted(async () => {
   min-height: 400px;
   text-align: center;
 }
-
 .spinner {
   width: 50px;
   height: 50px;
@@ -494,7 +476,6 @@ onMounted(async () => {
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
 }
-
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -504,14 +485,12 @@ onMounted(async () => {
   }
 }
 
-/* Stats Grid */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
-
 .stat-card {
   background: white;
   padding: 1.5rem;
@@ -519,81 +498,73 @@ onMounted(async () => {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s;
 }
-
 .stat-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
-
 .stat-icon {
   font-size: 2rem;
   margin-bottom: 0.5rem;
 }
-
 .stat-card h3 {
   font-size: 0.875rem;
   color: #6b7280;
   margin-bottom: 0.5rem;
   font-weight: 600;
 }
-
 .stat-value {
   font-size: 2rem;
   font-weight: 700;
   color: #111827;
   margin-bottom: 0.5rem;
 }
-
 .stat-value.positive {
   color: #10b981;
 }
-
 .stat-value.negative {
   color: #ef4444;
 }
-
 .stat-detail {
   font-size: 0.75rem;
   color: #9ca3af;
 }
 
-/* Comparison Card */
-.comparison-card {
+.comparison-card,
+.goals-card {
   background: white;
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
 }
-
-.comparison-card h2 {
+.comparison-card h2,
+.goals-card h2 {
   font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 1rem;
 }
-
-.comparison-content {
+.comparison-content,
+.goals-content {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 1rem;
 }
-
-.comparison-item {
+.comparison-item,
+.goal-stat {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
-
-.comparison-item .label {
+.comparison-item .label,
+.goal-label {
   font-size: 0.875rem;
   color: #6b7280;
 }
-
-.comparison-item .value {
+.comparison-item .value,
+.goal-value {
   font-size: 1.25rem;
   font-weight: 600;
 }
-
 .trend-up {
   color: #10b981;
 }
@@ -604,79 +575,35 @@ onMounted(async () => {
   color: #6b7280;
 }
 
-/* Goals Card */
-.goals-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
-}
-
-.goals-card h2 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-}
-
-.goals-content {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.goal-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.goal-label {
-  font-size: 0.875rem;
-  color: #6b7280;
-}
-
-.goal-value {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #111827;
-}
-
 .capacity-status {
   padding: 1rem;
   border-radius: 8px;
   display: flex;
   align-items: center;
   gap: 1rem;
+  margin-top: 1.5rem;
 }
-
 .status-excellent {
   background: #d1fae5;
   border: 1px solid #10b981;
 }
-
 .status-warning {
   background: #fef3c7;
   border: 1px solid #f59e0b;
 }
-
 .status-deficit,
 .status-insufficient {
   background: #fee2e2;
   border: 1px solid #ef4444;
 }
-
 .status-icon {
   font-size: 1.5rem;
 }
-
 .status-message {
   font-size: 0.875rem;
   font-weight: 600;
 }
 
-/* Gaming Card */
 .gaming-card {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -685,42 +612,35 @@ onMounted(async () => {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
 }
-
 .gaming-card h2 {
   font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 1rem;
 }
-
 .gaming-content {
   display: flex;
   gap: 2rem;
   flex-wrap: wrap;
   margin-bottom: 1rem;
 }
-
 .gaming-stat {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
-
 .gaming-icon {
   font-size: 2rem;
 }
-
 .gaming-label {
   display: block;
   font-size: 0.75rem;
   opacity: 0.9;
 }
-
 .gaming-value {
   display: block;
   font-size: 1.5rem;
   font-weight: 700;
 }
-
 .streak-info {
   display: flex;
   align-items: center;
@@ -729,12 +649,10 @@ onMounted(async () => {
   padding: 0.75rem 1rem;
   border-radius: 8px;
 }
-
 .streak-icon {
   font-size: 1.5rem;
 }
 
-/* Period Info */
 .period-info {
   text-align: center;
   padding: 1rem;
@@ -743,13 +661,11 @@ onMounted(async () => {
   font-size: 0.875rem;
   color: #6b7280;
 }
-
 .period-dates {
   margin-top: 0.5rem;
   font-weight: 600;
 }
 
-/* No Data */
 .no-data {
   text-align: center;
   padding: 4rem 2rem;
@@ -757,19 +673,16 @@ onMounted(async () => {
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-
 .no-data-icon {
   font-size: 4rem;
   margin-bottom: 1rem;
 }
-
 .no-data h3 {
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
   color: #111827;
 }
-
 .no-data p {
   color: #6b7280;
   margin-bottom: 1.5rem;
