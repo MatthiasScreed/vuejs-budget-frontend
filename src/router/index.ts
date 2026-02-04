@@ -1,14 +1,20 @@
-// src/router/index.ts - VERSION CORRIGÉE
+// src/router/index.ts - AVEC LAYOUT NAVBAR
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 
 // ==========================================
-// LAZY LOADING DES COMPOSANTS
+// LAZY LOADING
 // ==========================================
 
+// Layout avec navbar
+const AppLayout = () => import('@/components/layout/AppLayout.vue')
+
+// Pages publiques
 const Home = () => import('@/views/Home.vue')
 const Login = () => import('@/views/Login.vue')
 const Register = () => import('@/views/Register.vue')
+
+// Pages authentifiées
 const Dashboard = () => import('@/views/Dashboard.vue')
 const Transactions = () => import('@/views/Transactions.vue')
 const Goals = () => import('@/views/Goals.vue')
@@ -19,7 +25,7 @@ const Profile = () => import('@/views/Profile.vue')
 const Banking = () => import('@/views/Banking.vue')
 
 // ==========================================
-// DÉFINITION DES ROUTES
+// ROUTES
 // ==========================================
 
 const routes = [
@@ -31,7 +37,7 @@ const routes = [
     meta: { requiresAuth: false, title: 'CoinQuest - Budget Gaming' },
   },
 
-  // Auth
+  // Auth (sans layout)
   {
     path: '/login',
     name: 'Login',
@@ -46,59 +52,70 @@ const routes = [
   },
 
   // ==========================================
-  // ROUTES AUTHENTIFIÉES (avec /app prefix)
+  // ✅ ROUTES AVEC LAYOUT (navbar incluse)
   // ==========================================
   {
-    path: '/app/dashboard',
-    name: 'Dashboard',
-    component: Dashboard,
-    meta: { requiresAuth: true, title: 'Dashboard - CoinQuest' },
-  },
-  {
-    path: '/app/transactions',
-    name: 'Transactions',
-    component: Transactions,
-    meta: { requiresAuth: true, title: 'Transactions - CoinQuest' },
-  },
-  {
-    path: '/app/goals',
-    name: 'Goals',
-    component: Goals,
-    meta: { requiresAuth: true, title: 'Objectifs - CoinQuest' },
-  },
-  {
-    path: '/app/categories',
-    name: 'Categories',
-    component: Categories,
-    meta: { requiresAuth: true, title: 'Catégories - CoinQuest' },
-  },
-  {
-    path: '/app/analytics',
-    name: 'Analytics',
-    component: Analytics,
-    meta: { requiresAuth: true, title: 'Analytique - CoinQuest' },
-  },
-  {
-    path: '/app/gaming',
-    name: 'Gaming',
-    component: Gaming,
-    meta: { requiresAuth: true, title: 'Gaming - CoinQuest' },
-  },
-  {
-    path: '/app/banking',
-    name: 'Banking',
-    component: Banking,
-    meta: { requiresAuth: true, title: 'Banking - CoinQuest' },
-  },
-  {
-    path: '/app/profile',
-    name: 'Profile',
-    component: Profile,
-    meta: { requiresAuth: true, title: 'Profil - CoinQuest' },
+    path: '/app',
+    component: AppLayout,
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: 'dashboard',
+        name: 'Dashboard',
+        component: Dashboard,
+        meta: { requiresAuth: true, title: 'Dashboard - CoinQuest' },
+      },
+      {
+        path: 'transactions',
+        name: 'Transactions',
+        component: Transactions,
+        meta: { requiresAuth: true, title: 'Transactions - CoinQuest' },
+      },
+      {
+        path: 'goals',
+        name: 'Goals',
+        component: Goals,
+        meta: { requiresAuth: true, title: 'Objectifs - CoinQuest' },
+      },
+      {
+        path: 'categories',
+        name: 'Categories',
+        component: Categories,
+        meta: { requiresAuth: true, title: 'Catégories - CoinQuest' },
+      },
+      {
+        path: 'analytics',
+        name: 'Analytics',
+        component: Analytics,
+        meta: { requiresAuth: true, title: 'Analytique - CoinQuest' },
+      },
+      {
+        path: 'gaming',
+        name: 'Gaming',
+        component: Gaming,
+        meta: { requiresAuth: true, title: 'Gaming - CoinQuest' },
+      },
+      {
+        path: 'banking',
+        name: 'Banking',
+        component: Banking,
+        meta: { requiresAuth: true, title: 'Banking - CoinQuest' },
+      },
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: Profile,
+        meta: { requiresAuth: true, title: 'Profil - CoinQuest' },
+      },
+      // Redirection /app → /app/dashboard
+      {
+        path: '',
+        redirect: 'dashboard',
+      },
+    ],
   },
 
   // Redirections de compatibilité
-  { path: '/app', redirect: '/app/dashboard' },
   { path: '/dashboard', redirect: '/app/dashboard' },
   { path: '/transactions', redirect: '/app/transactions' },
   { path: '/goals', redirect: '/app/goals' },
@@ -127,7 +144,7 @@ const router = createRouter({
 })
 
 // ==========================================
-// GUARD SIMPLIFIÉ - SANS APPEL API !
+// GUARD SIMPLIFIÉ
 // ==========================================
 
 router.beforeEach(async (to, from, next) => {
@@ -135,14 +152,10 @@ router.beforeEach(async (to, from, next) => {
 
   const requiresAuth = to.matched.some((r) => r.meta.requiresAuth)
 
-  // =============================================
-  // 1. ROUTES PUBLIQUES - Pas besoin de vérifier
-  // =============================================
+  // Routes publiques
   if (!requiresAuth) {
-    // Si déjà connecté et va vers login/register → dashboard
     const token = localStorage.getItem('auth_token')
     if (token && (to.path === '/login' || to.path === '/register')) {
-      console.log('✅ Déjà connecté, redirection vers dashboard')
       next('/app/dashboard')
       return
     }
@@ -150,29 +163,24 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
-  // =============================================
-  // 2. ROUTES PROTÉGÉES - Vérifier AUTH LOCALE
-  // =============================================
+  // Routes protégées
   const authStore = useAuthStore()
 
-  // Vérifier d'abord le store (initialisé par App.vue)
   if (authStore.isAuthenticated && authStore.user) {
-    console.log('✅ Auth OK (store), navigation autorisée')
     next()
     return
   }
 
-  // Fallback : vérifier localStorage directement
+  // Fallback localStorage
   const token = localStorage.getItem('auth_token')
   const userStr = localStorage.getItem('user')
 
   if (token && userStr) {
-    // Restaurer dans le store si nécessaire
     try {
       authStore.token = token
       authStore.user = JSON.parse(userStr)
       authStore.isAuthenticated = true
-      console.log('✅ Auth restaurée depuis localStorage')
+      authStore.isInitialized = true
       next()
       return
     } catch (error) {
@@ -180,28 +188,17 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  // =============================================
-  // 3. PAS D'AUTH → Login
-  // =============================================
-  console.log('🔒 Non authentifié, redirection vers login')
-  next({
-    path: '/login',
-    query: { redirect: to.fullPath },
-  })
+  // Pas d'auth → Login
+  next({ path: '/login', query: { redirect: to.fullPath } })
 })
 
 // ==========================================
-// AFTER EACH - TITRES UNIQUEMENT (pas d'API !)
+// AFTER EACH - Titres uniquement
 // ==========================================
 
 router.afterEach((to) => {
-  // Mettre à jour le titre
   const title = to.meta.title as string
   document.title = title || 'CoinQuest'
-
-  // ⚠️ SUPPRIMÉ : Les appels gamingStore.addXP() et updateStreak()
-  // Ces appels API déclenchaient des 401 et des logouts !
-  // Le tracking gaming sera fait ailleurs (dans les composants)
 })
 
 // ==========================================
