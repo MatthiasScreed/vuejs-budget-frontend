@@ -1,174 +1,12 @@
-// src/services/api.ts - VERSION CORRIGÉE (Anti-logout cascade)
-import axios, { type AxiosInstance, type AxiosResponse, type AxiosError } from 'axios'
-import { getTokenIfValid, secureStorage } from '@/services/secureStorage'
+// src/services/api.ts - VERSION CORRIGÉE
+import axios from 'axios'
+import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 
 // ==========================================
-// CONFIGURATION API
+// CONFIGURATION
 // ==========================================
 
-const getApiBaseUrl = (): string => {
-  const envUrl = import.meta.env.VITE_API_BASE_URL
-  if (envUrl) {
-    return envUrl.endsWith('/') ? envUrl.slice(0, -1) : envUrl
-  }
-
-  if (import.meta.env.PROD) {
-    return 'https://laravel-budget-api-saqbqlbw.on-forge.com/api'
-  }
-
-  return 'http://budget-api.test/api'
-}
-
-const API_BASE_URL = getApiBaseUrl()
-
-console.log('🔧 API Configuration:', {
-  baseURL: API_BASE_URL,
-  mode: import.meta.env.MODE,
-  isProd: import.meta.env.PROD,
-})
-
-// ==========================================
-// INSTANCE AXIOS
-// ==========================================
-
-const axiosInstance: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 60000,
-  headers: {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-  },
-  withCredentials: false,
-})
-
-// ==========================================
-// 🔑 CACHE TOKEN EN MÉMOIRE
-// ==========================================
-
-let cachedToken: string | null = null
-let tokenPromise: Promise<string | null> | null = null
-
-/**
- * ✅ Récupérer le token avec cache mémoire
- * Évite les appels async répétés à localStorage
- */
-async function getCachedToken(): Promise<string | null> {
-  // Si on a déjà une promesse en cours, l'attendre
-  if (tokenPromise) {
-    return tokenPromise
-  }
-
-  // Si on a un token en cache, le retourner
-  if (cachedToken) {
-    return cachedToken
-  }
-
-  // Sinon, récupérer depuis storage
-  tokenPromise = getTokenIfValid().then((token) => {
-    cachedToken = token
-    tokenPromise = null
-    return token
-  })
-
-  return tokenPromise
-}
-
-/**
- * ✅ Mettre à jour le cache token
- */
-export function updateTokenCache(token: string | null): void {
-  cachedToken = token
-  console.log('🔑 Token cache mis à jour:', !!token)
-}
-
-/**
- * ✅ Invalider le cache (appelé au logout)
- */
-export function clearTokenCache(): void {
-  cachedToken = null
-  tokenPromise = null
-  console.log('🧹 Token cache vidé')
-}
-
-// ==========================================
-// INTERCEPTEURS
-// ==========================================
-
-// Request interceptor
-axiosInstance.interceptors.request.use(
-  async (config) => {
-    // ✅ Utiliser le cache token
-    const token = await getCachedToken()
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    } else {
-      console.warn('⚠️ [API] Pas de token pour la requête:', config.url)
-    }
-
-    if (import.meta.env.DEV) {
-      console.log(`📤 ${config.method?.toUpperCase()} ${config.url}`, token ? '🔑' : '🚫')
-    }
-
-    config.metadata = { startTime: Date.now() }
-    return config
-  },
-  (error) => {
-    console.error('❌ Request error:', error)
-    return Promise.reject(error)
-  },
-)
-
-// Response interceptor
-axiosInstance.interceptors.response.use(
-  (response: AxiosResponse) => {
-    const duration = Date.now() - (response.config.metadata?.startTime || 0)
-
-    if (import.meta.env.DEV) {
-      console.log(
-        `✅ ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status} (${duration}ms)`,
-      )
-    }
-
-    return response
-  },
-  (error: AxiosError) => {
-    const duration = Date.now() - (error.config?.metadata?.startTime || 0)
-    const url = error.config?.url || 'unknown'
-
-    if (error.code === 'ECONNABORTED') {
-      console.error(`⏱️ TIMEOUT ${url} après ${duration}ms`)
-    } else {
-      console.error(
-        `❌ ${error.config?.method?.toUpperCase()} ${url} - ${error.response?.status || 'NETWORK'} (${duration}ms)`,
-      )
-    }
-
-    // ✅ CORRECTION: NE PAS nettoyer automatiquement sur 401
-    // Laisser le composant/store gérer la déconnexion si nécessaire
-    if (error.response?.status === 401) {
-      console.log('🔑 401 reçu sur:', url)
-
-      // ⚠️ IMPORTANT: Ne nettoyer QUE si c'est une route d'auth
-      // Les autres routes peuvent avoir des 401 temporaires
-      const isAuthRoute = url.includes('/auth/me') || url.includes('/auth/logout')
-
-      if (isAuthRoute) {
-        console.log('🔑 401 sur route auth - invalidation du cache')
-        clearTokenCache()
-      } else {
-        console.log('⚠️ 401 sur route non-auth - conservation du token')
-        // On ne supprime PAS le token, on laisse le store gérer
-      }
-    }
-
-    return Promise.reject(error)
-  },
-)
-
-// ==========================================
-// TYPES
-// ==========================================
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 
 export interface ApiResponse<T = any> {
   success: boolean
@@ -177,103 +15,222 @@ export interface ApiResponse<T = any> {
   errors?: Record<string, string[]>
 }
 
-declare module 'axios' {
-  export interface AxiosRequestConfig {
-    metadata?: {
-      startTime: number
+// ==========================================
+// 🛡️ FLAGS ANTI-BOUCLE DE LOGOUT
+// ==========================================
+
+let isHandling401 = false
+let lastLogoutTime = 0
+const LOGOUT_COOLDOWN = 3000 // 3 secondes entre les logouts
+
+// ==========================================
+// CALLBACKS
+// ==========================================
+
+type AuthCallback = () => void
+type ToastCallback = (msg: string, type: 'error' | 'success' | 'warning') => void
+
+let authCallback: AuthCallback | null = null
+let toastCallback: ToastCallback | null = null
+
+export function initializeApiCallbacks(onAuthError: AuthCallback, onToast: ToastCallback) {
+  authCallback = onAuthError
+  toastCallback = onToast
+  console.log('✅ API callbacks initialisés')
+}
+
+// Alias pour compatibilité
+export const initializeApiErrorHandler = initializeApiCallbacks
+
+// ==========================================
+// CLIENT AXIOS
+// ==========================================
+
+const apiClient: AxiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
+  },
+})
+
+// ==========================================
+// INTERCEPTEUR REQUEST
+// ==========================================
+
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('auth_token')
+
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`
     }
+
+    if (import.meta.env.DEV) {
+      console.log('📤 API →', config.method?.toUpperCase(), config.url)
+    }
+
+    return config
+  },
+  (error) => {
+    console.error('❌ Request Error:', error)
+    return Promise.reject(error)
+  },
+)
+
+// ==========================================
+// INTERCEPTEUR RESPONSE - CORRIGÉ
+// ==========================================
+
+apiClient.interceptors.response.use(
+  (response: AxiosResponse) => {
+    if (import.meta.env.DEV) {
+      console.log('✅ API ←', response.status, response.config.url)
+    }
+    return response
+  },
+  async (error) => {
+    const status = error.response?.status
+    const url = error.config?.url || ''
+
+    console.warn('⚠️ API Error:', { status, url })
+
+    // ==========================================
+    // 🛡️ GESTION 401 SÉCURISÉE
+    // ==========================================
+    if (status === 401) {
+      // 1. Ignorer si c'est le logout lui-même
+      if (url.includes('/auth/logout')) {
+        console.log('🔓 401 sur logout - ignoré')
+        return Promise.reject(error)
+      }
+
+      // 2. Ignorer si on traite déjà un 401
+      if (isHandling401) {
+        console.log('🔄 401 déjà en cours de traitement - ignoré')
+        return Promise.reject(error)
+      }
+
+      // 3. Cooldown pour éviter les logouts multiples
+      const now = Date.now()
+      if (now - lastLogoutTime < LOGOUT_COOLDOWN) {
+        console.log('⏳ Cooldown logout actif - ignoré')
+        return Promise.reject(error)
+      }
+
+      // 4. Marquer le début du traitement
+      isHandling401 = true
+      lastLogoutTime = now
+
+      console.log('🔒 401 - Session expirée, déconnexion...')
+
+      // 5. Nettoyage local IMMÉDIAT
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('user')
+
+      // 6. Toast (si disponible)
+      if (toastCallback) {
+        toastCallback('Session expirée', 'warning')
+      }
+
+      // 7. Callback de déconnexion avec délai
+      setTimeout(() => {
+        if (authCallback) {
+          authCallback()
+        } else {
+          // Fallback direct
+          window.location.href = '/login'
+        }
+
+        // Reset le flag après navigation
+        setTimeout(() => {
+          isHandling401 = false
+        }, 1000)
+      }, 100)
+
+      return Promise.reject(error)
+    }
+
+    // ==========================================
+    // AUTRES ERREURS (pas de logout)
+    // ==========================================
+    if (status === 403) {
+      toastCallback?.('Accès refusé', 'error')
+    } else if (status === 422) {
+      // Erreur de validation - pas de toast global
+      // Les composants gèrent ça individuellement
+    } else if (status === 429) {
+      toastCallback?.('Trop de requêtes', 'warning')
+    } else if (status === 500) {
+      toastCallback?.('Erreur serveur', 'error')
+    } else if (!error.response) {
+      // Erreur réseau - PAS de logout !
+      console.warn('⚠️ Erreur réseau (pas de logout)')
+      toastCallback?.('Problème de connexion', 'warning')
+    }
+
+    return Promise.reject(error)
+  },
+)
+
+// ==========================================
+// CLASSE API SERVICE
+// ==========================================
+
+class ApiService {
+  private client: AxiosInstance = apiClient
+
+  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+    const response = await this.client.get<ApiResponse<T>>(url, config)
+    return response.data
+  }
+
+  async post<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig,
+  ): Promise<ApiResponse<T>> {
+    const response = await this.client.post<ApiResponse<T>>(url, data, config)
+    return response.data
+  }
+
+  async put<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig,
+  ): Promise<ApiResponse<T>> {
+    const response = await this.client.put<ApiResponse<T>>(url, data, config)
+    return response.data
+  }
+
+  async patch<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig,
+  ): Promise<ApiResponse<T>> {
+    const response = await this.client.patch<ApiResponse<T>>(url, data, config)
+    return response.data
+  }
+
+  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+    const response = await this.client.delete<ApiResponse<T>>(url, config)
+    return response.data
   }
 }
 
 // ==========================================
-// API HELPER
+// EXPORTS
 // ==========================================
 
-export const api = {
-  async get<T = any>(url: string, config = {}): Promise<ApiResponse<T>> {
-    try {
-      const response = await axiosInstance.get<ApiResponse<T>>(url, config)
-      return response.data
-    } catch (error: any) {
-      return this.handleError(error)
-    }
-  },
-
-  async post<T = any>(url: string, data?: any, config = {}): Promise<ApiResponse<T>> {
-    try {
-      const response = await axiosInstance.post<ApiResponse<T>>(url, data, config)
-      return response.data
-    } catch (error: any) {
-      return this.handleError(error)
-    }
-  },
-
-  async put<T = any>(url: string, data?: any, config = {}): Promise<ApiResponse<T>> {
-    try {
-      const response = await axiosInstance.put<ApiResponse<T>>(url, data, config)
-      return response.data
-    } catch (error: any) {
-      return this.handleError(error)
-    }
-  },
-
-  async patch<T = any>(url: string, data?: any, config = {}): Promise<ApiResponse<T>> {
-    try {
-      const response = await axiosInstance.patch<ApiResponse<T>>(url, data, config)
-      return response.data
-    } catch (error: any) {
-      return this.handleError(error)
-    }
-  },
-
-  async delete<T = any>(url: string, config = {}): Promise<ApiResponse<T>> {
-    try {
-      const response = await axiosInstance.delete<ApiResponse<T>>(url, config)
-      return response.data
-    } catch (error: any) {
-      return this.handleError(error)
-    }
-  },
-
-  getEnvironmentConfig() {
-    return {
-      mode: import.meta.env.MODE,
-      apiBaseUrl: API_BASE_URL,
-      isSecure: API_BASE_URL.startsWith('https'),
-      isProd: import.meta.env.PROD,
-    }
-  },
-
-  handleError(error: any): ApiResponse {
-    if (error.code === 'ECONNABORTED') {
-      return {
-        success: false,
-        message: "Délai d'attente dépassé. Vérifiez votre connexion.",
-      }
-    }
-
-    if (!error.response) {
-      return {
-        success: false,
-        message: 'Erreur réseau. Vérifiez votre connexion internet.',
-      }
-    }
-
-    // ✅ Pour les 401, retourner un message clair mais ne pas forcer logout
-    if (error.response?.status === 401) {
-      return {
-        success: false,
-        message: 'Session invalide',
-        errors: { auth: ['Token invalide ou expiré'] },
-      }
-    }
-
-    return {
-      success: false,
-      message: error.response?.data?.message || error.message || 'Erreur serveur',
-      errors: error.response?.data?.errors,
-    }
-  },
-}
+const api = new ApiService()
 
 export default api
+export { ApiService, apiClient }
+
+// Reset manuel si nécessaire (pour debug)
+export const resetLogoutState = () => {
+  isHandling401 = false
+  lastLogoutTime = 0
+}

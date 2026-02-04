@@ -1,325 +1,216 @@
+// src/router/index.ts - VERSION CORRIGÉE
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 
+// ==========================================
+// LAZY LOADING DES COMPOSANTS
+// ==========================================
+
+const Home = () => import('@/views/Home.vue')
+const Login = () => import('@/views/Login.vue')
+const Register = () => import('@/views/Register.vue')
+const Dashboard = () => import('@/views/Dashboard.vue')
+const Transactions = () => import('@/views/Transactions.vue')
+const Goals = () => import('@/views/Goals.vue')
+const Categories = () => import('@/views/Categories.vue')
+const Analytics = () => import('@/views/Analytics.vue')
+const Gaming = () => import('@/views/Gaming.vue')
+const Profile = () => import('@/views/Profile.vue')
+const Banking = () => import('@/views/Banking.vue')
+
+// ==========================================
+// DÉFINITION DES ROUTES
+// ==========================================
+
 const routes = [
+  // Page d'accueil publique
   {
     path: '/',
-    redirect: '/app/dashboard',
+    name: 'Home',
+    component: Home,
+    meta: { requiresAuth: false, title: 'CoinQuest - Budget Gaming' },
   },
 
-  // ROUTES PUBLIQUES
+  // Auth
   {
     path: '/login',
     name: 'Login',
-    component: () => import('@/views/Login.vue'),
-    meta: {
-      requiresAuth: false,
-      title: 'Connexion - Budget Gaming',
-    },
+    component: Login,
+    meta: { requiresAuth: false, title: 'Connexion - CoinQuest' },
   },
   {
     path: '/register',
     name: 'Register',
-    component: () => import('@/views/Register.vue'),
-    meta: {
-      requiresAuth: false,
-      title: 'Inscription - Budget Gaming',
-    },
+    component: Register,
+    meta: { requiresAuth: false, title: 'Inscription - CoinQuest' },
   },
 
-  // ROUTES AUTHENTIFIÉES
+  // ==========================================
+  // ROUTES AUTHENTIFIÉES (avec /app prefix)
+  // ==========================================
   {
-    path: '/app',
-    component: () => import('@/components/layout/AppLayout.vue'),
-    meta: {
-      requiresAuth: true,
-    },
-    children: [
-      {
-        path: 'dashboard',
-        name: 'Dashboard',
-        component: () => import('@/views/Dashboard.vue'),
-        meta: {
-          title: 'Dashboard - Budget Gaming',
-          icon: 'HomeIcon',
-        },
-      },
-      {
-        path: 'transactions',
-        name: 'Transactions',
-        component: () => import('@/views/Transactions.vue'),
-        meta: {
-          title: 'Transactions - Budget Gaming',
-          icon: 'CreditCardIcon',
-        },
-      },
-      {
-        path: 'goals',
-        name: 'Goals',
-        component: () => import('@/views/Goals.vue'),
-        meta: {
-          title: 'Objectifs - Budget Gaming',
-          icon: 'CalendarIcon',
-        },
-      },
-      {
-        path: 'categories',
-        name: 'Categories',
-        component: () => import('@/views/Categories.vue'),
-        meta: {
-          title: 'Catégories - Budget Gaming',
-          icon: 'TagIcon',
-        },
-      },
-      {
-        path: 'analytics',
-        name: 'Analytics',
-        component: () => import('@/views/Analytics.vue'),
-        meta: {
-          title: 'Analyses - Budget Gaming',
-          icon: 'ChartBarIcon',
-        },
-      },
-      {
-        path: 'gaming',
-        name: 'Gaming',
-        component: () => import('@/views/Gaming.vue'),
-        meta: {
-          title: 'Gaming Center - Budget Gaming',
-          icon: 'TrophyIcon',
-          isGaming: true,
-        },
-      },
-      {
-        path: 'gaming/achievements',
-        name: 'Achievements',
-        component: () => import('@/views/Achievements.vue'),
-        meta: {
-          title: 'Succès - Budget Gaming',
-          icon: 'TrophyIcon',
-          parent: 'Gaming',
-          isGaming: true,
-        },
-      },
-      {
-        path: 'gaming/challenges',
-        name: 'Challenges',
-        component: () => import('@/views/Challenges.vue'),
-        meta: {
-          title: 'Défis - Budget Gaming',
-          icon: 'FireIcon',
-          parent: 'Gaming',
-          isGaming: true,
-        },
-      },
-      {
-        path: 'banking',
-        name: 'Banking',
-        component: () => import('@/views/Banking.vue'),
-        meta: {
-          title: 'Banking - Budget Gaming',
-          icon: 'BankIcon',
-        },
-      },
-      {
-        path: 'diagnostic',
-        name: 'Diagnostic',
-        component: () => import('@/views/Diagnostic.vue'),
-        meta: {
-          title: 'Diagnostic - Budget Gaming',
-          icon: 'WrenchIcon',
-        },
-      },
-      {
-        path: 'banking/callback',
-        name: 'BankingCallback',
-        component: () => import('@/views/BankingCallback.vue'),
-        meta: {
-          title: 'Connexion bancaire - Budget Gaming',
-          requiresAuth: true,
-        },
-      },
-      {
-        path: 'savings',
-        name: 'Savings',
-        component: () => import('@/views/SavingsDashboard.vue'),
-        meta: {
-          title: 'Épargne - Budget Gaming',
-          icon: 'PiggyBankIcon',
-        },
-      },
-      {
-        path: 'profile',
-        name: 'Profile',
-        component: () => import('@/views/Profile.vue'),
-        meta: {
-          title: 'Mon Profil - Budget Gaming',
-          icon: 'UserIcon',
-        },
-      },
-      {
-        path: '',
-        redirect: 'dashboard',
-      },
-    ],
+    path: '/app/dashboard',
+    name: 'Dashboard',
+    component: Dashboard,
+    meta: { requiresAuth: true, title: 'Dashboard - CoinQuest' },
+  },
+  {
+    path: '/app/transactions',
+    name: 'Transactions',
+    component: Transactions,
+    meta: { requiresAuth: true, title: 'Transactions - CoinQuest' },
+  },
+  {
+    path: '/app/goals',
+    name: 'Goals',
+    component: Goals,
+    meta: { requiresAuth: true, title: 'Objectifs - CoinQuest' },
+  },
+  {
+    path: '/app/categories',
+    name: 'Categories',
+    component: Categories,
+    meta: { requiresAuth: true, title: 'Catégories - CoinQuest' },
+  },
+  {
+    path: '/app/analytics',
+    name: 'Analytics',
+    component: Analytics,
+    meta: { requiresAuth: true, title: 'Analytique - CoinQuest' },
+  },
+  {
+    path: '/app/gaming',
+    name: 'Gaming',
+    component: Gaming,
+    meta: { requiresAuth: true, title: 'Gaming - CoinQuest' },
+  },
+  {
+    path: '/app/banking',
+    name: 'Banking',
+    component: Banking,
+    meta: { requiresAuth: true, title: 'Banking - CoinQuest' },
+  },
+  {
+    path: '/app/profile',
+    name: 'Profile',
+    component: Profile,
+    meta: { requiresAuth: true, title: 'Profil - CoinQuest' },
   },
 
-  // REDIRECTIONS COMPATIBILITÉ
+  // Redirections de compatibilité
+  { path: '/app', redirect: '/app/dashboard' },
   { path: '/dashboard', redirect: '/app/dashboard' },
   { path: '/transactions', redirect: '/app/transactions' },
   { path: '/goals', redirect: '/app/goals' },
   { path: '/categories', redirect: '/app/categories' },
   { path: '/analytics', redirect: '/app/analytics' },
   { path: '/gaming', redirect: '/app/gaming' },
-  { path: '/achievements', redirect: '/app/gaming/achievements' },
-  { path: '/challenges', redirect: '/app/gaming/challenges' },
   { path: '/profile', redirect: '/app/profile' },
 
-  // ROUTE 404
+  // 404
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/NotFound.vue'),
-    meta: {
-      requiresAuth: false,
-      title: 'Page non trouvée - Budget Gaming',
-    },
+    meta: { requiresAuth: false, title: 'Page non trouvée' },
   },
 ]
+
+// ==========================================
+// CRÉATION DU ROUTER
+// ==========================================
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-  scrollBehavior(to, from, savedPosition) {
-    if (savedPosition) {
-      return savedPosition
-    }
-    return { top: 0 }
-  },
+  scrollBehavior: (to, from, savedPosition) => savedPosition || { top: 0 },
 })
 
 // ==========================================
-// 🛡️ GUARD DE NAVIGATION OPTIMISÉ
+// GUARD SIMPLIFIÉ - SANS APPEL API !
 // ==========================================
 
 router.beforeEach(async (to, from, next) => {
-  console.log('═══════════════════════════════════════')
-  console.log('🧭 NAVIGATION:', from.path, '→', to.path)
-  console.log('═══════════════════════════════════════')
+  console.log(`🧭 Navigation: ${from.path} → ${to.path}`)
 
-  const authStore = useAuthStore()
   const requiresAuth = to.matched.some((r) => r.meta.requiresAuth)
 
-  // 📊 État complet de l'auth
-  console.log('📊 AUTH STATE:')
-  console.log('   - isInitialized:', authStore.isInitialized)
-  console.log('   - isAuthenticated:', authStore.isAuthenticated)
-  console.log('   - hasToken:', !!authStore.token)
-  console.log('   - hasUser:', !!authStore.user)
-  console.log('   - userEmail:', authStore.user?.email || 'null')
-  console.log('   - requiresAuth:', requiresAuth)
+  // =============================================
+  // 1. ROUTES PUBLIQUES - Pas besoin de vérifier
+  // =============================================
+  if (!requiresAuth) {
+    // Si déjà connecté et va vers login/register → dashboard
+    const token = localStorage.getItem('auth_token')
+    if (token && (to.path === '/login' || to.path === '/register')) {
+      console.log('✅ Déjà connecté, redirection vers dashboard')
+      next('/app/dashboard')
+      return
+    }
+    next()
+    return
+  }
 
-  // 🔍 Vérifier localStorage directement
-  const rawToken = localStorage.getItem('auth_token')
-  const rawUser = localStorage.getItem('user')
-  console.log('💾 LOCALSTORAGE:')
-  console.log('   - auth_token exists:', !!rawToken)
-  console.log('   - user exists:', !!rawUser)
+  // =============================================
+  // 2. ROUTES PROTÉGÉES - Vérifier AUTH LOCALE
+  // =============================================
+  const authStore = useAuthStore()
 
-  if (rawToken) {
+  // Vérifier d'abord le store (initialisé par App.vue)
+  if (authStore.isAuthenticated && authStore.user) {
+    console.log('✅ Auth OK (store), navigation autorisée')
+    next()
+    return
+  }
+
+  // Fallback : vérifier localStorage directement
+  const token = localStorage.getItem('auth_token')
+  const userStr = localStorage.getItem('user')
+
+  if (token && userStr) {
+    // Restaurer dans le store si nécessaire
     try {
-      const parsed = JSON.parse(rawToken)
-      const now = Date.now()
-      const isExpired = now > parsed.expiry
-      console.log('   - token expiry:', new Date(parsed.expiry).toISOString())
-      console.log('   - is expired:', isExpired)
-    } catch (e) {
-      console.log('   - token parse error:', e)
+      authStore.token = token
+      authStore.user = JSON.parse(userStr)
+      authStore.isAuthenticated = true
+      console.log('✅ Auth restaurée depuis localStorage')
+      next()
+      return
+    } catch (error) {
+      console.error('❌ Erreur parsing user:', error)
     }
   }
 
-  // ⏳ Attendre l'initialisation si nécessaire
-  if (!authStore.isInitialized) {
-    console.log('⏳ Attente initialisation auth...')
-
-    let attempts = 0
-    const maxAttempts = 50
-
-    while (!authStore.isInitialized && attempts < maxAttempts) {
-      await new Promise((resolve) => setTimeout(resolve, 100))
-      attempts++
-    }
-
-    if (!authStore.isInitialized) {
-      console.error('❌ TIMEOUT: Auth non initialisée après 5s')
-      console.log('🔄 Forçage initAuth()...')
-      await authStore.initAuth()
-    }
-
-    console.log('✅ Auth initialisée après', attempts * 100, 'ms')
-    console.log('   - isAuthenticated maintenant:', authStore.isAuthenticated)
-  }
-
-  // 🚦 Décision de navigation
-  if (requiresAuth && !authStore.isAuthenticated) {
-    console.log('🚫 BLOCAGE: Route protégée, non authentifié')
-    console.log('   → Redirection vers /login')
-    console.log('═══════════════════════════════════════')
-    return next({
-      path: '/login',
-      query: { redirect: to.fullPath },
-    })
-  }
-
-  if (authStore.isAuthenticated && (to.path === '/login' || to.path === '/register')) {
-    console.log('✅ Déjà connecté, redirection dashboard')
-    console.log('═══════════════════════════════════════')
-    return next('/app/dashboard')
-  }
-
-  console.log('✅ Navigation autorisée vers:', to.path)
-  console.log('═══════════════════════════════════════')
-  next()
+  // =============================================
+  // 3. PAS D'AUTH → Login
+  // =============================================
+  console.log('🔒 Non authentifié, redirection vers login')
+  next({
+    path: '/login',
+    query: { redirect: to.fullPath },
+  })
 })
 
 // ==========================================
-// 📄 APRÈS NAVIGATION
+// AFTER EACH - TITRES UNIQUEMENT (pas d'API !)
 // ==========================================
 
-router.afterEach(async (to) => {
-  // Mettre à jour le titre de la page
-  const title = (to.meta.title as string) || 'Budget Gaming'
-  document.title = title
+router.afterEach((to) => {
+  // Mettre à jour le titre
+  const title = to.meta.title as string
+  document.title = title || 'CoinQuest'
 
-  // Tracker la navigation dans le gaming store (si applicable)
-  if (to.meta.requiresAuth) {
-    try {
-      const { useGamingStore } = await import('@/stores/gamingStore')
-      const gamingStore = useGamingStore()
-
-      if (gamingStore.handleNavigation) {
-        await gamingStore.handleNavigation({
-          routeName: to.name as string,
-          routePath: to.path,
-          isGaming: to.meta.isGaming as boolean,
-        })
-      }
-    } catch (err) {
-      console.warn('⚠️ Erreur tracking gaming navigation:', err)
-    }
-  }
+  // ⚠️ SUPPRIMÉ : Les appels gamingStore.addXP() et updateStreak()
+  // Ces appels API déclenchaient des 401 et des logouts !
+  // Le tracking gaming sera fait ailleurs (dans les composants)
 })
 
 // ==========================================
-// ❌ GESTION DES ERREURS ROUTER
+// GESTION ERREURS
 // ==========================================
 
 router.onError((error) => {
-  console.error('❌ Erreur du routeur:', error)
-
-  // Si chunk loading failed (après un déploiement) → reload
-  if (error.message.includes('Loading chunk') || error.message.includes('Failed to fetch')) {
-    console.warn('⚠️ Chunk loading failed, rechargement de la page...')
+  console.error('❌ Erreur routeur:', error)
+  if (error.message.includes('Loading chunk')) {
     window.location.reload()
   }
 })
