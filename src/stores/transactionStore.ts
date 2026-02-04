@@ -1,143 +1,418 @@
-// src/stores/transactionStore.ts - Extrait des corrections clés
+// src/stores/transactionStore.ts - VERSION COMPLÈTE CORRIGÉE
+import { ref, computed } from 'vue'
+import { defineStore } from 'pinia'
+import { useAuthStore } from '@/stores/authStore'
+import api from '@/services/api'
 
 // ==========================================
-// 🔐 AUTH CHECK - VERSION AMÉLIORÉE
+// TYPES
 // ==========================================
 
-/**
- * ✅ Vérifier auth SANS bloquer
- */
-function checkAuth(): boolean {
-  const authStore = useAuthStore()
-
-  // ✅ Vérifier d'abord isAuthenticated (set avant isInitialized parfois)
-  if (authStore.isAuthenticated && authStore.token) {
-    return true
+export interface Transaction {
+  id: number
+  user_id: number
+  category_id?: number
+  amount: number
+  description: string
+  type: 'income' | 'expense'
+  transaction_date: string
+  date?: string
+  is_recurring: boolean
+  status: 'pending' | 'completed' | 'cancelled'
+  metadata?: Record<string, any>
+  created_at: string
+  updated_at: string
+  category?: {
+    id: number
+    name: string
+    icon?: string
+    color?: string
   }
-
-  if (!authStore.isInitialized) {
-    console.log('⏳ [Transactions] Auth pas encore initialisée')
-    return false
-  }
-
-  if (!authStore.isAuthenticated) {
-    console.warn('⚠️ [Transactions] Non authentifié')
-    return false
-  }
-
-  return true
 }
 
-/**
- * ✅ Attendre l'auth avec vérification du token
- */
-async function waitForAuth(maxWaitMs = 3000): Promise<boolean> {
-  const authStore = useAuthStore()
+export interface CreateTransactionData {
+  category_id?: number
+  amount: number
+  description: string
+  type: 'income' | 'expense'
+  date: string
+  is_recurring?: boolean
+  metadata?: Record<string, any>
+}
 
-  // ✅ Si déjà prêt avec token
-  if (authStore.isInitialized && authStore.isAuthenticated && authStore.token) {
-    console.log('✅ [Transactions] Auth déjà prête')
-    return true
-  }
+export interface UpdateTransactionData extends Partial<CreateTransactionData> {
+  status?: 'pending' | 'completed' | 'cancelled'
+}
 
-  const startTime = Date.now()
-  let checkCount = 0
+export interface TransactionFilters {
+  type?: string
+  category_id?: string | number
+  date_from?: string
+  date_to?: string
+  per_page?: number
+  page?: number
+}
 
-  while (Date.now() - startTime < maxWaitMs) {
-    // ✅ Vérifier les 3 conditions
-    if (authStore.isInitialized && authStore.isAuthenticated && authStore.token) {
-      console.log(`✅ [Transactions] Auth prête après ${checkCount} checks`)
+export interface PaginationInfo {
+  current_page: number
+  last_page: number
+  per_page: number
+  total: number
+  from: number
+  to: number
+}
+
+// ==========================================
+// STORE
+// ==========================================
+
+export const useTransactionStore = defineStore('transaction', () => {
+  // ==========================================
+  // STATE
+  // ==========================================
+
+  const transactions = ref<Transaction[]>([])
+  const pendingTransactions = ref<Transaction[]>([])
+  const currentTransaction = ref<Transaction | null>(null)
+  const pagination = ref<PaginationInfo | null>(null)
+  const stats = ref<any>(null)
+
+  const loading = ref(false)
+  const syncing = ref(false)
+  const creating = ref(false)
+  const updating = ref(false)
+  const deleting = ref(false)
+
+  const error = ref<string | null>(null)
+  const validationErrors = ref<Record<string, string[]>>({})
+
+  const activeFilters = ref<TransactionFilters>({
+    per_page: 15,
+    page: 1,
+  })
+
+  // ==========================================
+  // 🔐 AUTH CHECK
+  // ==========================================
+
+  function checkAuth(): boolean {
+    const authStore = useAuthStore()
+
+    if (authStore.isAuthenticated && authStore.token) {
       return true
     }
 
-    await new Promise((r) => setTimeout(r, 50))
-    checkCount++
+    if (!authStore.isInitialized) {
+      console.log('⏳ [Transactions] Auth pas encore initialisée')
+      return false
+    }
+
+    if (!authStore.isAuthenticated) {
+      console.warn('⚠️ [Transactions] Non authentifié')
+      return false
+    }
+
+    return true
   }
 
-  console.warn('⚠️ [Transactions] Timeout attente auth')
-  console.log('  - isInitialized:', authStore.isInitialized)
-  console.log('  - isAuthenticated:', authStore.isAuthenticated)
-  console.log('  - hasToken:', !!authStore.token)
+  async function waitForAuth(maxWaitMs = 3000): Promise<boolean> {
+    const authStore = useAuthStore()
 
-  return authStore.isAuthenticated
-}
+    if (authStore.isInitialized && authStore.isAuthenticated && authStore.token) {
+      return true
+    }
 
-// ==========================================
-// ACTIONS - fetchTransactions corrigé
-// ==========================================
+    const startTime = Date.now()
 
-/**
- * ✅ Récupérer les transactions - avec meilleure gestion auth
- */
-async function fetchTransactions(filters?: TransactionFilters): Promise<void> {
-  // ✅ Attendre l'auth avec plus de temps
-  const isAuth = await waitForAuth(3000)
+    while (Date.now() - startTime < maxWaitMs) {
+      if (authStore.isInitialized && authStore.isAuthenticated && authStore.token) {
+        console.log('✅ [Transactions] Auth prête')
+        return true
+      }
+      await new Promise((r) => setTimeout(r, 50))
+    }
 
-  if (!isAuth) {
-    console.warn('⚠️ [Transactions] Chargement sans auth - abandon')
-    error.value = 'Authentification requise'
-    return
+    console.warn('⚠️ [Transactions] Timeout attente auth')
+    return authStore.isAuthenticated
   }
 
-  if (loading.value) {
-    console.log('⏳ [Transactions] Déjà en chargement')
-    return
-  }
+  // ==========================================
+  // GETTERS
+  // ==========================================
 
-  loading.value = true
-  error.value = null
+  const filteredTransactions = computed(() => [...transactions.value])
 
-  try {
-    const params = { ...activeFilters.value, ...filters }
-    console.log('📡 [Transactions] Fetch avec params:', params)
+  const incomeTransactions = computed(() => transactions.value.filter((t) => t.type === 'income'))
 
-    const response = await api.get<any>('/transactions', { params })
+  const expenseTransactions = computed(() => transactions.value.filter((t) => t.type === 'expense'))
 
-    // ✅ Vérifier si la réponse indique une erreur auth
-    if (!response.success && response.message === 'Session invalide') {
-      console.warn('⚠️ [Transactions] Session invalide - ne pas déconnecter')
-      error.value = 'Session expirée, veuillez rafraîchir'
-      transactions.value = []
+  const totalIncome = computed(() =>
+    incomeTransactions.value.reduce((sum, t) => sum + Number(t.amount || 0), 0),
+  )
+
+  const totalExpenses = computed(() =>
+    expenseTransactions.value.reduce((sum, t) => sum + Number(t.amount || 0), 0),
+  )
+
+  const netBalance = computed(() => totalIncome.value - totalExpenses.value)
+
+  // ==========================================
+  // ACTIONS
+  // ==========================================
+
+  async function fetchTransactions(filters?: TransactionFilters): Promise<void> {
+    const isAuth = await waitForAuth(3000)
+    if (!isAuth) {
+      console.warn('⚠️ [Transactions] Chargement sans auth - abandon')
       return
     }
 
-    if (!response) {
-      console.warn('⚠️ [Transactions] Pas de réponse API')
-      transactions.value = []
+    if (loading.value) {
+      console.log('⏳ [Transactions] Déjà en chargement')
       return
     }
 
-    if (response.success && response.data) {
-      if (Array.isArray(response.data)) {
-        transactions.value = response.data
-      } else if (response.data.data && Array.isArray(response.data.data)) {
-        transactions.value = response.data.data
-        pagination.value = {
-          current_page: response.data.current_page || 1,
-          last_page: response.data.last_page || 1,
-          per_page: response.data.per_page || 15,
-          total: response.data.total || 0,
-          from: response.data.from || 0,
-          to: response.data.to || 0,
-        }
-      } else {
+    loading.value = true
+    error.value = null
+
+    try {
+      const params = { ...activeFilters.value, ...filters }
+      console.log('📡 [Transactions] Fetch avec params:', params)
+
+      const response = await api.get<any>('/transactions', { params })
+
+      if (!response) {
+        console.warn('⚠️ [Transactions] Pas de réponse API')
         transactions.value = []
+        return
       }
 
-      console.log('✅ [Transactions] Chargées:', transactions.value.length)
+      if (response.success && response.data) {
+        if (Array.isArray(response.data)) {
+          transactions.value = response.data
+        } else if (response.data.data && Array.isArray(response.data.data)) {
+          transactions.value = response.data.data
+          pagination.value = {
+            current_page: response.data.current_page || 1,
+            last_page: response.data.last_page || 1,
+            per_page: response.data.per_page || 15,
+            total: response.data.total || 0,
+            from: response.data.from || 0,
+            to: response.data.to || 0,
+          }
+        } else {
+          transactions.value = []
+        }
+        console.log('✅ [Transactions] Chargées:', transactions.value.length)
+      }
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        console.warn('⚠️ [Transactions] 401 - Session expirée')
+        error.value = 'Session expirée'
+        return
+      }
+      console.error('❌ [Transactions] Erreur:', err)
+      error.value = err.message || 'Erreur chargement'
+    } finally {
+      loading.value = false
     }
-  } catch (err: any) {
-    // ✅ NE PAS propager l'erreur 401 comme déconnexion
-    if (err.response?.status === 401) {
-      console.warn('⚠️ [Transactions] 401 reçu - session peut-être expirée')
-      error.value = 'Session expirée'
-      // ✅ NE PAS vider les transactions, juste signaler l'erreur
-      return
+  }
+
+  async function fetchPendingTransactions(): Promise<void> {
+    if (!checkAuth()) return
+
+    try {
+      const response = await api.get<any>('/transactions/pending')
+      if (response?.success && response.data) {
+        pendingTransactions.value = Array.isArray(response.data)
+          ? response.data
+          : response.data.data || []
+      }
+    } catch (err: any) {
+      console.warn('⚠️ [Transactions] Erreur pending:', err.message)
+      pendingTransactions.value = []
+    }
+  }
+
+  async function fetchStats(): Promise<void> {
+    if (!checkAuth()) return
+
+    try {
+      const response = await api.get<any>('/transactions/stats')
+      if (response?.success && response.data) {
+        stats.value = response.data
+      }
+    } catch (err: any) {
+      console.warn('⚠️ [Transactions] Erreur stats:', err.message)
+    }
+  }
+
+  async function createTransaction(data: CreateTransactionData): Promise<boolean> {
+    if (!checkAuth()) {
+      error.value = 'Authentification requise'
+      return false
     }
 
-    console.error('❌ [Transactions] Erreur:', err)
-    error.value = err.message || 'Erreur chargement'
-  } finally {
-    loading.value = false
+    creating.value = true
+    error.value = null
+
+    try {
+      const response = await api.post<Transaction>('/transactions', data)
+      if (response?.success && response.data) {
+        transactions.value.unshift(response.data)
+        console.log('✅ [Transactions] Créée:', response.data.id)
+        return true
+      }
+      error.value = response?.message || 'Erreur création'
+      return false
+    } catch (err: any) {
+      console.error('❌ [Transactions] Erreur création:', err)
+      error.value = err.message
+      return false
+    } finally {
+      creating.value = false
+    }
   }
-}
+
+  async function deleteTransaction(id: number): Promise<boolean> {
+    if (!checkAuth()) {
+      error.value = 'Authentification requise'
+      return false
+    }
+
+    deleting.value = true
+    error.value = null
+
+    try {
+      const response = await api.delete(`/transactions/${id}`)
+      if (response?.success) {
+        transactions.value = transactions.value.filter((t) => t.id !== id)
+        console.log('✅ [Transactions] Supprimée:', id)
+        return true
+      }
+      error.value = response?.message || 'Erreur suppression'
+      return false
+    } catch (err: any) {
+      console.error('❌ [Transactions] Erreur suppression:', err)
+      error.value = err.message
+      return false
+    } finally {
+      deleting.value = false
+    }
+  }
+
+  async function categorizeTransaction(id: number, categoryId: number): Promise<boolean> {
+    if (!checkAuth()) return false
+
+    try {
+      const response = await api.put(`/transactions/${id}`, { category_id: categoryId })
+      if (response?.success) {
+        const tx = transactions.value.find((t) => t.id === id)
+        if (tx) tx.category_id = categoryId
+        pendingTransactions.value = pendingTransactions.value.filter((t) => t.id !== id)
+        return true
+      }
+      return false
+    } catch (err) {
+      console.error('❌ Erreur catégorisation:', err)
+      return false
+    }
+  }
+
+  async function autoCategorize(): Promise<void> {
+    if (!checkAuth()) return
+
+    syncing.value = true
+    try {
+      await api.post('/transactions/auto-categorize')
+      await fetchPendingTransactions()
+      await fetchTransactions()
+    } catch (err) {
+      console.error('❌ Erreur auto-catégorisation:', err)
+    } finally {
+      syncing.value = false
+    }
+  }
+
+  async function syncAllBankConnections(): Promise<void> {
+    if (!checkAuth()) return
+
+    syncing.value = true
+    try {
+      await api.post('/bank/sync-all')
+      await fetchTransactions()
+      await fetchPendingTransactions()
+    } catch (err) {
+      console.error('❌ Erreur sync bancaire:', err)
+    } finally {
+      syncing.value = false
+    }
+  }
+
+  async function applyFilters(filters: TransactionFilters): Promise<void> {
+    activeFilters.value = { ...activeFilters.value, ...filters, page: 1 }
+    await fetchTransactions()
+  }
+
+  async function changePage(page: number): Promise<void> {
+    activeFilters.value.page = page
+    await fetchTransactions()
+  }
+
+  function $reset(): void {
+    transactions.value = []
+    pendingTransactions.value = []
+    currentTransaction.value = null
+    pagination.value = null
+    stats.value = null
+    loading.value = false
+    syncing.value = false
+    error.value = null
+    activeFilters.value = { per_page: 15, page: 1 }
+    console.log('🔄 [Transactions] Store reset')
+  }
+
+  // ==========================================
+  // RETURN
+  // ==========================================
+
+  return {
+    // State
+    transactions,
+    pendingTransactions,
+    currentTransaction,
+    pagination,
+    stats,
+    loading,
+    syncing,
+    creating,
+    updating,
+    deleting,
+    error,
+    validationErrors,
+    activeFilters,
+
+    // Getters
+    filteredTransactions,
+    incomeTransactions,
+    expenseTransactions,
+    totalIncome,
+    totalExpenses,
+    netBalance,
+
+    // Actions
+    fetchTransactions,
+    fetchPendingTransactions,
+    fetchStats,
+    createTransaction,
+    deleteTransaction,
+    categorizeTransaction,
+    autoCategorize,
+    syncAllBankConnections,
+    applyFilters,
+    changePage,
+    $reset,
+  }
+})
+
+export default useTransactionStore
