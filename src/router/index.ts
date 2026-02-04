@@ -203,62 +203,82 @@ const router = createRouter({
 // ==========================================
 
 router.beforeEach(async (to, from, next) => {
-  console.group('🧭 === ROUTER GUARD ===')
-  console.log('From:', from.path, '→ To:', to.path)
+  console.log('═══════════════════════════════════════')
+  console.log('🧭 NAVIGATION:', from.path, '→', to.path)
+  console.log('═══════════════════════════════════════')
 
   const authStore = useAuthStore()
   const requiresAuth = to.matched.some((r) => r.meta.requiresAuth)
 
-  console.log('Requires auth?', requiresAuth)
-  console.log('isInitialized?', authStore.isInitialized)
-  console.log('isAuthenticated?', authStore.isAuthenticated)
-  console.log('User:', authStore.user?.email || 'null')
+  // 📊 État complet de l'auth
+  console.log('📊 AUTH STATE:')
+  console.log('   - isInitialized:', authStore.isInitialized)
+  console.log('   - isAuthenticated:', authStore.isAuthenticated)
+  console.log('   - hasToken:', !!authStore.token)
+  console.log('   - hasUser:', !!authStore.user)
+  console.log('   - userEmail:', authStore.user?.email || 'null')
+  console.log('   - requiresAuth:', requiresAuth)
 
-  // ⏳ Attendre l'initialisation (normalement déjà faite par App.vue)
+  // 🔍 Vérifier localStorage directement
+  const rawToken = localStorage.getItem('auth_token')
+  const rawUser = localStorage.getItem('user')
+  console.log('💾 LOCALSTORAGE:')
+  console.log('   - auth_token exists:', !!rawToken)
+  console.log('   - user exists:', !!rawUser)
+
+  if (rawToken) {
+    try {
+      const parsed = JSON.parse(rawToken)
+      const now = Date.now()
+      const isExpired = now > parsed.expiry
+      console.log('   - token expiry:', new Date(parsed.expiry).toISOString())
+      console.log('   - is expired:', isExpired)
+    } catch (e) {
+      console.log('   - token parse error:', e)
+    }
+  }
+
+  // ⏳ Attendre l'initialisation si nécessaire
   if (!authStore.isInitialized) {
     console.log('⏳ Attente initialisation auth...')
 
     let attempts = 0
-    const maxAttempts = 50 // 50 * 100ms = 5 secondes
+    const maxAttempts = 50
 
     while (!authStore.isInitialized && attempts < maxAttempts) {
       await new Promise((resolve) => setTimeout(resolve, 100))
       attempts++
     }
 
-    // Si toujours pas initialisé après 5s → forcer (fallback de sécurité)
     if (!authStore.isInitialized) {
       console.error('❌ TIMEOUT: Auth non initialisée après 5s')
-      console.warn('⚠️ Forçage initAuth() depuis le router (fallback)')
+      console.log('🔄 Forçage initAuth()...')
       await authStore.initAuth()
-      console.log('✅ initAuth() forcée terminée')
-    } else {
-      console.log(`✅ Auth initialisée après ${attempts * 100}ms`)
     }
+
+    console.log('✅ Auth initialisée après', attempts * 100, 'ms')
+    console.log('   - isAuthenticated maintenant:', authStore.isAuthenticated)
   }
 
-  // 🔒 Route protégée sans authentification → redirection /login
+  // 🚦 Décision de navigation
   if (requiresAuth && !authStore.isAuthenticated) {
-    console.log('❌ BLOCAGE: Route protégée, utilisateur non authentifié')
-    console.log('→ Redirection vers /login')
-    console.groupEnd()
+    console.log('🚫 BLOCAGE: Route protégée, non authentifié')
+    console.log('   → Redirection vers /login')
+    console.log('═══════════════════════════════════════')
     return next({
       path: '/login',
       query: { redirect: to.fullPath },
     })
   }
 
-  // ✅ Déjà connecté sur login/register → redirection dashboard
   if (authStore.isAuthenticated && (to.path === '/login' || to.path === '/register')) {
-    console.log('✅ Utilisateur déjà connecté')
-    console.log('→ Redirection vers /app/dashboard')
-    console.groupEnd()
+    console.log('✅ Déjà connecté, redirection dashboard')
+    console.log('═══════════════════════════════════════')
     return next('/app/dashboard')
   }
 
-  // ✅ Navigation autorisée
-  console.log('✅ Navigation autorisée')
-  console.groupEnd()
+  console.log('✅ Navigation autorisée vers:', to.path)
+  console.log('═══════════════════════════════════════')
   next()
 })
 
