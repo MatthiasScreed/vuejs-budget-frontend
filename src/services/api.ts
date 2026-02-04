@@ -1,12 +1,23 @@
-// src/services/api.ts - VERSION CORRIGÉE AVEC BONS EXPORTS
+// src/services/api.ts - VERSION CORRIGÉE FINALE
 import axios from 'axios'
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 
 // ==========================================
-// CONFIGURATION
+// CONFIGURATION - CORRIGÉE
 // ==========================================
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+// Détection automatique de l'environnement
+const isProduction =
+  window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')
+
+// URL de production en fallback (plus jamais localhost en prod!)
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (isProduction
+    ? 'https://laravel-budget-api-saqbqlbw.on-forge.com/api'
+    : 'http://localhost:8000/api')
+
+console.log('🌐 API URL:', API_BASE_URL, isProduction ? '(production)' : '(development)')
 
 // ==========================================
 // TYPES EXPORTÉS
@@ -20,7 +31,7 @@ export interface ApiResponse<T = any> {
 }
 
 // ==========================================
-// 🛡️ FLAGS ANTI-BOUCLE DE LOGOUT
+// FLAGS ANTI-BOUCLE DE LOGOUT
 // ==========================================
 
 let isHandling401 = false
@@ -69,7 +80,7 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
     }
-    if (import.meta.env.DEV) {
+    if (!isProduction) {
       console.log('📤 API →', config.method?.toUpperCase(), config.url)
     }
     return config
@@ -86,7 +97,7 @@ apiClient.interceptors.request.use(
 
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
-    if (import.meta.env.DEV) {
+    if (!isProduction) {
       console.log('✅ API ←', response.status, response.config.url)
     }
     return response
@@ -97,7 +108,7 @@ apiClient.interceptors.response.use(
 
     console.warn('⚠️ API Error:', { status, url })
 
-    // 🛡️ GESTION 401 SÉCURISÉE
+    // GESTION 401 SÉCURISÉE
     if (status === 401) {
       if (url.includes('/auth/logout')) {
         return Promise.reject(error)
@@ -195,20 +206,15 @@ class ApiService {
 }
 
 // ==========================================
-// ✅ EXPORTS - NAMED ET DEFAULT
+// EXPORTS - NAMED ET DEFAULT
 // ==========================================
 
-// Instance singleton
 const apiInstance = new ApiService()
 
-// Named export (pour: import { api } from './api')
 export const api = apiInstance
-
-// Default export (pour: import api from './api')
 export default apiInstance
-
-// Autres exports
 export { ApiService }
+
 export const resetLogoutState = () => {
   isHandling401 = false
   lastLogoutTime = 0
