@@ -1,4 +1,4 @@
-// src/services/api.ts - VERSION FINALE
+// src/services/api.ts - VERSION CORRIGÉE (Anti-logout cascade)
 import axios, { type AxiosInstance, type AxiosResponse, type AxiosError } from 'axios'
 import { getTokenIfValid, secureStorage } from '@/services/secureStorage'
 
@@ -7,19 +7,15 @@ import { getTokenIfValid, secureStorage } from '@/services/secureStorage'
 // ==========================================
 
 const getApiBaseUrl = (): string => {
-  // 1. Priorité à la variable d'environnement
   const envUrl = import.meta.env.VITE_API_BASE_URL
   if (envUrl) {
     return envUrl.endsWith('/') ? envUrl.slice(0, -1) : envUrl
   }
 
-  // 2. Fallback selon le mode
   if (import.meta.env.PROD) {
-    // ✅ TON URL DE PRODUCTION FORGE (avec /api)
     return 'https://laravel-budget-api-saqbqlbw.on-forge.com/api'
   }
 
-  // 3. Dev local (avec /api car Laravel utilise ce préfixe)
   return 'http://budget-api.test/api'
 }
 
@@ -42,9 +38,57 @@ const axiosInstance: AxiosInstance = axios.create({
     'Content-Type': 'application/json',
     Accept: 'application/json',
   },
-  // ✅ FIX: Désactivé pour éviter les problèmes CORS en production
   withCredentials: false,
 })
+
+// ==========================================
+// 🔑 CACHE TOKEN EN MÉMOIRE
+// ==========================================
+
+let cachedToken: string | null = null
+let tokenPromise: Promise<string | null> | null = null
+
+/**
+ * ✅ Récupérer le token avec cache mémoire
+ * Évite les appels async répétés à localStorage
+ */
+async function getCachedToken(): Promise<string | null> {
+  // Si on a déjà une promesse en cours, l'attendre
+  if (tokenPromise) {
+    return tokenPromise
+  }
+
+  // Si on a un token en cache, le retourner
+  if (cachedToken) {
+    return cachedToken
+  }
+
+  // Sinon, récupérer depuis storage
+  tokenPromise = getTokenIfValid().then((token) => {
+    cachedToken = token
+    tokenPromise = null
+    return token
+  })
+
+  return tokenPromise
+}
+
+/**
+ * ✅ Mettre à jour le cache token
+ */
+export function updateTokenCache(token: string | null): void {
+  cachedToken = token
+  console.log('🔑 Token cache mis à jour:', !!token)
+}
+
+/**
+ * ✅ Invalider le cache (appelé au logout)
+ */
+export function clearTokenCache(): void {
+  cachedToken = null
+  tokenPromise = null
+  console.log('🧹 Token cache vidé')
+}
 
 // ==========================================
 // INTERCEPTEURS
@@ -53,16 +97,17 @@ const axiosInstance: AxiosInstance = axios.create({
 // Request interceptor
 axiosInstance.interceptors.request.use(
   async (config) => {
-    // Récupérer le token depuis secureStorage
-    const token = await getTokenIfValid()
+    // ✅ Utiliser le cache token
+    const token = await getCachedToken()
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+    } else {
+      console.warn('⚠️ [API] Pas de token pour la requête:', config.url)
     }
 
-    // Log uniquement en dev
     if (import.meta.env.DEV) {
-      console.log(`📤 ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`)
+      console.log(`📤 ${config.method?.toUpperCase()} ${config.url}`, token ? '🔑' : '🚫')
     }
 
     config.metadata = { startTime: Date.now() }
@@ -89,22 +134,32 @@ axiosInstance.interceptors.response.use(
   },
   (error: AxiosError) => {
     const duration = Date.now() - (error.config?.metadata?.startTime || 0)
+    const url = error.config?.url || 'unknown'
 
     if (error.code === 'ECONNABORTED') {
-      console.error(`⏱️ TIMEOUT après ${duration}ms`)
+      console.error(`⏱️ TIMEOUT ${url} après ${duration}ms`)
     } else {
       console.error(
-        `❌ ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${error.response?.status || 'NETWORK'} (${duration}ms)`,
+        `❌ ${error.config?.method?.toUpperCase()} ${url} - ${error.response?.status || 'NETWORK'} (${duration}ms)`,
       )
     }
 
-    // ✅ 401 = Token invalide - NE PAS rediriger automatiquement ici
-    // Laisser le code appelant (authStore) gérer la redirection
+    // ✅ CORRECTION: NE PAS nettoyer automatiquement sur 401
+    // Laisser le composant/store gérer la déconnexion si nécessaire
     if (error.response?.status === 401) {
-      console.log('🔒 401 reçu - Token invalide ou expiré')
-      // Nettoyer le storage
-      secureStorage.removeItem('auth_token')
-      localStorage.removeItem('user')
+      console.log('🔑 401 reçu sur:', url)
+
+      // ⚠️ IMPORTANT: Ne nettoyer QUE si c'est une route d'auth
+      // Les autres routes peuvent avoir des 401 temporaires
+      const isAuthRoute = url.includes('/auth/me') || url.includes('/auth/logout')
+
+      if (isAuthRoute) {
+        console.log('🔑 401 sur route auth - invalidation du cache')
+        clearTokenCache()
+      } else {
+        console.log('⚠️ 401 sur route non-auth - conservation du token')
+        // On ne supprime PAS le token, on laisse le store gérer
+      }
     }
 
     return Promise.reject(error)
@@ -180,7 +235,6 @@ export const api = {
     }
   },
 
-  // Utile pour debug
   getEnvironmentConfig() {
     return {
       mode: import.meta.env.MODE,
@@ -202,6 +256,15 @@ export const api = {
       return {
         success: false,
         message: 'Erreur réseau. Vérifiez votre connexion internet.',
+      }
+    }
+
+    // ✅ Pour les 401, retourner un message clair mais ne pas forcer logout
+    if (error.response?.status === 401) {
+      return {
+        success: false,
+        message: 'Session invalide',
+        errors: { auth: ['Token invalide ou expiré'] },
       }
     }
 

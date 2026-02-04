@@ -1,6 +1,6 @@
-// src/stores/authStore.ts - VERSION CORRIGÉE
+// src/stores/authStore.ts - VERSION CORRIGÉE (Anti-logout cascade)
 import { defineStore } from 'pinia'
-import { api } from '@/services/api'
+import { api, updateTokenCache, clearTokenCache } from '@/services/api'
 import { setTokenWithExpiry, getTokenIfValid, secureStorage } from '@/services/secureStorage'
 import type { User, LoginCredentials, RegisterData } from '@/types/entities/auth'
 
@@ -32,7 +32,7 @@ interface AuthResult {
 const USER_KEY = 'user'
 
 // ==========================================
-// HELPERS STORAGE (User seulement - Token géré par secureStorage)
+// HELPERS STORAGE
 // ==========================================
 
 function getStoredUser(): User | null {
@@ -48,7 +48,6 @@ function getStoredUser(): User | null {
 function setStoredUser(user: User): void {
   try {
     localStorage.setItem(USER_KEY, JSON.stringify(user))
-    console.log('✅ User stocké')
   } catch (e) {
     console.warn('⚠️ Erreur écriture user:', e)
   }
@@ -57,7 +56,6 @@ function setStoredUser(user: User): void {
 function clearUserStorage(): void {
   try {
     localStorage.removeItem(USER_KEY)
-    console.log('🧹 User storage nettoyé')
   } catch (e) {
     console.warn('⚠️ Erreur nettoyage user storage:', e)
   }
@@ -68,18 +66,12 @@ function clearUserStorage(): void {
 // ==========================================
 
 export const useAuthStore = defineStore('auth', {
-  // ==========================================
-  // STATE
-  // ==========================================
   state: (): AuthState => {
-    // ⚠️ Ne PAS appeler getTokenIfValid() ici car c'est async
-    // L'initialisation se fait dans initAuth()
     const user = getStoredUser()
-
     return {
       user: user,
-      token: null, // Sera défini par initAuth()
-      isAuthenticated: false, // Sera défini par initAuth()
+      token: null,
+      isAuthenticated: false,
       isInitialized: false,
       loading: false,
       error: null,
@@ -87,9 +79,6 @@ export const useAuthStore = defineStore('auth', {
     }
   },
 
-  // ==========================================
-  // GETTERS
-  // ==========================================
   getters: {
     isLoggedIn: (state): boolean => state.isAuthenticated && state.user !== null,
     userName: (state): string => state.user?.name || '',
@@ -111,9 +100,6 @@ export const useAuthStore = defineStore('auth', {
     },
   },
 
-  // ==========================================
-  // ACTIONS
-  // ==========================================
   actions: {
     /**
      * ✅ INITIALISATION - Appelé au démarrage de l'app
@@ -127,7 +113,6 @@ export const useAuthStore = defineStore('auth', {
       }
 
       try {
-        // ✅ Utiliser getTokenIfValid() de secureStorage
         const token = await getTokenIfValid()
         const user = getStoredUser()
 
@@ -135,15 +120,16 @@ export const useAuthStore = defineStore('auth', {
         console.log('📦 [Auth] User trouvé:', !!user)
 
         if (!token) {
-          console.log('⚠️ [Auth] Pas de token valide, utilisateur non connecté')
+          console.log('⚠️ [Auth] Pas de token valide')
           this.isInitialized = true
           this.isAuthenticated = false
           this.token = null
           return false
         }
 
-        // Token existe et valide
+        // ✅ Mettre à jour le cache token dans api.ts
         this.token = token
+        updateTokenCache(token)
         this.isAuthenticated = true
 
         if (user) {
@@ -151,14 +137,9 @@ export const useAuthStore = defineStore('auth', {
         }
 
         // Vérifier le token avec l'API (optionnel, en arrière-plan)
-        try {
-          const result = await this.loadUser()
-          if (!result.success) {
-            console.warn('⚠️ [Auth] Token rejeté par API, mais données locales conservées')
-          }
-        } catch (err) {
+        this.loadUser().catch((err) => {
           console.warn('⚠️ [Auth] Erreur vérification token:', err)
-        }
+        })
 
         this.isInitialized = true
         console.log('✅ [Auth] Initialisé - Authentifié:', this.isAuthenticated)
@@ -191,6 +172,13 @@ export const useAuthStore = defineStore('auth', {
           return { success: true, data: this.user }
         }
 
+        // ✅ Si 401, ne pas déconnecter immédiatement
+        // Garder les données locales
+        if (response.message === 'Session invalide') {
+          console.warn('⚠️ [Auth] Session API invalide, données locales conservées')
+          return { success: false, message: response.message }
+        }
+
         return { success: false, message: response.message || 'Erreur chargement user' }
       } catch (error: any) {
         console.error('❌ [Auth] Erreur loadUser:', error.message)
@@ -213,9 +201,10 @@ export const useAuthStore = defineStore('auth', {
         if (response.success && response.data) {
           const { user, token } = response.data
 
-          // ✅ CORRECTION: Utiliser setTokenWithExpiry() au lieu de localStorage
-          await setTokenWithExpiry(token, 24 * 7) // 7 jours
+          // ✅ Sauvegarder ET mettre en cache
+          await setTokenWithExpiry(token, 24 * 7)
           setStoredUser(user)
+          updateTokenCache(token)
 
           this.token = token
           this.user = this.cloneUser(user)
@@ -256,9 +245,9 @@ export const useAuthStore = defineStore('auth', {
         if (response.success && response.data) {
           const { user, token } = response.data
 
-          // ✅ CORRECTION: Utiliser setTokenWithExpiry()
           await setTokenWithExpiry(token, 24 * 7)
           setStoredUser(user)
+          updateTokenCache(token)
 
           this.token = token
           this.user = this.cloneUser(user)
@@ -309,9 +298,10 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
       this.validationErrors = {}
 
-      // ✅ Nettoyer avec secureStorage
+      // ✅ Nettoyer storage ET cache
       secureStorage.removeItem('auth_token')
       clearUserStorage()
+      clearTokenCache()
 
       console.log('🧹 [Auth] Données nettoyées')
     },
@@ -320,9 +310,9 @@ export const useAuthStore = defineStore('auth', {
      * Définir les données d'auth (utilisé par d'autres stores)
      */
     async setAuthData(user: User, token: string): Promise<void> {
-      // ✅ Utiliser setTokenWithExpiry()
       await setTokenWithExpiry(token, 24 * 7)
       setStoredUser(user)
+      updateTokenCache(token)
 
       this.user = this.cloneUser(user)
       this.token = token
