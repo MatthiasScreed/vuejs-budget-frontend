@@ -44,11 +44,13 @@ const handleRegister = async (): Promise<void> => {
   }
 
   try {
+    // ✅ CORRECTION: Ajout de terms_accepted
     const result = await authStore.register({
       name: form.value.name,
       email: form.value.email,
       password: form.value.password,
       password_confirmation: form.value.password_confirmation,
+      terms_accepted: form.value.terms_accepted, // ← AJOUTÉ !
     })
 
     if (result.success) {

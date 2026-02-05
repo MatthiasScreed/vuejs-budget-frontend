@@ -86,6 +86,7 @@ export interface RegisterData {
   email: string
   password: string
   password_confirmation: string
+  terms_accepted: boolean
   currency?: Currency
   language?: string
   timezone?: string
