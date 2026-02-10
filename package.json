@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "download-images": "tsx scripts/download-images.ts",
     "dev": "vite",
     "build": "vite build",
     "build-with-types": "run-p type-check \"build-only {@}\" --",
