@@ -11,7 +11,15 @@
       </select>
     </div>
 
-    <div class="chart-container">
+    <!-- État vide -->
+    <div v-if="!sortedCategories.length" class="empty-state">
+      <div class="empty-icon">📭</div>
+      <p class="empty-title">Aucune dépense</p>
+      <p class="empty-subtitle">Les dépenses apparaîtront ici une fois importées</p>
+    </div>
+
+    <!-- Graphique -->
+    <div v-else class="chart-container">
       <!-- Graphique Donut -->
       <div class="donut-chart">
         <svg viewBox="0 0 200 200" class="donut-svg">
@@ -53,10 +61,25 @@
               </span>
             </div>
             <div class="legend-details">
-              <span class="legend-percentage"> {{ category.percentage.toFixed(1) }}% </span>
-              <span class="legend-trend" :class="`trend-${category.trend}`">
-                {{ category.trend === 'up' ? '↗' : category.trend === 'down' ? '↘' : '→' }}
-                {{ Math.abs(category.trendPercentage).toFixed(1) }}%
+              <span class="legend-percentage">{{ formatPercentage(category.percentage) }}%</span>
+
+              <!-- Tendance disponible -->
+              <span
+                v-if="hasTrend(category)"
+                class="legend-trend"
+                :class="`trend-${category.trend || 'stable'}`"
+              >
+                {{ getTrendIcon(category.trend) }}
+                {{ formatTrendPercentage(category.trendPercentage) }}%
+              </span>
+
+              <!-- Pas encore de tendance (1er mois) -->
+              <span
+                v-else
+                class="legend-trend trend-new"
+                title="Les tendances apparaîtront le mois prochain"
+              >
+                ✨ 1er mois
               </span>
             </div>
           </div>
@@ -85,33 +108,38 @@ const selectedPeriod = ref('current_month')
  * Trie les catégories par montant
  */
 const sortedCategories = computed(() => {
-  return [...props.categories].sort((a, b) => b.amount - a.amount)
+  if (!props.categories || !Array.isArray(props.categories)) {
+    return []
+  }
+  return [...props.categories].filter((cat) => cat.amount > 0).sort((a, b) => b.amount - a.amount)
 })
 
 /**
  * Calcule le total des dépenses
  */
 const totalExpenses = computed(() => {
-  return props.categories.reduce((sum, cat) => sum + cat.amount, 0)
+  if (!props.categories || !Array.isArray(props.categories)) {
+    return 0
+  }
+  return props.categories.reduce((sum, cat) => sum + (cat.amount || 0), 0)
 })
 
 /**
  * Génère les segments du donut
- * École 42: Calculs séparés de l'affichage
  */
 const donutSegments = computed(() => {
-  const circumference = 2 * Math.PI * 70 // rayon = 70
+  const circumference = 2 * Math.PI * 70
   let currentOffset = 0
 
   return sortedCategories.value.map((category) => {
-    const percentage = category.percentage / 100
+    const percentage = (category.percentage || 0) / 100
     const dasharray = `${percentage * circumference} ${circumference}`
     const dashoffset = -currentOffset
 
     currentOffset += percentage * circumference
 
     return {
-      color: category.color,
+      color: category.color || '#6B7280',
       dasharray,
       dashoffset,
     }
@@ -119,14 +147,54 @@ const donutSegments = computed(() => {
 })
 
 /**
- * Formate un montant
+ * Vérifie si la tendance est disponible et valide
+ */
+const hasTrend = (category: CategoryBreakdown): boolean => {
+  return (
+    category.trendPercentage != null &&
+    !isNaN(category.trendPercentage) &&
+    isFinite(category.trendPercentage)
+  )
+}
+
+/**
+ * Retourne l'icône de tendance
+ */
+const getTrendIcon = (trend: string | undefined): string => {
+  if (trend === 'up') return '↗'
+  if (trend === 'down') return '↘'
+  return '→'
+}
+
+/**
+ * Formate un montant en devise
  */
 const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'EUR',
     maximumFractionDigits: 0,
-  }).format(amount)
+  }).format(amount || 0)
+}
+
+/**
+ * Formate un pourcentage avec protection contre NaN
+ */
+const formatPercentage = (value: number | undefined): string => {
+  if (value == null || isNaN(value) || !isFinite(value)) {
+    return '0.0'
+  }
+  return value.toFixed(1)
+}
+
+/**
+ * Formate le pourcentage de tendance
+ */
+const formatTrendPercentage = (value: number | undefined): string => {
+  if (value == null || isNaN(value) || !isFinite(value)) {
+    return '0.0'
+  }
+  return Math.abs(value).toFixed(1)
 }
 </script>
 
@@ -167,6 +235,34 @@ const formatCurrency = (amount: number): string => {
   border-color: #667eea;
 }
 
+/* État vide */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.empty-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 0.5rem;
+}
+
+.empty-subtitle {
+  font-size: 0.875rem;
+  color: #718096;
+}
+
+/* Graphique */
 .chart-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -206,6 +302,7 @@ const formatCurrency = (amount: number): string => {
   transform: rotate(90deg) translate(0, -100px);
 }
 
+/* Légende */
 .chart-legend {
   display: flex;
   flex-direction: column;
@@ -288,6 +385,15 @@ const formatCurrency = (amount: number): string => {
 
 .trend-stable {
   color: #718096;
+}
+
+.trend-new {
+  color: #8b5cf6;
+  font-weight: 500;
+  font-size: 0.7rem;
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
 }
 
 @media (max-width: 1024px) {
