@@ -197,14 +197,14 @@ export const useCategoryStore = defineStore('category', () => {
   }
 
   /**
-   * ✅ Créer une nouvelle catégorie
+   * ✅ Créer une nouvelle catégorie - CORRIGÉ
    */
-  async function createCategory(data: CreateCategoryData): Promise<boolean> {
+  async function createCategory(data: CreateCategoryData): Promise<Category | null> {
     // 🔥 VÉRIFICATION AUTH
     const isAuth = await ensureAuthenticated()
     if (!isAuth) {
       console.warn('⚠️ Skip createCategory: utilisateur non authentifié')
-      return false
+      return null
     }
 
     creating.value = true
@@ -214,9 +214,14 @@ export const useCategoryStore = defineStore('category', () => {
     try {
       const response = await categoryService.createCategory(data)
 
-      if (response.success) {
-        categories.value.push(response.data)
-        return true
+      if (response.success && response.data) {
+        // ✅ CORRECTION: Utiliser spread pour forcer la réactivité
+        categories.value = [...categories.value, response.data]
+
+        console.log('✅ Catégorie créée:', response.data.name)
+        console.log('📊 Total catégories:', categories.value.length)
+
+        return response.data
       } else {
         throw new Error(response.message || 'Erreur lors de la création')
       }
@@ -225,22 +230,25 @@ export const useCategoryStore = defineStore('category', () => {
         validationErrors.value = err.response.data.errors || {}
       }
       error.value = err.message || 'Erreur lors de la création de la catégorie'
-      console.error('Erreur createCategory:', err)
-      return false
+      console.error('❌ Erreur createCategory:', err)
+      return null
     } finally {
       creating.value = false
     }
   }
 
   /**
-   * ✅ Mettre à jour une catégorie
+   * ✅ Mettre à jour une catégorie - CORRIGÉ
    */
-  async function updateCategory(id: string, data: UpdateCategoryData): Promise<boolean> {
+  async function updateCategory(
+    id: string | number,
+    data: UpdateCategoryData,
+  ): Promise<Category | null> {
     // 🔥 VÉRIFICATION AUTH
     const isAuth = await ensureAuthenticated()
     if (!isAuth) {
       console.warn('⚠️ Skip updateCategory: utilisateur non authentifié')
-      return false
+      return null
     }
 
     updating.value = true
@@ -250,17 +258,21 @@ export const useCategoryStore = defineStore('category', () => {
     try {
       const response = await categoryService.updateCategory(id, data)
 
-      if (response.success) {
+      if (response.success && response.data) {
+        // ✅ CORRECTION: Recréer le tableau pour forcer la réactivité
         const index = categories.value.findIndex((c) => c.id === id)
         if (index !== -1) {
-          categories.value[index] = response.data
+          const updatedCategories = [...categories.value]
+          updatedCategories[index] = response.data
+          categories.value = updatedCategories
         }
 
         if (currentCategory.value?.id === id) {
           currentCategory.value = response.data
         }
 
-        return true
+        console.log('✅ Catégorie mise à jour:', response.data.name)
+        return response.data
       } else {
         throw new Error(response.message || 'Erreur lors de la mise à jour')
       }
@@ -269,17 +281,17 @@ export const useCategoryStore = defineStore('category', () => {
         validationErrors.value = err.response.data.errors || {}
       }
       error.value = err.message || 'Erreur lors de la mise à jour de la catégorie'
-      console.error('Erreur updateCategory:', err)
-      return false
+      console.error('❌ Erreur updateCategory:', err)
+      return null
     } finally {
       updating.value = false
     }
   }
 
   /**
-   * ✅ Supprimer une catégorie
+   * ✅ Supprimer une catégorie - CORRIGÉ
    */
-  async function deleteCategory(id: string): Promise<boolean> {
+  async function deleteCategory(id: string | number): Promise<boolean> {
     // 🔥 VÉRIFICATION AUTH
     const isAuth = await ensureAuthenticated()
     if (!isAuth) {
@@ -294,19 +306,21 @@ export const useCategoryStore = defineStore('category', () => {
       const response = await categoryService.deleteCategory(id)
 
       if (response.success) {
+        // ✅ CORRECTION: Filtrer et réassigner pour forcer la réactivité
         categories.value = categories.value.filter((c) => c.id !== id)
 
         if (currentCategory.value?.id === id) {
           currentCategory.value = null
         }
 
+        console.log('✅ Catégorie supprimée, restant:', categories.value.length)
         return true
       } else {
         throw new Error(response.message || 'Erreur lors de la suppression')
       }
     } catch (err: any) {
       error.value = err.message || 'Erreur lors de la suppression de la catégorie'
-      console.error('Erreur deleteCategory:', err)
+      console.error('❌ Erreur deleteCategory:', err)
       return false
     } finally {
       deleting.value = false

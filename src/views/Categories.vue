@@ -547,7 +547,13 @@ async function handleSave(categoryData: any) {
   }
 
   if (result) {
+    // ✅ CORRECTION: Fermer le modal ET rafraîchir la liste
     handleCloseModal()
+
+    // ✅ Forcer le rechargement des catégories depuis l'API
+    await categoryStore.fetchCategories()
+
+    console.log('✅ Catégories rafraîchies:', categoryStore.categories.length)
   }
 }
 
