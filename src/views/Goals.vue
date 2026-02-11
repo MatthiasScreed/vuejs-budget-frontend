@@ -1550,6 +1550,10 @@ onMounted(async () => {
 }
 
 @media (min-width: 768px) {
+  .goal-mobile {
+    display: none;
+  }
+
   .goal-desktop {
     display: block;
   }
@@ -1557,14 +1561,14 @@ onMounted(async () => {
 
 .desktop-header {
   display: flex;
-  align-items: start;
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 1rem;
 }
 
 .desktop-title {
   display: flex;
-  align-items: start;
+  align-items: flex-start;
   gap: 0.75rem;
   flex: 1;
   min-width: 0;
