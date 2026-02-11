@@ -1,68 +1,66 @@
 <template>
   <div class="transaction-form-container">
-    <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8">
+    <div class="form-card">
       <!-- Header -->
-      <div class="flex items-center justify-between mb-8">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-xl flex items-center justify-center"
-               :class="transaction?.id ? 'bg-gradient-to-r from-blue-500 to-indigo-500' : 'bg-gradient-to-r from-green-500 to-emerald-500'">
-            <span class="text-2xl">💳</span>
+      <div class="form-header">
+        <div class="header-info">
+          <div class="header-icon" :class="transaction?.id ? 'icon-edit' : 'icon-new'">
+            <span>💳</span>
           </div>
           <div>
-            <h2 class="text-2xl font-bold text-gray-900">
+            <h2 class="form-title">
               {{ transaction?.id ? 'Modifier la transaction' : 'Nouvelle transaction' }}
             </h2>
-            <p class="text-gray-500">{{ type === 'income' ? 'Ajouter un revenu' : 'Ajouter une dépense' }}</p>
+            <p class="form-subtitle">
+              {{ formData.type === 'income' ? 'Ajouter un revenu' : 'Ajouter une dépense' }}
+            </p>
           </div>
         </div>
-        <button @click="$emit('close')" class="text-gray-400 hover:text-gray-600">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        <button @click="$emit('close')" class="close-btn" type="button">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
 
       <!-- Form -->
-      <form @submit.prevent="handleSubmit" class="space-y-6">
+      <form @submit.prevent="handleSubmit" class="form-body">
         <!-- Type de transaction -->
         <div class="form-group">
-          <label class="form-label required">
-            <span class="flex items-center gap-2">
-              <span>⚡</span>
-              <span>Type de transaction</span>
-            </span>
-          </label>
-          <div class="grid grid-cols-2 gap-3">
+          <label class="form-label required"> <span>⚡</span> Type de transaction </label>
+          <div class="type-selector">
             <button
               type="button"
               @click="selectType('expense')"
-              class="type-button"
-              :class="{ 'type-selected': formData.type === 'expense' }"
+              class="type-btn"
+              :class="{ 'type-selected expense-selected': formData.type === 'expense' }"
             >
-              <span class="text-2xl">💸</span>
-              <span class="font-medium">Dépense</span>
+              <span class="type-icon">💸</span>
+              <span class="type-text">Dépense</span>
             </button>
             <button
               type="button"
               @click="selectType('income')"
-              class="type-button"
-              :class="{ 'type-selected': formData.type === 'income' }"
+              class="type-btn"
+              :class="{ 'type-selected income-selected': formData.type === 'income' }"
             >
-              <span class="text-2xl">💰</span>
-              <span class="font-medium">Revenu</span>
+              <span class="type-icon">💰</span>
+              <span class="type-text">Revenu</span>
             </button>
           </div>
-          <div v-if="errors.type" class="form-error">{{ errors.type }}</div>
+          <p v-if="errors.type" class="error-text">{{ errors.type }}</p>
         </div>
 
-        <!-- Ligne 1: Description et Montant -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Description et Montant -->
+        <div class="form-row">
           <div class="form-group">
             <label for="description" class="form-label required">
-              <span class="flex items-center gap-2">
-                <span>📝</span>
-                <span>Description</span>
-              </span>
+              <span>📝</span> Description
             </label>
             <input
               id="description"
@@ -72,209 +70,131 @@
               :class="{ 'input-error': errors.description }"
               placeholder="ex: Courses Carrefour"
               maxlength="255"
-              @input="markAsDirty"
-            >
-            <div v-if="errors.description" class="form-error">{{ errors.description }}</div>
-            <div class="text-xs text-gray-500 mt-1">
-              {{ formData.description?.length || 0 }}/255 caractères
-            </div>
+            />
+            <p v-if="errors.description" class="error-text">{{ errors.description }}</p>
+            <p class="char-count">{{ formData.description?.length || 0 }}/255</p>
           </div>
 
           <div class="form-group">
-            <label for="amount" class="form-label required">
-              <span class="flex items-center gap-2">
-                <span>💶</span>
-                <span>Montant</span>
-              </span>
-            </label>
-            <div class="amount-input">
+            <label for="amount" class="form-label required"> <span>💶</span> Montant </label>
+            <div class="amount-wrapper">
               <input
                 id="amount"
                 v-model.number="formData.amount"
                 type="number"
-                class="form-input"
+                class="form-input amount-input"
                 :class="{ 'input-error': errors.amount }"
                 placeholder="0.00"
                 min="0"
                 step="0.01"
-                @input="markAsDirty"
-              >
-              <span class="currency-symbol">€</span>
+              />
+              <span class="currency">€</span>
             </div>
-            <div v-if="errors.amount" class="form-error">{{ errors.amount }}</div>
+            <p v-if="errors.amount" class="error-text">{{ errors.amount }}</p>
           </div>
         </div>
 
-        <!-- Ligne 2: Catégorie et Date -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Catégorie et Date -->
+        <div class="form-row">
           <div class="form-group">
-            <label for="category_id" class="form-label">
-              <span class="flex items-center gap-2">
-                <span>🏷️</span>
-                <span>Catégorie</span>
-              </span>
-            </label>
+            <label for="category_id" class="form-label"> <span>🏷️</span> Catégorie </label>
             <select
               id="category_id"
               v-model="formData.category_id"
               class="form-select"
               :class="{ 'input-error': errors.category_id }"
-              @change="markAsDirty"
             >
               <option value="">Sélectionner une catégorie</option>
-              <option
-                v-for="category in availableCategories"
-                :key="category.id"
-                :value="category.id"
-              >
-                {{ category.icon }} {{ category.name }}
+              <option v-for="cat in filteredCategories" :key="cat.id" :value="cat.id">
+                {{ cat.icon || '📁' }} {{ cat.name }}
               </option>
             </select>
-            <div v-if="errors.category_id" class="form-error">{{ errors.category_id }}</div>
+            <p v-if="errors.category_id" class="error-text">{{ errors.category_id }}</p>
           </div>
 
           <div class="form-group">
-            <label for="transaction_date" class="form-label required">
-              <span class="flex items-center gap-2">
-                <span>📅</span>
-                <span>Date</span>
-              </span>
-            </label>
+            <label for="transaction_date" class="form-label required"> <span>📅</span> Date </label>
             <input
               id="transaction_date"
               v-model="formData.transaction_date"
               type="date"
               class="form-input"
               :class="{ 'input-error': errors.transaction_date }"
-              @change="markAsDirty"
-            >
-            <div v-if="errors.transaction_date" class="form-error">{{ errors.transaction_date }}</div>
+            />
+            <p v-if="errors.transaction_date" class="error-text">{{ errors.transaction_date }}</p>
           </div>
         </div>
 
-        <!-- Notes optionnelles -->
+        <!-- Notes -->
         <div class="form-group">
-          <label for="notes" class="form-label">
-            <span class="flex items-center gap-2">
-              <span>📄</span>
-              <span>Notes (optionnelles)</span>
-            </span>
-          </label>
+          <label for="notes" class="form-label"> <span>📄</span> Notes (optionnelles) </label>
           <textarea
             id="notes"
             v-model="formData.notes"
             class="form-textarea"
-            :class="{ 'input-error': errors.notes }"
             placeholder="Informations complémentaires..."
             rows="3"
             maxlength="1000"
-            @input="markAsDirty"
           ></textarea>
-          <div v-if="errors.notes" class="form-error">{{ errors.notes }}</div>
-          <div class="text-xs text-gray-500 mt-1">
-            {{ formData.notes?.length || 0 }}/1000 caractères
-          </div>
-        </div>
-
-        <!-- Tags optionnels -->
-        <div class="form-group">
-          <label class="form-label">
-            <span class="flex items-center gap-2">
-              <span>🏷️</span>
-              <span>Tags (optionnels)</span>
-            </span>
-          </label>
-          <div class="tags-input">
-            <input
-              v-model="newTag"
-              type="text"
-              class="form-input"
-              placeholder="Ajouter un tag..."
-              @keydown.enter.prevent="addTag"
-              @keydown.comma.prevent="addTag"
-            >
-            <button type="button" @click="addTag" class="add-tag-btn">
-              ➕
-            </button>
-          </div>
-
-          <!-- Liste des tags -->
-          <div v-if="formData.tags && formData.tags.length > 0" class="tags-list">
-            <span
-              v-for="(tag, index) in formData.tags"
-              :key="index"
-              class="tag"
-            >
-              {{ tag }}
-              <button type="button" @click="removeTag(index)" class="remove-tag">×</button>
-            </span>
-          </div>
+          <p class="char-count">{{ formData.notes?.length || 0 }}/1000</p>
         </div>
 
         <!-- Options avancées -->
         <div class="advanced-section">
           <h3 class="section-title">⚙️ Options avancées</h3>
 
-          <div class="options-grid">
-            <label class="checkbox-label">
-              <input
-                v-model="formData.is_recurring"
-                type="checkbox"
-                class="form-checkbox"
-                @change="markAsDirty"
-              >
-              <span class="checkbox-text">Transaction récurrente</span>
-              <span class="checkbox-help">(Se répète automatiquement)</span>
-            </label>
+          <label class="checkbox-wrapper">
+            <input v-model="formData.is_recurring" type="checkbox" class="checkbox-input" />
+            <span class="checkbox-label">Transaction récurrente</span>
+            <span class="checkbox-hint">(Se répète automatiquement)</span>
+          </label>
 
-            <!-- Options récurrence -->
-            <div v-if="formData.is_recurring" class="recurring-options">
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label for="recurring_frequency" class="form-label">Fréquence</label>
-                  <select
-                    id="recurring_frequency"
-                    v-model="formData.recurring_frequency"
-                    class="form-select"
-                    @change="markAsDirty"
-                  >
-                    <option value="weekly">Hebdomadaire</option>
-                    <option value="monthly">Mensuelle</option>
-                    <option value="quarterly">Trimestrielle</option>
-                    <option value="yearly">Annuelle</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label for="recurring_end_date" class="form-label">Date de fin</label>
-                  <input
-                    id="recurring_end_date"
-                    v-model="formData.recurring_end_date"
-                    type="date"
-                    class="form-input"
-                    @change="markAsDirty"
-                  >
-                </div>
+          <div v-if="formData.is_recurring" class="recurring-options">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="recurring_frequency" class="form-label">Fréquence</label>
+                <select
+                  id="recurring_frequency"
+                  v-model="formData.recurring_frequency"
+                  class="form-select"
+                >
+                  <option value="weekly">Hebdomadaire</option>
+                  <option value="monthly">Mensuelle</option>
+                  <option value="quarterly">Trimestrielle</option>
+                  <option value="yearly">Annuelle</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="recurring_end_date" class="form-label">Date de fin</label>
+                <input
+                  id="recurring_end_date"
+                  v-model="formData.recurring_end_date"
+                  type="date"
+                  class="form-input"
+                />
               </div>
             </div>
           </div>
         </div>
 
         <!-- Aperçu -->
-        <div v-if="isValid && formData.description && formData.amount" class="preview-section">
+        <div v-if="showPreview" class="preview-section">
           <h3 class="section-title">👁️ Aperçu</h3>
           <div class="preview-card">
             <div
               class="preview-icon"
-              :class="formData.type === 'income' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'"
+              :class="formData.type === 'income' ? 'preview-income' : 'preview-expense'"
             >
-              <span class="text-xl">{{ formData.type === 'income' ? '💰' : '💸' }}</span>
+              {{ formData.type === 'income' ? '💰' : '💸' }}
             </div>
             <div class="preview-content">
               <h4 class="preview-title">{{ formData.description }}</h4>
-              <div class="preview-amount"
-                   :class="formData.type === 'income' ? 'text-green-600' : 'text-red-600'">
-                {{ formData.type === 'income' ? '+' : '-' }}{{ formatCurrency(formData.amount || 0) }}
+              <div
+                class="preview-amount"
+                :class="formData.type === 'income' ? 'text-income' : 'text-expense'"
+              >
+                {{ formData.type === 'income' ? '+' : '-'
+                }}{{ formatCurrency(formData.amount || 0) }}
               </div>
               <div class="preview-meta">
                 <span>{{ formatDate(formData.transaction_date) }}</span>
@@ -289,20 +209,14 @@
           <button
             type="button"
             @click="$emit('cancel')"
-            class="btn-outline"
-            :disabled="formState.isSubmitting"
+            class="btn-cancel"
+            :disabled="isSubmitting"
           >
             Annuler
           </button>
-          <button
-            type="submit"
-            :disabled="!canSubmit"
-            class="btn-primary"
-          >
-            <span v-if="formState.isSubmitting">⏳ Enregistrement...</span>
-            <span v-else>
-              {{ transaction?.id ? '✅ Modifier' : '➕ Créer' }} la transaction
-            </span>
+          <button type="submit" :disabled="!canSubmit" class="btn-submit">
+            <span v-if="isSubmitting">⏳ Enregistrement...</span>
+            <span v-else>{{ transaction?.id ? '✅ Modifier' : '➕ Créer' }}</span>
           </button>
         </div>
       </form>
@@ -311,146 +225,353 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
-import { useFormHandler } from '@/composables/useFormHandler'
-import type { Transaction, Category } from '@/types'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 
-// Props & Emits
+// ==========================================
+// TYPES
+// ==========================================
+
+interface Transaction {
+  id?: number
+  type: 'income' | 'expense'
+  description: string
+  amount: number
+  category_id?: number | null
+  transaction_date: string
+  notes?: string
+  is_recurring?: boolean
+  recurring_frequency?: string
+  recurring_end_date?: string
+  tags?: string[]
+}
+
+interface Category {
+  id: number
+  name: string
+  type: 'income' | 'expense'
+  icon?: string
+}
+
+// ==========================================
+// PROPS & EMITS
+// ==========================================
+
 interface Props {
   transaction?: Transaction | null
   type?: 'income' | 'expense'
   categories?: Category[]
 }
 
-interface Emits {
-  close: []
-  cancel: []
-  save: [transaction: Transaction]
-}
-
 const props = withDefaults(defineProps<Props>(), {
   transaction: null,
   type: 'expense',
-  categories: () => []
+  categories: () => [],
 })
 
-const emit = defineEmits<Emits>()
+const emit = defineEmits<{
+  close: []
+  cancel: []
+  save: [transaction: Transaction]
+}>()
 
-// State local
-const newTag = ref('')
-const availableCategories = ref<Category[]>([])
+// ==========================================
+// STATE
+// ==========================================
 
-// Form handler
-const {
-  formData,
-  errors,
-  formState,
-  isValid,
-  canSubmit,
-  markAsDirty,
-  submitForm,
-  loadData
-} = useFormHandler<Transaction>('transaction', {
+const isSubmitting = ref(false)
+const errors = reactive<Record<string, string>>({})
+
+const formData = reactive<Transaction>({
   type: props.type,
+  description: '',
+  amount: 0,
+  category_id: null,
   transaction_date: new Date().toISOString().split('T')[0],
+  notes: '',
   is_recurring: false,
   recurring_frequency: 'monthly',
-  tags: []
+  recurring_end_date: '',
+  tags: [],
 })
 
-// Computed
-const selectedCategory = computed(() =>
-  availableCategories.value.find(cat => cat.id === formData.category_id)
-)
+// ==========================================
+// COMPUTED
+// ==========================================
 
-// Methods
+const filteredCategories = computed(() => {
+  if (!props.categories?.length) return []
+  return props.categories.filter((cat) => cat.type === formData.type)
+})
+
+const selectedCategory = computed(() => {
+  if (!formData.category_id || !props.categories?.length) return null
+  return props.categories.find((cat) => cat.id === formData.category_id)
+})
+
+const showPreview = computed(() => {
+  return formData.description && formData.amount && formData.amount > 0
+})
+
+const canSubmit = computed(() => {
+  return (
+    !isSubmitting.value &&
+    formData.description?.trim() &&
+    formData.amount > 0 &&
+    formData.transaction_date
+  )
+})
+
+// ==========================================
+// METHODS
+// ==========================================
+
 function selectType(type: 'income' | 'expense') {
   formData.type = type
-  markAsDirty()
-
-  // Filtrer les catégories selon le type
-  filterCategoriesByType()
-}
-
-function filterCategoriesByType() {
-  availableCategories.value = props.categories.filter(cat =>
-    !formData.type || cat.type === formData.type
-  )
-
-  // Réinitialiser la catégorie si elle ne correspond plus au type
-  if (formData.category_id && selectedCategory.value?.type !== formData.type) {
+  // Reset category if type changes
+  if (selectedCategory.value?.type !== type) {
     formData.category_id = null
   }
-}
-
-function addTag() {
-  const tag = newTag.value.trim()
-  if (tag && !formData.tags.includes(tag)) {
-    formData.tags.push(tag)
-    newTag.value = ''
-    markAsDirty()
-  }
-}
-
-function removeTag(index: number) {
-  formData.tags.splice(index, 1)
-  markAsDirty()
 }
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
-    currency: 'EUR'
+    currency: 'EUR',
   }).format(amount)
 }
 
 function formatDate(dateString: string): string {
   if (!dateString) return ''
-  return new Date(dateString).toLocaleDateString('fr-FR')
+  try {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  } catch {
+    return dateString
+  }
+}
+
+function validate(): boolean {
+  // Clear errors
+  Object.keys(errors).forEach((key) => delete errors[key])
+
+  let isValid = true
+
+  if (!formData.type) {
+    errors.type = 'Le type est requis'
+    isValid = false
+  }
+
+  if (!formData.description?.trim()) {
+    errors.description = 'La description est requise'
+    isValid = false
+  } else if (formData.description.length < 2) {
+    errors.description = 'Minimum 2 caractères'
+    isValid = false
+  }
+
+  if (!formData.amount || formData.amount <= 0) {
+    errors.amount = 'Le montant doit être supérieur à 0'
+    isValid = false
+  }
+
+  if (!formData.transaction_date) {
+    errors.transaction_date = 'La date est requise'
+    isValid = false
+  }
+
+  return isValid
 }
 
 async function handleSubmit() {
-  const result = await submitForm()
+  console.log('📝 Form submit triggered')
 
-  if (result) {
-    emit('save', result)
+  if (!validate()) {
+    console.warn('❌ Validation failed:', errors)
+    return
+  }
+
+  isSubmitting.value = true
+
+  try {
+    // Prepare data
+    const transactionData: Transaction = {
+      type: formData.type,
+      description: formData.description.trim(),
+      amount: Number(formData.amount),
+      category_id: formData.category_id || null,
+      transaction_date: formData.transaction_date,
+      notes: formData.notes?.trim() || '',
+      is_recurring: formData.is_recurring || false,
+      recurring_frequency: formData.is_recurring ? formData.recurring_frequency : undefined,
+      recurring_end_date: formData.is_recurring ? formData.recurring_end_date : undefined,
+    }
+
+    // If editing, include ID
+    if (props.transaction?.id) {
+      transactionData.id = props.transaction.id
+    }
+
+    console.log('💾 Emitting save:', transactionData)
+    emit('save', transactionData)
+  } catch (error) {
+    console.error('❌ Submit error:', error)
+  } finally {
+    isSubmitting.value = false
   }
 }
 
-// Watchers
-watch(() => props.transaction, (newTransaction) => {
-  if (newTransaction) {
-    loadData({
-      ...newTransaction,
-      // Convertir les tags string en array si nécessaire
-      tags: typeof newTransaction.tags === 'string'
-        ? newTransaction.tags.split(',').filter(t => t.trim())
-        : newTransaction.tags || []
-    })
-  }
-}, { immediate: true })
+function loadTransaction(tx: Transaction) {
+  formData.type = tx.type || props.type
+  formData.description = tx.description || ''
+  formData.amount = Number(tx.amount) || 0
+  formData.category_id = tx.category_id || null
+  formData.transaction_date = tx.transaction_date || new Date().toISOString().split('T')[0]
+  formData.notes = tx.notes || ''
+  formData.is_recurring = tx.is_recurring || false
+  formData.recurring_frequency = tx.recurring_frequency || 'monthly'
+  formData.recurring_end_date = tx.recurring_end_date || ''
+}
 
-watch(() => props.categories, (newCategories) => {
-  availableCategories.value = newCategories
-  filterCategoriesByType()
-}, { immediate: true })
+// ==========================================
+// WATCHERS
+// ==========================================
 
-watch(() => formData.type, () => {
-  filterCategoriesByType()
-})
+watch(
+  () => props.transaction,
+  (newTx) => {
+    if (newTx) {
+      loadTransaction(newTx)
+    }
+  },
+  { immediate: true },
+)
 
-// Lifecycle
+watch(
+  () => props.type,
+  (newType) => {
+    if (!props.transaction && newType) {
+      formData.type = newType
+    }
+  },
+  { immediate: true },
+)
+
+// ==========================================
+// LIFECYCLE
+// ==========================================
+
 onMounted(() => {
-  // Si pas de transaction existante, utiliser le type par défaut des props
+  console.log('🚀 TransactionForm mounted')
+  console.log('📋 Props:', {
+    transaction: props.transaction,
+    type: props.type,
+    categoriesCount: props.categories?.length,
+  })
+
   if (!props.transaction) {
     formData.type = props.type
-    filterCategoriesByType()
   }
 })
 </script>
 
 <style scoped>
-/* STYLES DE BASE */
+.transaction-form-container {
+  width: 100%;
+  max-width: 42rem;
+}
+
+.form-card {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+/* Header */
+.form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.icon-new {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.icon-edit {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.form-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.form-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* Form Body */
+.form-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .form-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -458,64 +579,64 @@ onMounted(() => {
 }
 
 .form-label {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
   color: #374151;
 }
 
 .form-label.required::after {
-  content: ' *';
-  color: #EF4444;
+  content: '*';
+  color: #ef4444;
 }
 
-.form-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  transition: all 0.2s;
-}
-
-.form-input:focus {
-  outline: none;
-  ring: 2px;
-  ring-color: #3b82f6;
-  border-color: #3b82f6;
-}
-
-.form-select {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  background-color: white;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  transition: all 0.2s;
-}
-
+.form-input,
+.form-select,
 .form-textarea {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  resize: vertical;
+  font-size: 1rem;
   transition: all 0.2s;
+  background: white;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .input-error {
-  border-color: #f87171;
+  border-color: #ef4444;
 }
 
-.form-error {
-  font-size: 0.875rem;
+.error-text {
   color: #ef4444;
+  font-size: 0.875rem;
+  margin: 0;
 }
 
-/* TYPE SELECTOR */
-.type-button {
+.char-count {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-align: right;
+  margin: 0;
+}
+
+/* Type Selector */
+.type-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.type-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -528,21 +649,43 @@ onMounted(() => {
   transition: all 0.2s;
 }
 
-.type-button:hover {
+.type-btn:hover {
   border-color: #9ca3af;
 }
 
 .type-selected {
-  border-color: #3b82f6;
-  background: #dbeafe;
+  border-width: 2px;
 }
 
-/* AMOUNT INPUT */
-.amount-input {
+.expense-selected {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.income-selected {
+  border-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.type-icon {
+  font-size: 1.5rem;
+}
+
+.type-text {
+  font-weight: 500;
+  color: #374151;
+}
+
+/* Amount */
+.amount-wrapper {
   position: relative;
 }
 
-.currency-symbol {
+.amount-input {
+  padding-right: 2.5rem;
+}
+
+.currency {
   position: absolute;
   right: 0.75rem;
   top: 50%;
@@ -551,92 +694,40 @@ onMounted(() => {
   font-weight: 500;
 }
 
-/* TAGS */
-.tags-input {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.add-tag-btn {
-  padding: 0.75rem;
-  background: #f3f4f6;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.add-tag-btn:hover {
-  background: #e5e7eb;
-}
-
-.tags-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  background: #dbeafe;
-  color: #1e40af;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-}
-
-.remove-tag {
-  background: none;
-  border: none;
-  color: #1e40af;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: bold;
-}
-
-/* SECTIONS AVANCÉES */
+/* Advanced Section */
 .advanced-section {
-  padding: 1.5rem;
   background: #f8fafc;
   border-radius: 0.75rem;
+  padding: 1rem;
   border: 1px solid #e2e8f0;
 }
 
 .section-title {
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #1f2937;
-  margin-bottom: 1rem;
+  margin: 0 0 1rem 0;
 }
 
-.options-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.checkbox-label {
+.checkbox-wrapper {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  cursor: pointer;
 }
 
-.form-checkbox {
-  width: 1rem;
-  height: 1rem;
+.checkbox-input {
+  width: 1.25rem;
+  height: 1.25rem;
   accent-color: #3b82f6;
 }
 
-.checkbox-text {
-  font-size: 0.875rem;
+.checkbox-label {
   font-weight: 500;
   color: #374151;
 }
 
-.checkbox-help {
+.checkbox-hint {
   font-size: 0.75rem;
   color: #6b7280;
 }
@@ -649,11 +740,11 @@ onMounted(() => {
   border: 1px solid #e5e7eb;
 }
 
-/* APERÇU */
+/* Preview */
 .preview-section {
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #f3e8ff 0%, #fdf2f8 100%);
+  background: linear-gradient(135deg, #f3e8ff, #fdf2f8);
   border-radius: 0.75rem;
+  padding: 1rem;
 }
 
 .preview-card {
@@ -673,6 +764,15 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.25rem;
+}
+
+.preview-income {
+  background: #dcfce7;
+}
+
+.preview-expense {
+  background: #fee2e2;
 }
 
 .preview-content {
@@ -682,13 +782,21 @@ onMounted(() => {
 .preview-title {
   font-weight: 500;
   color: #1f2937;
-  margin-bottom: 0.25rem;
+  margin: 0 0 0.25rem 0;
 }
 
 .preview-amount {
   font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
+}
+
+.text-income {
+  color: #16a34a;
+}
+
+.text-expense {
+  color: #dc2626;
 }
 
 .preview-meta {
@@ -699,7 +807,7 @@ onMounted(() => {
   color: #6b7280;
 }
 
-/* ACTIONS */
+/* Actions */
 .form-actions {
   display: flex;
   justify-content: space-between;
@@ -708,46 +816,55 @@ onMounted(() => {
   border-top: 1px solid #e5e7eb;
 }
 
-.btn-primary {
-  background: #3b82f6;
-  color: white;
-  font-weight: 500;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
+.btn-cancel {
   flex: 1;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #2563eb;
-}
-
-.btn-primary:disabled {
-  background: #93c5fd;
-  cursor: not-allowed;
-}
-
-.btn-outline {
-  border: 1px solid #d1d5db;
-  color: #374151;
-  font-weight: 500;
   padding: 0.75rem 1.5rem;
+  border: 1px solid #d1d5db;
   border-radius: 0.5rem;
   background: white;
+  color: #374151;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.btn-outline:hover:not(:disabled) {
+.btn-cancel:hover:not(:disabled) {
   background: #f9fafb;
 }
 
-/* RESPONSIVE */
-@media (max-width: 768px) {
+.btn-submit {
+  flex: 2;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-1px);
+}
+
+.btn-submit:disabled,
+.btn-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
   .form-actions {
     flex-direction: column;
+  }
+
+  .btn-cancel,
+  .btn-submit {
+    flex: none;
+    width: 100%;
   }
 }
 </style>
