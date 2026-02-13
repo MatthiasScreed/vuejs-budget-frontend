@@ -229,22 +229,25 @@ const tierName = computed(() => getTierLabel(userLevel.value))
 const streakDays = computed(() => 7) // TODO: Connecter à l'API
 const bestStreak = computed(() => 14) // TODO: Connecter à l'API
 
-const achievementStats = computed(() => ({
-  unlocked: achievementStore.achievements.filter(
-    (a) => achievementStore.userProgress[a.id]?.unlocked,
-  ).length,
-  total: achievementStore.achievements.length,
-  percentage:
-    achievementStore.achievements.length > 0
-      ? Math.round(
-          (achievementStore.achievements.filter(
-            (a) => achievementStore.userProgress[a.id]?.unlocked,
-          ).length /
-            achievementStore.achievements.length) *
-            100,
-        )
-      : 0,
-}))
+const achievementStats = computed(() => {
+  const achievements = Array.isArray(achievementStore.achievements) ? achievementStore.achievements : []
+  return {
+    unlocked: achievements.filter(
+      (a) => achievementStore.userProgress[a.id]?.unlocked,
+    ).length,
+    total: achievements.length,
+    percentage:
+      achievements.length > 0
+        ? Math.round(
+            (achievements.filter(
+              (a) => achievementStore.userProgress[a.id]?.unlocked,
+            ).length /
+              achievements.length) *
+              100,
+          )
+        : 0,
+  }
+})
 
 const recentAchievements = computed(() => (achievementStore.recentAchievements || []).slice(0, 6))
 

@@ -113,15 +113,17 @@ export const useAchievementStore = defineStore('achievement', () => {
       const achievementsResponse = await api.get('/gaming/achievements')
 
       if (achievementsResponse.success && achievementsResponse.data) {
-        achievements.value = achievementsResponse.data
+        achievements.value = Array.isArray(achievementsResponse.data) ? achievementsResponse.data : []
       }
 
       // Charger la progression utilisateur
       const progressResponse = await api.get('/gaming/user-achievements')
 
       if (progressResponse.success && progressResponse.data) {
+        const progressData = Array.isArray(progressResponse.data) ? progressResponse.data : []
+
         // Mapper les achievements débloqués
-        const unlocked = progressResponse.data.filter((a: any) => a.unlocked)
+        const unlocked = progressData.filter((a: any) => a.unlocked)
 
         // Mettre à jour recentUnlocks avec les derniers débloqués
         recentUnlocks.value = unlocked
@@ -131,7 +133,7 @@ export const useAchievementStore = defineStore('achievement', () => {
           .slice(0, 10) // Garder les 10 derniers
 
         // Mapper la progression
-        progressResponse.data.forEach((progress: any) => {
+        progressData.forEach((progress: any) => {
           userProgress.value[progress.achievement_id] = {
             unlocked: progress.unlocked,
             progress: progress.progress || 0,

@@ -266,41 +266,46 @@ const filterOptions = [
 // COMPUTED
 // ==========================================
 
-const stats = computed(() => ({
-  totalUnlocked: achievements.value.filter((a) => isUnlocked(a.id)).length,
-  completionRate:
-    achievements.value.length > 0
-      ? Math.round(
-          (achievements.value.filter((a) => isUnlocked(a.id)).length / achievements.value.length) *
-            100,
-        )
-      : 0,
-  legendaryCount: achievements.value.filter((a) => a.rarity === 'legendary' && isUnlocked(a.id))
-    .length,
-  totalXP: achievements.value
-    .filter((a) => isUnlocked(a.id))
-    .reduce((sum, a) => sum + (a.xp_reward || 0), 0),
-}))
+const stats = computed(() => {
+  const achievementsList = Array.isArray(achievements.value) ? achievements.value : []
+  return {
+    totalUnlocked: achievementsList.filter((a) => isUnlocked(a.id)).length,
+    completionRate:
+      achievementsList.length > 0
+        ? Math.round(
+            (achievementsList.filter((a) => isUnlocked(a.id)).length / achievementsList.length) * 100,
+          )
+        : 0,
+    legendaryCount: achievementsList.filter((a) => a.rarity === 'legendary' && isUnlocked(a.id))
+      .length,
+    totalXP: achievementsList
+      .filter((a) => isUnlocked(a.id))
+      .reduce((sum, a) => sum + (a.xp_reward || 0), 0),
+  }
+})
 
 const filteredCategories = computed(() => {
   if (!categories.value) return []
 
   return categories.value
-    .map((category) => ({
-      ...category,
-      achievements: category.achievements.filter((achievement) => {
-        // Filtre par état
-        if (selectedFilter.value === 'unlocked' && !isUnlocked(achievement.id)) return false
-        if (selectedFilter.value === 'locked' && isUnlocked(achievement.id)) return false
+    .map((category) => {
+      const categoryAchievements = Array.isArray(category.achievements) ? category.achievements : []
+      return {
+        ...category,
+        achievements: categoryAchievements.filter((achievement) => {
+          // Filtre par état
+          if (selectedFilter.value === 'unlocked' && !isUnlocked(achievement.id)) return false
+          if (selectedFilter.value === 'locked' && isUnlocked(achievement.id)) return false
 
-        // Filtre par rareté
-        if (['common', 'rare', 'epic', 'legendary'].includes(selectedFilter.value)) {
-          if (achievement.rarity !== selectedFilter.value) return false
-        }
+          // Filtre par rareté
+          if (['common', 'rare', 'epic', 'legendary'].includes(selectedFilter.value)) {
+            if (achievement.rarity !== selectedFilter.value) return false
+          }
 
-        return true
-      }),
-    }))
+          return true
+        }),
+      }
+    })
     .filter((category) => category.achievements.length > 0)
 })
 
