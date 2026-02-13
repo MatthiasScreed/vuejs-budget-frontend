@@ -47,6 +47,8 @@ export const useAchievementStore = defineStore('achievement', () => {
   const recentUnlocks = ref<Achievement[]>([]) // ✅ Initialisé comme tableau vide
   const categories = ref<AchievementCategory[]>([])
 
+  const recentAchievements = computed(() => recentUnlocks.value)
+
   const loading = ref(false)
   const checking = ref(false)
   const error = ref<string | null>(null)
@@ -80,6 +82,20 @@ export const useAchievementStore = defineStore('achievement', () => {
   // ==========================================
   // ACTIONS
   // ==========================================
+
+  /**
+   * Alias pour loadAchievementData (rétrocompatibilité)
+   */
+  async function fetchAchievements(): Promise<void> {
+    return loadAchievementData()
+  }
+
+  /**
+   * Alias pour loadAchievementData (rétrocompatibilité)
+   */
+  async function fetchUserAchievements(): Promise<void> {
+    return loadAchievementData()
+  }
 
   /**
    * Charger les données d'achievements
@@ -224,8 +240,11 @@ export const useAchievementStore = defineStore('achievement', () => {
     lockedAchievements,
     totalXP,
     completionPercentage,
+    recentAchievements,
 
     // Actions
+    fetchAchievements,
+    fetchUserAchievements,
     loadAchievementData,
     checkAchievements,
     $reset

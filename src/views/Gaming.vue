@@ -246,14 +246,15 @@ const achievementStats = computed(() => ({
       : 0,
 }))
 
-const recentAchievements = computed(() => achievementStore.recentAchievements.slice(0, 6))
+const recentAchievements = computed(() => (achievementStore.recentAchievements || []).slice(0, 6))
 
 const leaderboardPosition = computed(() => {
-  const currentUser = leaderboard.value.find((e) => e.is_current_user)
-  return currentUser ? leaderboard.value.indexOf(currentUser) + 1 : '--'
+  const leaderboardValue = leaderboard.value || []
+  const currentUser = leaderboardValue.find((e: any) => e.is_current_user)
+  return currentUser ? leaderboardValue.indexOf(currentUser) + 1 : '--'
 })
 
-const totalUsers = computed(() => leaderboard.value.length || 100)
+const totalUsers = computed(() => (leaderboard.value || []).length || 100)
 
 // ==========================================
 // MÉTHODES
@@ -263,15 +264,19 @@ function formatNumber(num: number): string {
   if (num >= 1000) {
     return `${(num / 1000).toFixed(1)}k`
   }
-  return num.toLocaleString('fr-FR')
+  return (num || 0).toLocaleString('fr-FR')
 }
 
 function formatDate(dateString: string): string {
   if (!dateString) return ''
-  return new Date(dateString).toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'short',
-  })
+  try {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'short',
+    })
+  } catch (e) {
+    return ''
+  }
 }
 
 async function loadData(): Promise<void> {
@@ -280,8 +285,7 @@ async function loadData(): Promise<void> {
   try {
     await Promise.all([
       initialize(),
-      achievementStore.fetchAchievements(),
-      achievementStore.fetchUserAchievements(),
+      achievementStore.loadAchievementData(),
     ])
 
     // Mock leaderboard - TODO: Connecter à l'API
