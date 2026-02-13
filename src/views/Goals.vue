@@ -33,28 +33,28 @@
       <div class="stat-card">
         <div class="stat-icon stat-icon-blue">🎯</div>
         <div class="stat-content">
-          <div class="stat-value">{{ stats.active }}</div>
+          <div class="stat-value">{{ stats?.active || 0 }}</div>
           <div class="stat-label">Objectifs actifs</div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-green">💰</div>
         <div class="stat-content">
-          <div class="stat-value">{{ formatCurrency(stats.totalSaved) }}</div>
+          <div class="stat-value">{{ formatCurrency(stats?.totalSaved || 0) }}</div>
           <div class="stat-label">Montant épargné</div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-purple">📊</div>
         <div class="stat-content">
-          <div class="stat-value">{{ stats.overallProgress }}%</div>
+          <div class="stat-value">{{ stats?.overallProgress || 0 }}%</div>
           <div class="stat-label">Progression moyenne</div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-orange">✅</div>
         <div class="stat-content">
-          <div class="stat-value">{{ stats.completed }}</div>
+          <div class="stat-value">{{ stats?.completed || 0 }}</div>
           <div class="stat-label">Objectifs atteints</div>
         </div>
       </div>
@@ -68,7 +68,7 @@
           :key="tab.value"
           @click="activeFilter = tab.value"
           class="filter-tab"
-          :class="{ active: activeFilter === tab.value }"
+          :class="{ active_tab: activeFilter === tab.value }"
         >
           {{ tab.icon }} {{ tab.label }}
           <span v-if="tab.count > 0" class="filter-count">{{ tab.count }}</span>
@@ -543,7 +543,7 @@ onUnmounted(() => {
 .filters-bar { margin-bottom: 1.5rem; }
 .filter-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .filter-tab { padding: 0.5rem 1rem; border-radius: 9999px; background: #f3f4f6; border: none; cursor: pointer; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s; }
-.filter-tab.active { background: #3b82f6; color: white; }
+.filter-tab.active_tab { background: #3b82f6; color: white; }
 .filter-count { background: rgba(0,0,0,0.1); padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; }
 
 /* Loading & Empty */

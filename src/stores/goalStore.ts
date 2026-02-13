@@ -167,6 +167,72 @@ export const useGoalStore = defineStore('goal', () => {
     }).length
   })
 
+  /**
+   * Statistiques globales
+   */
+  const stats = computed(() => {
+    return {
+      active: activeGoals.value.length,
+      completed: completedGoals.value.length,
+      paused: pausedGoals.value.length,
+      totalSaved: totalSaved.value,
+      totalTarget: totalTarget.value,
+      overallProgress: overallProgress.value,
+      onTrack: goalsOnTrack.value,
+    }
+  })
+
+  // ==========================================
+  // CALCULS
+  // ==========================================
+
+  /**
+   * Calculer la progression d'un objectif
+   */
+  function calculateProgress(goal: FinancialGoal): number {
+    if (!goal || goal.target_amount <= 0) return 0
+    return Math.min(100, Math.round((goal.current_amount / goal.target_amount) * 100))
+  }
+
+  /**
+   * Calculer le montant restant
+   */
+  function calculateRemaining(goal: FinancialGoal): number {
+    if (!goal) return 0
+    return Math.max(0, goal.target_amount - goal.current_amount)
+  }
+
+  /**
+   * Calculer l'objectif mensuel suggéré
+   */
+  function calculateMonthlyTarget(goal: FinancialGoal): number {
+    if (!goal || goal.status === 'completed') return 0
+
+    const remaining = calculateRemaining(goal)
+    if (remaining <= 0) return 0
+
+    const now = new Date()
+    const target = new Date(goal.target_date)
+    const diffTime = target.getTime() - now.getTime()
+    const diffMonths = diffTime / (1000 * 60 * 60 * 24 * 30.44)
+
+    if (diffMonths <= 0) return remaining
+    return Math.round(remaining / diffMonths)
+  }
+
+  /**
+   * Calculer les jours restants
+   */
+  function calculateDaysRemaining(goal: FinancialGoal): number {
+    if (!goal || !goal.target_date) return 0
+    const now = new Date()
+    now.setHours(0, 0, 0, 0)
+    const target = new Date(goal.target_date)
+    target.setHours(0, 0, 0, 0)
+    const diffTime = target.getTime() - now.getTime()
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  }
+
   // ==========================================
   // ACTIONS - AVEC AUTH GUARD
   // ==========================================
@@ -564,6 +630,7 @@ export const useGoalStore = defineStore('goal', () => {
     totalTarget,
     overallProgress,
     goalsOnTrack,
+    stats,
 
     // Actions
     fetchGoals,
@@ -577,6 +644,10 @@ export const useGoalStore = defineStore('goal', () => {
     completeGoal,
     pauseGoal,
     resumeGoal,
+    calculateProgress,
+    calculateRemaining,
+    calculateMonthlyTarget,
+    calculateDaysRemaining,
     $reset,
   }
 })
