@@ -1,11 +1,5 @@
 <template>
-  <div class="max-w-6xl mx-auto">
-    <!-- Debug info en développement -->
-    <div v-if="isDevelopment" class="mb-6 bg-purple-100 border border-purple-300 rounded-lg p-4">
-      <p class="text-purple-800 font-medium">🏆 Composant Achievements.vue chargé avec succès !</p>
-      <p class="text-purple-600 text-sm">Route: {{ $route.name }} | Path: {{ $route.path }}</p>
-    </div>
-
+  <div class="max-w-6xl mx-auto px-4 py-6">
     <!-- Header -->
     <div class="mb-8">
       <div class="flex items-center justify-between">
@@ -14,39 +8,40 @@
           <p class="text-gray-600 mt-2">Débloquez des achievements et gagnez de l'XP</p>
         </div>
 
-        <!-- Actions header -->
-        <div class="flex items-center gap-4">
-          <button @click="forceCheckAchievements" class="gaming-button" :disabled="checking">
-            {{ checking ? '🔄 Vérification...' : '🔍 Vérifier les succès' }}
-          </button>
-        </div>
+        <button
+          @click="forceCheckAchievements"
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+          :disabled="checking"
+        >
+          {{ checking ? '🔄 Vérification...' : '🔍 Vérifier les succès' }}
+        </button>
       </div>
     </div>
 
     <!-- Stats globales -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-      <div class="stat-card">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white rounded-xl border border-gray-200 p-4">
         <div class="text-center">
           <div class="text-3xl font-bold text-blue-600">{{ stats.totalUnlocked }}</div>
           <div class="text-sm text-gray-600">Débloqués</div>
         </div>
       </div>
 
-      <div class="stat-card">
+      <div class="bg-white rounded-xl border border-gray-200 p-4">
         <div class="text-center">
           <div class="text-3xl font-bold text-purple-600">{{ stats.completionRate }}%</div>
           <div class="text-sm text-gray-600">Complétés</div>
         </div>
       </div>
 
-      <div class="stat-card">
+      <div class="bg-white rounded-xl border border-gray-200 p-4">
         <div class="text-center">
           <div class="text-3xl font-bold text-yellow-600">{{ stats.legendaryCount }}</div>
           <div class="text-sm text-gray-600">Légendaires</div>
         </div>
       </div>
 
-      <div class="stat-card">
+      <div class="bg-white rounded-xl border border-gray-200 p-4">
         <div class="text-center">
           <div class="text-3xl font-bold text-green-600">{{ stats.totalXP }}</div>
           <div class="text-sm text-gray-600">XP Total</div>
@@ -55,10 +50,10 @@
     </div>
 
     <!-- Filtres -->
-    <div class="gaming-card mb-8">
+    <div class="bg-white rounded-xl border border-gray-200 p-4 mb-8">
       <h3 class="text-lg font-semibold text-gray-900 mb-4">🎯 Filtres</h3>
 
-      <div class="flex flex-wrap gap-4">
+      <div class="flex flex-wrap gap-3">
         <button
           v-for="filter in filterOptions"
           :key="filter.value"
@@ -76,7 +71,10 @@
     </div>
 
     <!-- Succès récents -->
-    <div v-if="recentUnlocks.length > 0" class="gaming-card mb-8">
+    <div
+      v-if="recentUnlocks.length > 0"
+      class="bg-white rounded-xl border border-gray-200 p-4 mb-8"
+    >
       <h3 class="text-lg font-semibold text-gray-900 mb-4">✨ Derniers débloqués</h3>
 
       <div class="flex gap-4 overflow-x-auto pb-2">
@@ -104,7 +102,11 @@
 
     <!-- Catégories d'achievements -->
     <div v-else class="space-y-8">
-      <div v-for="category in filteredCategories" :key="category.id" class="gaming-card">
+      <div
+        v-for="category in filteredCategories"
+        :key="category.id"
+        class="bg-white rounded-xl border border-gray-200 p-6"
+      >
         <div class="flex items-center justify-between mb-6">
           <div class="flex items-center gap-3">
             <span class="text-2xl">{{ category.icon }}</span>
@@ -133,7 +135,7 @@
           <div
             v-for="achievement in category.achievements"
             :key="achievement.id"
-            class="achievement-card p-4 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-200"
+            class="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-200"
             :class="{
               'bg-gradient-to-r from-green-50 to-green-100 border-green-200': isUnlocked(
                 achievement.id,
@@ -186,13 +188,10 @@
 
                 <!-- Récompenses -->
                 <div class="flex items-center justify-between text-sm">
-                  <div class="flex items-center gap-4">
-                    <span class="text-blue-600 font-medium">+{{ achievement.xp_reward }} XP</span>
-                  </div>
-
-                  <div v-if="isUnlocked(achievement.id)" class="text-green-600 font-medium">
+                  <span class="text-blue-600 font-medium">+{{ achievement.xp_reward }} XP</span>
+                  <span v-if="isUnlocked(achievement.id)" class="text-green-600 font-medium">
                     ✅ Débloqué
-                  </div>
+                  </span>
                 </div>
               </div>
             </div>
@@ -217,7 +216,10 @@
       <p class="text-gray-600 mb-6">
         Commencez à utiliser l'application pour débloquer vos premiers achievements
       </p>
-      <router-link to="/app/transactions" class="gaming-button inline-flex items-center gap-2">
+      <router-link
+        to="/app/transactions"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+      >
         💰 Créer une transaction
       </router-link>
     </div>
@@ -232,14 +234,38 @@ import { useToast } from 'vue-toastification'
 
 const toast = useToast()
 
-// ✅ STORE
-const achievementStore = useAchievementStore()
+// ==========================================
+// STORE
+// ==========================================
 
-// ✅ STATE depuis le store
+const achievementStore = useAchievementStore()
 const { achievements, userProgress, recentUnlocks, categories, loading, checking } =
   storeToRefs(achievementStore)
 
-// ✅ STATS CALCULÉES depuis la DB
+// ==========================================
+// STATE LOCAL
+// ==========================================
+
+const selectedFilter = ref('all')
+
+// ==========================================
+// OPTIONS DE FILTRES
+// ==========================================
+
+const filterOptions = [
+  { value: 'all', label: 'Tous', icon: '📋' },
+  { value: 'unlocked', label: 'Débloqués', icon: '✅' },
+  { value: 'locked', label: 'En cours', icon: '🔒' },
+  { value: 'common', label: 'Commun', icon: '⚪' },
+  { value: 'rare', label: 'Rare', icon: '🔵' },
+  { value: 'epic', label: 'Épique', icon: '🟣' },
+  { value: 'legendary', label: 'Légendaire', icon: '🟡' },
+]
+
+// ==========================================
+// COMPUTED
+// ==========================================
+
 const stats = computed(() => ({
   totalUnlocked: achievements.value.filter((a) => isUnlocked(a.id)).length,
   completionRate:
@@ -253,10 +279,35 @@ const stats = computed(() => ({
     .length,
   totalXP: achievements.value
     .filter((a) => isUnlocked(a.id))
-    .reduce((sum, a) => sum + a.xp_reward, 0),
+    .reduce((sum, a) => sum + (a.xp_reward || 0), 0),
 }))
 
-// ✅ MÉTHODES
+const filteredCategories = computed(() => {
+  if (!categories.value) return []
+
+  return categories.value
+    .map((category) => ({
+      ...category,
+      achievements: category.achievements.filter((achievement) => {
+        // Filtre par état
+        if (selectedFilter.value === 'unlocked' && !isUnlocked(achievement.id)) return false
+        if (selectedFilter.value === 'locked' && isUnlocked(achievement.id)) return false
+
+        // Filtre par rareté
+        if (['common', 'rare', 'epic', 'legendary'].includes(selectedFilter.value)) {
+          if (achievement.rarity !== selectedFilter.value) return false
+        }
+
+        return true
+      }),
+    }))
+    .filter((category) => category.achievements.length > 0)
+})
+
+// ==========================================
+// MÉTHODES
+// ==========================================
+
 function isUnlocked(achievementId: number): boolean {
   return userProgress.value[achievementId]?.unlocked || false
 }
@@ -266,18 +317,51 @@ function getProgress(achievementId: number): number {
   return Math.min(100, Math.max(0, progress))
 }
 
-async function forceCheckAchievements() {
-  try {
-    checking.value = true
-    toast.info('🔍 Vérification des succès...')
+function getCompletedCount(category: any): number {
+  return category.achievements.filter((a: any) => isUnlocked(a.id)).length
+}
 
-    // ✅ Appel API réel
+function getCategoryProgress(category: any): number {
+  if (category.achievements.length === 0) return 0
+  return (getCompletedCount(category) / category.achievements.length) * 100
+}
+
+function getRarityClasses(rarity: string): string {
+  const classes: Record<string, string> = {
+    common: 'bg-gray-100 text-gray-700',
+    rare: 'bg-blue-100 text-blue-700',
+    epic: 'bg-purple-100 text-purple-700',
+    legendary: 'bg-yellow-100 text-yellow-700',
+  }
+  return classes[rarity] || classes.common
+}
+
+function getRarityLabel(rarity: string): string {
+  const labels: Record<string, string> = {
+    common: 'Commun',
+    rare: 'Rare',
+    epic: 'Épique',
+    legendary: 'Légendaire',
+  }
+  return labels[rarity] || 'Commun'
+}
+
+function formatDate(dateString: string): string {
+  if (!dateString) return ''
+  return new Date(dateString).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+async function forceCheckAchievements(): Promise<void> {
+  try {
+    toast.info('🔍 Vérification des succès...')
     const result = await achievementStore.checkAchievements()
 
     if (result?.newUnlocks && result.newUnlocks.length > 0) {
       toast.success(`🎉 ${result.newUnlocks.length} nouveau(x) succès débloqué(s) !`)
-
-      // Afficher les nouveaux succès
       result.newUnlocks.forEach((achievement: any) => {
         toast.success(`🏆 ${achievement.name} - +${achievement.xp_reward} XP`)
       })
@@ -286,31 +370,19 @@ async function forceCheckAchievements() {
     }
   } catch (error) {
     toast.error('Erreur lors de la vérification')
-  } finally {
-    checking.value = false
   }
 }
 
-// ✅ LIFECYCLE
+// ==========================================
+// LIFECYCLE
+// ==========================================
+
 onMounted(async () => {
   try {
-    loading.value = true
     await achievementStore.loadAchievementData()
   } catch (error: any) {
     console.error('❌ Erreur chargement achievements:', error)
     toast.error(error.message || 'Impossible de charger les succès')
-  } finally {
-    loading.value = false
   }
 })
 </script>
-
-<style scoped>
-/* SUPPRESSION COMPLÈTE DES @APPLY - TOUTES LES CLASSES SONT DANS main.css */
-
-.achievement-card:hover {
-  transform: translateY(-1px);
-}
-
-/* Pas de définitions CSS avec @apply ici - tout est dans main.css global */
-</style>

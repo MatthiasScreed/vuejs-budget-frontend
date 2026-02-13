@@ -1,192 +1,314 @@
 <template>
-  <div>
-    <!-- Gaming Dashboard -->
-    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-6xl mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">🎮 Progression</h1>
+      <p class="text-gray-600 mt-2">Suivez votre évolution et débloquez des récompenses</p>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="loading" class="flex items-center justify-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+    </div>
+
+    <template v-else>
       <!-- Stats Overview -->
-      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
-        <div v-if="stats" class="bg-white rounded-lg shadow p-6">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">
-                {{ stats.level }}
-              </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <!-- Niveau -->
+        <div class="bg-white rounded-xl border border-gray-200 p-6">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-xl font-bold"
+            >
+              {{ userLevel }}
             </div>
-            <div class="ml-4">
-              <div class="text-sm font-medium text-gray-900">Niveau</div>
-              <div class="text-2xl font-bold text-gray-900">{{ stats.level }}</div>
+            <div>
+              <div class="text-sm text-gray-600">{{ terminology.tier }}</div>
+              <div class="text-xl font-bold text-gray-900">{{ tierName }}</div>
             </div>
           </div>
           <div class="mt-4">
             <div class="w-full bg-gray-200 rounded-full h-2">
               <div
-                class="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
-                :style="{ width: `${levelProgress}%` }"
+                class="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500"
+                :style="{ width: `${progressPercent}%` }"
               ></div>
             </div>
-            <div class="text-xs text-gray-500 mt-1">
-              {{ stats.current_level_xp }} / {{ stats.next_level_xp }} XP
+            <div class="flex justify-between text-xs text-gray-500 mt-1">
+              <span>{{ currentXP }} {{ terminology.points }}</span>
+              <span>{{ nextLevelXP }} {{ terminology.points }}</span>
             </div>
           </div>
         </div>
 
-        <div v-if="stats" class="bg-white rounded-lg shadow p-6">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center text-white">
-                🏆
-              </div>
+        <!-- Succès -->
+        <div class="bg-white rounded-xl border border-gray-200 p-6">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center text-white text-xl"
+            >
+              🏆
             </div>
-            <div class="ml-4">
-              <div class="text-sm font-medium text-gray-900">Succès</div>
-              <div class="text-2xl font-bold text-gray-900">{{ achievementStats.unlocked }}</div>
+            <div>
+              <div class="text-sm text-gray-600">Succès</div>
+              <div class="text-xl font-bold text-gray-900">{{ achievementStats.unlocked }}</div>
             </div>
           </div>
-          <div class="mt-2">
-            <span class="text-xs text-gray-500">
-              {{ achievementStats.percentage }}% completé
-            </span>
+          <div class="mt-3 text-sm text-gray-500">{{ achievementStats.percentage }}% complétés</div>
+        </div>
+
+        <!-- Streak -->
+        <div class="bg-white rounded-xl border border-gray-200 p-6">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center text-white text-xl"
+            >
+              🔥
+            </div>
+            <div>
+              <div class="text-sm text-gray-600">{{ terminology.streak }}</div>
+              <div class="text-xl font-bold text-gray-900">{{ streakDays }} jours</div>
+            </div>
+          </div>
+          <div class="mt-3 text-sm text-gray-500">Record: {{ bestStreak }} jours</div>
+        </div>
+
+        <!-- XP Total -->
+        <div class="bg-white rounded-xl border border-gray-200 p-6">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center text-white text-xl"
+            >
+              ⭐
+            </div>
+            <div>
+              <div class="text-sm text-gray-600">{{ terminology.points }} Total</div>
+              <div class="text-xl font-bold text-gray-900">{{ formatNumber(totalXP) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <router-link
+          to="/app/achievements"
+          class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow"
+        >
+          <div class="flex items-center gap-4">
+            <span class="text-3xl">🏆</span>
+            <div>
+              <h3 class="font-semibold text-gray-900">Tous les succès</h3>
+              <p class="text-sm text-gray-600">
+                {{ achievementStats.unlocked }}/{{ achievementStats.total }} débloqués
+              </p>
+            </div>
+            <span class="ml-auto text-gray-400">→</span>
+          </div>
+        </router-link>
+
+        <router-link
+          to="/app/challenges"
+          class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow"
+        >
+          <div class="flex items-center gap-4">
+            <span class="text-3xl">⚔️</span>
+            <div>
+              <h3 class="font-semibold text-gray-900">Défis actifs</h3>
+              <p class="text-sm text-gray-600">{{ activeChallenges }} en cours</p>
+            </div>
+            <span class="ml-auto text-gray-400">→</span>
+          </div>
+        </router-link>
+
+        <div class="bg-white rounded-xl border border-gray-200 p-6">
+          <div class="flex items-center gap-4">
+            <span class="text-3xl">📊</span>
+            <div>
+              <h3 class="font-semibold text-gray-900">Classement</h3>
+              <p class="text-sm text-gray-600">#{{ leaderboardPosition }} sur {{ totalUsers }}</p>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Achievements récents -->
-      <div v-if="recentAchievements.length > 0" class="mb-8">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">🏆 Succès récents</h2>
+      <div
+        v-if="recentAchievements.length > 0"
+        class="bg-white rounded-xl border border-gray-200 p-6 mb-8"
+      >
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">✨ Succès récents</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div
             v-for="achievement in recentAchievements"
-            :key="achievement.achievement_id"
-            class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-400"
+            :key="achievement.id"
+            class="flex items-center gap-3 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg"
           >
-            <div class="flex items-start">
-              <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center text-white">
-                🏆
-              </div>
-              <div class="ml-3 flex-1">
-                <div class="font-medium text-gray-900">{{ getAchievementName(achievement.achievement_id) }}</div>
-                <div class="text-sm text-gray-500">
-                  Débloqué {{ formatDate(achievement.unlocked_at!) }}
-                </div>
-              </div>
+            <span class="text-2xl">{{ achievement.icon || '🏆' }}</span>
+            <div class="flex-1 min-w-0">
+              <p class="font-medium text-gray-900 truncate">{{ achievement.name }}</p>
+              <p class="text-sm text-gray-500">{{ formatDate(achievement.unlocked_at) }}</p>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Leaderboard -->
-      <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-medium text-gray-900">🏆 Classement</h3>
-        </div>
-        <div class="p-6">
-          <div class="space-y-4">
-            <div v-for="(entry, index) in leaderboard" :key="entry.user_id">
-              <div
-                :class="entry.user_id === authStore.user?.id ?
-                  'bg-purple-50 border border-purple-200' : 'bg-gray-50'"
-                class="flex items-center p-4 rounded-lg"
-              >
-                <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-bold">
-                  {{ index + 1 }}
-                </div>
-                <div class="ml-3 flex-1">
-                  <div class="font-medium text-gray-900">{{ entry.user_name }}</div>
-                  <div class="text-sm text-gray-500">Level {{ entry.level }} • {{ formatXP(entry.total_xp) }} XP</div>
-                </div>
-                <div v-if="entry.user_id === authStore.user?.id" class="text-purple-600 font-medium text-sm">
-                  Vous
-                </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">🏆 Classement</h3>
+        <div class="space-y-3">
+          <div
+            v-for="(entry, index) in leaderboard"
+            :key="entry.user_id"
+            class="flex items-center p-4 rounded-lg"
+            :class="entry.is_current_user ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'"
+          >
+            <div
+              class="w-8 h-8 flex items-center justify-center rounded-full text-white text-sm font-bold"
+              :class="{
+                'bg-yellow-500': index === 0,
+                'bg-gray-400': index === 1,
+                'bg-amber-600': index === 2,
+                'bg-gray-500': index > 2,
+              }"
+            >
+              {{ index + 1 }}
+            </div>
+            <div class="ml-4 flex-1">
+              <div class="font-medium text-gray-900">{{ entry.user_name }}</div>
+              <div class="text-sm text-gray-500">
+                {{ terminology.tier }} {{ entry.level }} • {{ formatNumber(entry.total_xp) }}
+                {{ terminology.points }}
               </div>
             </div>
+            <span v-if="entry.is_current_user" class="text-blue-600 font-medium text-sm">Vous</span>
           </div>
         </div>
       </div>
-    </main>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-// ✅ CORRECTION: Utiliser achievementStore au lieu de gamingStore
-import { useAchievementStore } from '@/stores/achievementStore'
 import { useAuthStore } from '@/stores/authStore'
-import type { Achievement } from '@/types/entities/gaming'
+import { useAchievementStore } from '@/stores/achievementStore'
+import { useProgressiveGaming, ENGAGEMENT_LEVELS } from '@/composables/useProgressiveGaming'
 
-// Stores
-const achievementStore = useAchievementStore()
+// ==========================================
+// STORES & COMPOSABLES
+// ==========================================
+
 const authStore = useAuthStore()
+const achievementStore = useAchievementStore()
+const { terminology, engagementLevel, initialize, getTierLabel } = useProgressiveGaming()
 
-// State local
-const loading = ref(false)
-const error = ref<string | null>(null)
+// ==========================================
+// STATE
+// ==========================================
 
-// Mock leaderboard (remplacer par vraie API)
-const leaderboard = ref([
-  { user_id: 1, user_name: 'Alice', level: 5, total_xp: 2450, position: 1 },
-  { user_id: 2, user_name: 'Bob', level: 4, total_xp: 1890, position: 2 },
-  { user_id: 3, user_name: 'Charlie', level: 3, total_xp: 1200, position: 3 }
-])
+const loading = ref(true)
+const leaderboard = ref<any[]>([])
+const activeChallenges = ref(0)
 
-// ✅ CORRECTION: Utiliser les computed du bon store
-const recentAchievements = computed(() => achievementStore.recentAchievements)
-const achievementStats = computed(() => achievementStore.achievementStats)
+// ==========================================
+// COMPUTED
+// ==========================================
 
-// Stats mockées (en attendant le vrai store)
-const stats = computed(() => {
-  const user = authStore.user
-  if (!user?.level) {
-    return {
-      level: 1,
-      current_level_xp: 0,
-      next_level_xp: 100,
-      total_xp: 0
-    }
-  }
-
-  return {
-    level: user.level.level || 1,
-    current_level_xp: user.level.current_level_xp || 0,
-    next_level_xp: user.level.next_level_xp || 100,
-    total_xp: user.level.total_xp || 0
-  }
+const userLevel = computed(() => authStore.user?.level?.level || 1)
+const totalXP = computed(() => authStore.user?.level?.total_xp || 0)
+const currentXP = computed(() => authStore.user?.level?.current_level_xp || 0)
+const nextLevelXP = computed(() => authStore.user?.level?.next_level_xp || 100)
+const progressPercent = computed(() => {
+  if (nextLevelXP.value <= 0) return 0
+  return Math.min(100, Math.round((currentXP.value / nextLevelXP.value) * 100))
 })
 
-const levelProgress = computed(() => {
-  const current = stats.value.current_level_xp
-  const needed = stats.value.next_level_xp
-  return needed > 0 ? Math.round((current / needed) * 100) : 0
+const tierName = computed(() => getTierLabel(userLevel.value))
+
+const streakDays = computed(() => 7) // TODO: Connecter à l'API
+const bestStreak = computed(() => 14) // TODO: Connecter à l'API
+
+const achievementStats = computed(() => ({
+  unlocked: achievementStore.achievements.filter(
+    (a) => achievementStore.userProgress[a.id]?.unlocked,
+  ).length,
+  total: achievementStore.achievements.length,
+  percentage:
+    achievementStore.achievements.length > 0
+      ? Math.round(
+          (achievementStore.achievements.filter(
+            (a) => achievementStore.userProgress[a.id]?.unlocked,
+          ).length /
+            achievementStore.achievements.length) *
+            100,
+        )
+      : 0,
+}))
+
+const recentAchievements = computed(() => achievementStore.recentAchievements.slice(0, 6))
+
+const leaderboardPosition = computed(() => {
+  const currentUser = leaderboard.value.find((e) => e.is_current_user)
+  return currentUser ? leaderboard.value.indexOf(currentUser) + 1 : '--'
 })
 
-// Methods
-const formatXP = (xp: number): string => {
-  return new Intl.NumberFormat('fr-FR').format(xp)
+const totalUsers = computed(() => leaderboard.value.length || 100)
+
+// ==========================================
+// MÉTHODES
+// ==========================================
+
+function formatNumber(num: number): string {
+  if (num >= 1000) {
+    return `${(num / 1000).toFixed(1)}k`
+  }
+  return num.toLocaleString('fr-FR')
 }
 
-const formatDate = (dateString: string): string => {
+function formatDate(dateString: string): string {
+  if (!dateString) return ''
   return new Date(dateString).toLocaleDateString('fr-FR', {
     day: 'numeric',
-    month: 'short'
+    month: 'short',
   })
 }
 
-const getAchievementName = (achievementId: number): string => {
-  const achievement = achievementStore.achievements.find(a => a.id === achievementId)
-  return achievement?.name || 'Achievement'
-}
-
-// ✅ CORRECTION: Utiliser les bonnes méthodes du store
-onMounted(async () => {
+async function loadData(): Promise<void> {
   loading.value = true
+
   try {
     await Promise.all([
+      initialize(),
       achievementStore.fetchAchievements(),
-      achievementStore.fetchUserAchievements()
+      achievementStore.fetchUserAchievements(),
     ])
-  } catch (err: any) {
-    error.value = err.message
-    console.error('Erreur lors du chargement des données gaming:', err)
+
+    // Mock leaderboard - TODO: Connecter à l'API
+    leaderboard.value = [
+      { user_id: 1, user_name: 'Alice M.', level: 8, total_xp: 2450, is_current_user: false },
+      { user_id: 2, user_name: 'Bob T.', level: 6, total_xp: 1890, is_current_user: false },
+      {
+        user_id: authStore.user?.id || 3,
+        user_name: 'Vous',
+        level: userLevel.value,
+        total_xp: totalXP.value,
+        is_current_user: true,
+      },
+      { user_id: 4, user_name: 'Charlie L.', level: 4, total_xp: 1200, is_current_user: false },
+    ].sort((a, b) => b.total_xp - a.total_xp)
+  } catch (error) {
+    console.error('Erreur chargement gaming:', error)
   } finally {
     loading.value = false
   }
+}
+
+// ==========================================
+// LIFECYCLE
+// ==========================================
+
+onMounted(() => {
+  loadData()
 })
 </script>

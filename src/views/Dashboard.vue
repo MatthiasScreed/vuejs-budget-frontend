@@ -4,10 +4,14 @@
     <div class="dashboard-header">
       <div>
         <h1 class="dashboard-title">Bonjour {{ userName }} 👋</h1>
-        <p class="dashboard-subtitle">Voici votre situation financière</p>
+        <p class="dashboard-subtitle">{{ encouragementMessage }}</p>
       </div>
 
-      <QuickActions />
+      <div class="header-right">
+        <!-- Mini Progress (Niveau 2+) -->
+        <ProgressBar v-if="shouldShowMiniProgress" variant="mini" class="hidden md:block" />
+        <QuickActions />
+      </div>
     </div>
 
     <!-- Loading State -->
@@ -26,6 +30,14 @@
     <div v-else class="dashboard-content">
       <!-- Zone principale: Finance (75%) -->
       <main class="finance-main">
+        <!-- Encouragement Card (Niveau 1) -->
+        <EncouragementCard
+          v-if="showEncouragementCard"
+          :message="dailyEncouragement?.message"
+          :stats-highlight="dailyEncouragement?.stats_highlight"
+          @dismiss="dismissEncouragement"
+        />
+
         <!-- Métriques principales -->
         <FinancialMetrics
           v-if="metrics"
@@ -52,48 +64,113 @@
         />
 
         <!-- Transactions récentes -->
-        <RecentTransactions />
+        <RecentTransactions @transaction-created="handleTransactionCreated" />
       </main>
 
-      <!-- Sidebar: Gaming (25%) -->
+      <!-- Sidebar: Gaming Progressif -->
       <aside class="gaming-sidebar">
-        <GamingSidebar v-if="gamingEnabled" />
+        <GamingSidebar />
       </aside>
     </div>
+
+    <!-- Feedback Toast Global -->
+    <FeedbackToast
+      v-if="currentFeedback"
+      :feedback="currentFeedback"
+      :points="currentFeedbackPoints"
+      @close="clearCurrentFeedback"
+    />
+
+    <!-- Milestone Celebration Modal -->
+    <MilestoneCelebration
+      v-if="celebratingMilestone"
+      :milestone="celebratingMilestone"
+      @close="celebratingMilestone = null"
+      @claimed="handleMilestoneClaimed"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useDashboardData } from '@/composables/useDashboardData'
+import {
+  useProgressiveGaming,
+  ENGAGEMENT_LEVELS,
+  type Feedback,
+  type Milestone,
+} from '@/composables/useProgressiveGaming'
 
-// Components
+// Components - Dashboard
 import FinancialMetrics from '@/components/dashboard/FinancialMetrics.vue'
 import GoalsProgressCard from '@/components/dashboard/GoalsProgressCard.vue'
 import SpendingChart from '@/components/dashboard/SpendingChart.vue'
 import AIProjections from '@/components/dashboard/AIProjections.vue'
 import RecentTransactions from '@/components/dashboard/RecentTransactions.vue'
-import GamingSidebar from '@/components/dashboard/GamingSidebar.vue'
 import QuickActions from '@/components/dashboard/QuickActions.vue'
 
-/**
- * Dashboard principal - Version avec API
- * École 42: Composition claire, API réelle
- */
+// Components - Gaming Progressif
+import GamingSidebar from '@/components/gaming/GamingSidebar.vue'
+import ProgressBar from '@/components/gaming/ProgressBar.vue'
+import FeedbackToast from '@/components/gaming/FeedbackToast.vue'
+import EncouragementCard from '@/components/gaming/EncouragementCard.vue'
+import MilestoneCelebration from '@/components/gaming/MilestoneCelebration.vue'
+
+// ==========================================
+// STORES & COMPOSABLES
+// ==========================================
 
 const authStore = useAuthStore()
-const gamingEnabled = ref(true)
 
-const userName = computed(() => authStore.user?.name || 'Utilisateur')
-
-// Chargement des données via API
 const { isLoading, error, metrics, goals, categories, projections, insights, loadDashboardData } =
   useDashboardData()
 
-/**
- * Mappe les goals de l'API au format du composant
- */
+const {
+  engagementLevel,
+  dashboardData,
+  uiConfig,
+  initialize,
+  refreshDashboard,
+  processEvent,
+  getDailyEncouragement,
+  consumePendingFeedback,
+} = useProgressiveGaming()
+
+// ==========================================
+// STATE
+// ==========================================
+
+const currentFeedback = ref<Feedback | null>(null)
+const currentFeedbackPoints = ref(0)
+const celebratingMilestone = ref<Milestone | null>(null)
+const encouragementDismissed = ref(false)
+const dailyEncouragement = ref<{ message: string; stats_highlight: any } | null>(null)
+
+// ==========================================
+// COMPUTED
+// ==========================================
+
+const userName = computed(() => authStore.user?.name?.split(' ')[0] || 'Utilisateur')
+
+const encouragementMessage = computed(() => {
+  if (dailyEncouragement.value?.message) {
+    return dailyEncouragement.value.message
+  }
+  return 'Voici votre situation financière'
+})
+
+const shouldShowMiniProgress = computed(
+  () => engagementLevel.value >= ENGAGEMENT_LEVELS.REWARDS && uiConfig.value.show_xp_bar,
+)
+
+const showEncouragementCard = computed(
+  () =>
+    engagementLevel.value === ENGAGEMENT_LEVELS.SOFT &&
+    !encouragementDismissed.value &&
+    dailyEncouragement.value?.stats_highlight,
+)
+
 const mappedGoals = computed(() => {
   return goals.value.map((goal) => ({
     id: goal.id,
@@ -107,18 +184,89 @@ const mappedGoals = computed(() => {
   }))
 })
 
-/**
- * Recharge les données
- */
-const reload = async (): Promise<void> => {
+// ==========================================
+// MÉTHODES
+// ==========================================
+
+async function reload(): Promise<void> {
+  await Promise.all([loadDashboardData(), refreshDashboard()])
+}
+
+async function handleTransactionCreated(transaction: any): Promise<void> {
+  // Le backend traite automatiquement via Observer
+  // Mais on peut récupérer le feedback en attente
+  const result = await processEvent('transaction_created', {
+    amount: transaction.amount,
+    type: transaction.type,
+  })
+
+  if (result.feedback) {
+    showFeedback(result.feedback, result.milestones.length > 0 ? 10 : 0)
+  }
+
+  // Afficher les milestones débloqués
+  if (result.milestones.length > 0) {
+    celebratingMilestone.value = result.milestones[0]
+  }
+
+  // Rafraîchir les données
   await loadDashboardData()
 }
 
-/**
- * Initialisation
- */
-onMounted(() => {
-  loadDashboardData()
+function showFeedback(feedback: Feedback, points: number = 0): void {
+  currentFeedback.value = feedback
+  currentFeedbackPoints.value = points
+}
+
+function clearCurrentFeedback(): void {
+  currentFeedback.value = null
+  currentFeedbackPoints.value = 0
+
+  // Vérifier s'il y a d'autres feedbacks en attente
+  const next = consumePendingFeedback()
+  if (next) {
+    setTimeout(() => showFeedback(next), 300)
+  }
+}
+
+function dismissEncouragement(): void {
+  encouragementDismissed.value = true
+}
+
+function handleMilestoneClaimed(milestone: Milestone): void {
+  celebratingMilestone.value = null
+  refreshDashboard()
+}
+
+async function loadEncouragement(): Promise<void> {
+  const data = await getDailyEncouragement()
+  if (data) {
+    dailyEncouragement.value = data
+  }
+}
+
+// ==========================================
+// WATCHERS
+// ==========================================
+
+// Observer les changements de niveau pour adapter l'UI
+watch(engagementLevel, (newLevel, oldLevel) => {
+  if (newLevel > oldLevel) {
+    // L'utilisateur a progressé, on peut afficher un message
+    console.log(`🎮 Niveau d'engagement augmenté: ${oldLevel} → ${newLevel}`)
+  }
+})
+
+// ==========================================
+// LIFECYCLE
+// ==========================================
+
+onMounted(async () => {
+  // Charger en parallèle pour performance
+  await Promise.all([initialize(), loadDashboardData()])
+
+  // Charger l'encouragement après initialisation
+  await loadEncouragement()
 })
 </script>
 
@@ -136,6 +284,12 @@ onMounted(() => {
   margin-bottom: 2rem;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .dashboard-title {
   font-size: 2rem;
   font-weight: 800;
@@ -146,6 +300,7 @@ onMounted(() => {
 .dashboard-subtitle {
   font-size: 1rem;
   color: #718096;
+  max-width: 400px;
 }
 
 /* Loading & Error States */
@@ -182,39 +337,43 @@ onMounted(() => {
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
+  transition: background-color 0.2s;
 }
 
 .btn-retry:hover {
   background: #5568d3;
 }
 
-/* Main Layout */
+/* Main Layout - 80/20 Finance/Gaming */
 .dashboard-content {
   display: grid;
-  grid-template-columns: 1fr 350px; /* 75% / 25% */
+  grid-template-columns: 1fr 320px;
   gap: 2rem;
 }
 
 .finance-main {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .gaming-sidebar {
   position: sticky;
   top: 2rem;
   height: fit-content;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
 }
 
 /* Responsive */
 @media (max-width: 1200px) {
   .dashboard-content {
-    grid-template-columns: 1fr; /* Gaming passe en bas */
+    grid-template-columns: 1fr;
   }
 
   .gaming-sidebar {
     position: static;
+    max-height: none;
   }
 }
 
@@ -229,8 +388,17 @@ onMounted(() => {
     gap: 1rem;
   }
 
+  .header-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
   .dashboard-title {
     font-size: 1.5rem;
+  }
+
+  .dashboard-subtitle {
+    font-size: 0.875rem;
   }
 }
 </style>

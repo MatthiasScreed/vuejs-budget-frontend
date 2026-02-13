@@ -14,15 +14,19 @@ const LandingPage = () => import('@/views/LandingPage.vue')
 const Login = () => import('@/views/Login.vue')
 const Register = () => import('@/views/Register.vue')
 
-// Pages authentifiées
+// Pages authentifiées - Core
 const Dashboard = () => import('@/views/Dashboard.vue')
 const Transactions = () => import('@/views/Transactions.vue')
 const Goals = () => import('@/views/Goals.vue')
 const Categories = () => import('@/views/Categories.vue')
 const Analytics = () => import('@/views/Analytics.vue')
-const Gaming = () => import('@/views/Gaming.vue')
 const Profile = () => import('@/views/Profile.vue')
 const Banking = () => import('@/views/Banking.vue')
+
+// Pages authentifiées - Gaming System
+const Gaming = () => import('@/views/Gaming.vue')
+const Achievements = () => import('@/views/Achievements.vue')
+const Challenges = () => import('@/views/Challenges.vue')
 
 // ==========================================
 // ROUTES
@@ -74,6 +78,7 @@ const routes = [
     component: AppLayout,
     meta: { requiresAuth: true },
     children: [
+      // === CORE ===
       {
         path: 'dashboard',
         name: 'Dashboard',
@@ -120,15 +125,6 @@ const routes = [
         },
       },
       {
-        path: 'gaming',
-        name: 'Gaming',
-        component: Gaming,
-        meta: {
-          requiresAuth: true,
-          title: 'Progression - CoinQuest',
-        },
-      },
-      {
         path: 'banking',
         name: 'Banking',
         component: Banking,
@@ -146,6 +142,36 @@ const routes = [
           title: 'Profil - CoinQuest',
         },
       },
+
+      // === GAMING SYSTEM ===
+      {
+        path: 'gaming',
+        name: 'Gaming',
+        component: Gaming,
+        meta: {
+          requiresAuth: true,
+          title: 'Progression - CoinQuest',
+        },
+      },
+      {
+        path: 'achievements',
+        name: 'Achievements',
+        component: Achievements,
+        meta: {
+          requiresAuth: true,
+          title: 'Succès - CoinQuest',
+        },
+      },
+      {
+        path: 'challenges',
+        name: 'Challenges',
+        component: Challenges,
+        meta: {
+          requiresAuth: true,
+          title: 'Défis - CoinQuest',
+        },
+      },
+
       // Redirection /app → /app/dashboard
       {
         path: '',
@@ -164,6 +190,8 @@ const routes = [
   { path: '/categories', redirect: { name: 'Categories' } },
   { path: '/analytics', redirect: { name: 'Analytics' } },
   { path: '/gaming', redirect: { name: 'Gaming' } },
+  { path: '/achievements', redirect: { name: 'Achievements' } },
+  { path: '/challenges', redirect: { name: 'Challenges' } },
   { path: '/profile', redirect: { name: 'Profile' } },
   { path: '/banking', redirect: { name: 'Banking' } },
 
@@ -189,11 +217,9 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior(to, from, savedPosition) {
-    // Restaure la position si on revient en arrière
     if (savedPosition) {
       return savedPosition
     }
-    // Sinon, scroll en haut
     return { top: 0, behavior: 'smooth' }
   },
 })
@@ -202,69 +228,52 @@ const router = createRouter({
 // NAVIGATION GUARDS
 // ==========================================
 
-/**
- * Guard avant chaque navigation
- * École 42: Fonction claire avec un seul rôle
- */
 router.beforeEach(async (to, from, next) => {
   console.log(`🧭 Navigation: ${from.path} → ${to.path}`)
 
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
   const authStore = useAuthStore()
 
-  // ==========================================
-  // 1. ROUTES PUBLIQUES
-  // ==========================================
+  // Routes publiques
   if (!requiresAuth) {
-    // Si déjà connecté et tente d'accéder login/register → redirect dashboard
     if (authStore.isAuthenticated && (to.name === 'Login' || to.name === 'Register')) {
       console.log('✅ Déjà connecté, redirection dashboard')
       next({ name: 'Dashboard' })
       return
     }
-
-    // Accès libre aux pages publiques
     next()
     return
   }
 
-  // ==========================================
-  // 2. ROUTES PROTÉGÉES
-  // ==========================================
-
-  // Vérifier si déjà authentifié dans le store
+  // Routes protégées - Vérifier authentification
   if (authStore.isAuthenticated && authStore.user) {
     console.log('✅ Utilisateur authentifié:', authStore.user.email)
     next()
     return
   }
 
-  // Tentative de restauration depuis localStorage
+  // Tentative restauration depuis localStorage
   const token = localStorage.getItem('auth_token')
   const userStr = localStorage.getItem('user')
 
   if (token && userStr) {
     try {
       const user = JSON.parse(userStr)
-
-      // Restaurer l'authentification
       authStore.token = token
       authStore.user = user
       authStore.isAuthenticated = true
       authStore.isInitialized = true
-
       console.log('✅ Session restaurée depuis localStorage')
       next()
       return
     } catch (error) {
       console.error('❌ Erreur parsing user:', error)
-      // Nettoyer le localStorage corrompu
       localStorage.removeItem('auth_token')
       localStorage.removeItem('user')
     }
   }
 
-  // Pas d'authentification → Redirection login
+  // Non authentifié → Login
   console.log('⚠️ Non authentifié, redirection login')
   next({
     name: 'Login',
@@ -273,19 +282,13 @@ router.beforeEach(async (to, from, next) => {
 })
 
 // ==========================================
-// AFTER EACH - Mise à jour des métadonnées
+// AFTER EACH - Métadonnées
 // ==========================================
 
-/**
- * Après chaque navigation
- * École 42: Fonction simple, un rôle
- */
 router.afterEach((to) => {
-  // Mise à jour du titre
   const title = (to.meta.title as string) || 'CoinQuest'
   document.title = title
 
-  // Mise à jour de la meta description (SEO)
   const description =
     (to.meta.description as string) || 'CoinQuest - Gestion de budget intelligente'
   const metaDescription = document.querySelector('meta[name="description"]')
@@ -300,14 +303,9 @@ router.afterEach((to) => {
 // GESTION D'ERREURS
 // ==========================================
 
-/**
- * Gestion des erreurs de navigation
- * École 42: Gestion centralisée des erreurs
- */
 router.onError((error) => {
   console.error('❌ Erreur routeur:', error)
 
-  // Si erreur de chunk (lazy loading), recharger la page
   if (
     error.message.includes('Failed to fetch dynamically imported module') ||
     error.message.includes('Loading chunk')
@@ -316,9 +314,5 @@ router.onError((error) => {
     window.location.reload()
   }
 })
-
-// ==========================================
-// EXPORT
-// ==========================================
 
 export default router
