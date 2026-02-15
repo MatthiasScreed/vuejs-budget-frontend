@@ -154,7 +154,7 @@ const routes = [
         },
       },
       {
-        path: 'achievements',
+        path: 'gaming/achievements',
         name: 'Achievements',
         component: Achievements,
         meta: {
@@ -163,7 +163,7 @@ const routes = [
         },
       },
       {
-        path: 'challenges',
+        path: 'gaming/challenges',
         name: 'Challenges',
         component: Challenges,
         meta: {
@@ -192,6 +192,8 @@ const routes = [
   { path: '/gaming', redirect: { name: 'Gaming' } },
   { path: '/achievements', redirect: { name: 'Achievements' } },
   { path: '/challenges', redirect: { name: 'Challenges' } },
+  { path: '/gaming/achievements', redirect: { name: 'Achievements' } },
+  { path: '/gaming/challenges', redirect: { name: 'Challenges' } },
   { path: '/profile', redirect: { name: 'Profile' } },
   { path: '/banking', redirect: { name: 'Banking' } },
 
