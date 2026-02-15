@@ -695,6 +695,8 @@ onUnmounted(() => {
   border: none;
   cursor: pointer;
   font-size: 0.875rem;
+  font-weight: 500;
+  color: #5b6270;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -709,6 +711,7 @@ onUnmounted(() => {
   padding: 0.125rem 0.5rem;
   border-radius: 9999px;
   font-size: 0.75rem;
+  font-weight: 600;
 }
 
 /* Loading & Empty */
@@ -961,19 +964,20 @@ onUnmounted(() => {
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 .badge-active {
-  background: #dbeafe;
-  color: #1e40af;
+  background: #3b82f6;
+  color: white;
 }
 .badge-completed {
-  background: #dcfce7;
-  color: #166534;
+  background: #22c55e;
+  color: white;
 }
 .badge-paused {
-  background: #fef3c7;
-  color: #92400e;
+  background: #f59e0b;
+  color: white;
 }
 
 /* Modals */
