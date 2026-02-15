@@ -622,7 +622,7 @@ watch(selectedPeriod, () => {
 }
 
 .page-subtitle {
-  color: #6b7280;
+  color: #5b6270;
   margin: 0.5rem 0 0 0;
   font-size: 0.9375rem;
 }
@@ -674,7 +674,7 @@ watch(selectedPeriod, () => {
 
 .loading-text {
   margin-top: 1rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 /* ========================================== */
@@ -727,7 +727,7 @@ watch(selectedPeriod, () => {
 
 .stat-label {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
   margin: 0 0 0.5rem 0;
 }
 
@@ -752,7 +752,7 @@ watch(selectedPeriod, () => {
 }
 
 .stat-change.neutral {
-  color: #6b7280;
+  color: #5b6270;
 }
 
 /* ========================================== */
@@ -778,7 +778,7 @@ watch(selectedPeriod, () => {
 .empty-chart {
   text-align: center;
   padding: 3rem 1rem;
-  color: #9ca3af;
+  color: #8c939f;
 }
 
 /* ========================================== */
@@ -850,7 +850,7 @@ watch(selectedPeriod, () => {
 
 .category-percentage {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 .category-bar {
@@ -871,7 +871,7 @@ watch(selectedPeriod, () => {
   display: flex;
   justify-content: space-between;
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 /* Top Categories */
@@ -934,7 +934,7 @@ watch(selectedPeriod, () => {
 
 .top-amount {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #5b6270;
   margin-top: 0.25rem;
 }
 
@@ -986,7 +986,7 @@ watch(selectedPeriod, () => {
 
 .trend-label {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #5b6270;
   margin-bottom: 0.5rem;
 }
 
@@ -1059,7 +1059,7 @@ watch(selectedPeriod, () => {
 
 .insight-text {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 /* ========================================== */

@@ -498,7 +498,7 @@ function fallbackCopyTextToClipboard(text: string) {
   background: none;
   border: none;
   font-size: 24px;
-  color: #9ca3af;
+  color: #8c939f;
   cursor: pointer;
   padding: 8px;
   border-radius: 12px;
@@ -614,7 +614,7 @@ function fallbackCopyTextToClipboard(text: string) {
 
 .achievement-modal-description {
   font-size: 16px;
-  color: #6b7280;
+  color: #5b6270;
   line-height: 1.5;
   margin: 0 0 20px 0;
   max-width: 400px;
@@ -672,7 +672,7 @@ function fallbackCopyTextToClipboard(text: string) {
 
 .achievement-stat-label {
   font-size: 12px;
-  color: #9ca3af;
+  color: #8c939f;
   margin-bottom: 4px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -815,7 +815,7 @@ function fallbackCopyTextToClipboard(text: string) {
 }
 
 .achievement-share-btn {
-  background: #6b7280;
+  background: #5b6270;
   color: white;
 }
 
@@ -871,7 +871,7 @@ function fallbackCopyTextToClipboard(text: string) {
 .badge-purple { background: #8b5cf6; color: white; }
 .badge-yellow { background: #f59e0b; color: white; }
 .badge-red { background: #ef4444; color: white; }
-.badge-gray { background: #6b7280; color: white; }
+.badge-gray { background: #5b6270; color: white; }
 
 /* ==========================================
    ANIMATIONS

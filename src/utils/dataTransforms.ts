@@ -109,7 +109,7 @@ export function calculateCategoryTotals(
         amount: Math.round(amount * 100) / 100,
         transactionCount: count,
         percentage: totalAmount > 0 ? Math.round((amount / totalAmount) * 100) : 0,
-        color: category?.color || '#6B7280',
+        color: category?.color || '#5b6270',
         icon: category?.icon || '📋'
       }
     })
@@ -275,7 +275,7 @@ export function adaptCategoriesForPieChart(categoryData: CategoryTotals[]): {
       amount: othersTotal,
       transactionCount: others.reduce((sum, cat) => sum + cat.transactionCount, 0),
       percentage: others.reduce((sum, cat) => sum + cat.percentage, 0),
-      color: '#6B7280',
+      color: '#5b6270',
       icon: '📦'
     })
   }

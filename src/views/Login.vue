@@ -106,7 +106,7 @@ onMounted(() => {
               autocomplete="email"
               :class="[
                 'appearance-none block w-full px-4 py-3 border rounded-lg transition-all',
-                'placeholder-gray-400 text-gray-900',
+                'placeholder-gray-500 text-gray-900',
                 'focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent',
                 errors.email
                   ? 'border-red-300 bg-red-50'
@@ -139,7 +139,7 @@ onMounted(() => {
                 autocomplete="current-password"
                 :class="[
                   'appearance-none block w-full px-4 py-3 pr-12 border rounded-lg transition-all',
-                  'placeholder-gray-400 text-gray-900',
+                  'placeholder-gray-500 text-gray-900',
                   'focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent',
                   errors.password
                     ? 'border-red-300 bg-red-50'

@@ -280,7 +280,7 @@ onMounted(() => {
 
 .celebration-label {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
   margin-bottom: 0.5rem;
 }
 
@@ -353,7 +353,7 @@ onMounted(() => {
   padding: 0.75rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #6b7280;
+  color: #5b6270;
   background: transparent;
   border: none;
   cursor: pointer;

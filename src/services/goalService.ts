@@ -143,7 +143,7 @@ const GOAL_CATEGORIES = [
   { id: 'business', name: 'Entreprise', icon: '💼', color: '#059669' },
   { id: 'technology', name: 'Technologie', icon: '💻', color: '#DC2626' },
   { id: 'health', name: 'Santé', icon: '🏥', color: '#0891B2' },
-  { id: 'other', name: 'Autre', icon: '🎯', color: '#6B7280' },
+  { id: 'other', name: 'Autre', icon: '🎯', color: '#5b6270' },
 ] as const
 
 // ==========================================

@@ -41,7 +41,7 @@
             <div style="width: 3rem; height: 3rem; background-color: #fee2e2; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">💸</div>
             <div>
               <h5 style="font-size: 1.125rem; font-weight: 700; color: #111827;">Dépense</h5>
-              <p style="font-size: 0.875rem; color: #6b7280;">Argent qui sort</p>
+              <p style="font-size: 0.875rem; color: #5b6270;">Argent qui sort</p>
             </div>
           </button>
 
@@ -54,7 +54,7 @@
             <div style="width: 3rem; height: 3rem; background-color: #dcfce7; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">💰</div>
             <div>
               <h5 style="font-size: 1.125rem; font-weight: 700; color: #111827;">Revenu</h5>
-              <p style="font-size: 0.875rem; color: #6b7280;">Argent qui entre</p>
+              <p style="font-size: 0.875rem; color: #5b6270;">Argent qui entre</p>
             </div>
           </button>
         </div>
@@ -95,7 +95,7 @@
           placeholder="ex: Courses chez Carrefour, Salaire janvier..."
           maxlength="255"
         >
-        <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">
+        <div style="font-size: 0.75rem; color: #5b6270; margin-top: 0.25rem;">
           {{ formData.description?.length || 0 }}/255 caractères
         </div>
         <div v-if="errors.description" style="color: #dc2626; font-size: 0.875rem; margin-top: 0.5rem;">
@@ -165,7 +165,7 @@
         <div style="display: flex; align-items: center; gap: 1rem;">
           <!-- Aperçu du montant -->
           <div v-if="formData.amount > 0" style="text-align: right;">
-            <div style="font-size: 0.875rem; color: #6b7280;">Aperçu:</div>
+            <div style="font-size: 0.875rem; color: #5b6270;">Aperçu:</div>
             <div
               style="font-weight: 700; font-size: 1.125rem;"
               :style="{ color: formData.type === 'income' ? '#059669' : '#dc2626' }"

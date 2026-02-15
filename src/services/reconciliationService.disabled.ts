@@ -639,7 +639,7 @@ class ReconciliationService {
       'high': '#EF4444',
       'critical': '#DC2626'
     }
-    return colors[severity] || '#6B7280'
+    return colors[severity] || '#5b6270'
   }
 
   // ==========================================

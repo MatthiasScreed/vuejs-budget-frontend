@@ -5,7 +5,7 @@
       <h1 style="font-size: 1.875rem; font-weight: 700; color: #111827;">
         💎 Capacité d'Épargne
       </h1>
-      <p style="color: #6b7280; margin-top: 0.5rem;">
+      <p style="color: #5b6270; margin-top: 0.5rem;">
         {{ summary }}
       </p>
     </div>
@@ -16,12 +16,12 @@
       <div class="stat-card">
         <div class="stat-header">
           <span style="font-size: 1.5rem;">💰</span>
-          <span style="font-size: 0.75rem; color: #6b7280;">Revenus mensuels</span>
+          <span style="font-size: 0.75rem; color: #5b6270;">Revenus mensuels</span>
         </div>
         <div class="stat-value" style="color: #059669;">
           {{ formatCurrency(capacity.monthly_income) }}
         </div>
-        <div style="font-size: 0.75rem; color: #6b7280;">
+        <div style="font-size: 0.75rem; color: #5b6270;">
           Moyenne sur {{ selectedPeriod }} mois
         </div>
       </div>
@@ -30,12 +30,12 @@
       <div class="stat-card">
         <div class="stat-header">
           <span style="font-size: 1.5rem;">💸</span>
-          <span style="font-size: 0.75rem; color: #6b7280;">Dépenses mensuelles</span>
+          <span style="font-size: 0.75rem; color: #5b6270;">Dépenses mensuelles</span>
         </div>
         <div class="stat-value" style="color: #dc2626;">
           {{ formatCurrency(capacity.monthly_expenses) }}
         </div>
-        <div style="font-size: 0.75rem; color: #6b7280;">
+        <div style="font-size: 0.75rem; color: #5b6270;">
           Moyenne sur {{ selectedPeriod }} mois
         </div>
       </div>
@@ -44,7 +44,7 @@
       <div class="stat-card featured">
         <div class="stat-header">
           <span style="font-size: 1.5rem;">💎</span>
-          <span style="font-size: 0.75rem; color: #6b7280;">Capacité d'épargne</span>
+          <span style="font-size: 0.75rem; color: #5b6270;">Capacité d'épargne</span>
         </div>
         <div
           class="stat-value"
@@ -61,12 +61,12 @@
       <div class="stat-card">
         <div class="stat-header">
           <span style="font-size: 1.5rem;">📊</span>
-          <span style="font-size: 0.75rem; color: #6b7280;">Taux d'épargne</span>
+          <span style="font-size: 0.75rem; color: #5b6270;">Taux d'épargne</span>
         </div>
         <div class="stat-value" style="color: #3b82f6;">
           {{ Math.round(capacity.savings_rate) }}%
         </div>
-        <div style="font-size: 0.75rem; color: #6b7280;">
+        <div style="font-size: 0.75rem; color: #5b6270;">
           Objectif : 20%
         </div>
         <div class="progress-bar" style="margin-top: 0.5rem;">
@@ -109,21 +109,21 @@
         <div style="margin-bottom: 1.5rem; padding: 1rem; background: linear-gradient(to right, #eff6ff, #f0fdf4); border-radius: 0.5rem;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <div style="font-size: 0.875rem; color: #6b7280;">Disponible</div>
+              <div style="font-size: 0.875rem; color: #5b6270;">Disponible</div>
               <div style="font-size: 1.25rem; font-weight: 700; color: #111827;">
                 {{ formatCurrency(allocation.total_available) }}
               </div>
             </div>
             <div style="font-size: 2rem;">→</div>
             <div>
-              <div style="font-size: 0.875rem; color: #6b7280;">Alloué</div>
+              <div style="font-size: 0.875rem; color: #5b6270;">Alloué</div>
               <div style="font-size: 1.25rem; font-weight: 700; color: #7c3aed;">
                 {{ formatCurrency(allocation.total_allocated) }}
               </div>
             </div>
             <div style="font-size: 2rem;">→</div>
             <div>
-              <div style="font-size: 0.875rem; color: #6b7280;">Restant</div>
+              <div style="font-size: 0.875rem; color: #5b6270;">Restant</div>
               <div style="font-size: 1.25rem; font-weight: 700; color: #059669;">
                 {{ formatCurrency(allocation.remaining) }}
               </div>
@@ -142,7 +142,7 @@
                 <h3 style="font-weight: 600; color: #111827;">
                   #{{ alloc.priority }} {{ alloc.goal_name }}
                 </h3>
-                <p style="font-size: 0.875rem; color: #6b7280;">
+                <p style="font-size: 0.875rem; color: #5b6270;">
                   {{ alloc.monthly_amount }}€/mois pendant {{ alloc.months_to_complete }} mois
                 </p>
               </div>
@@ -158,7 +158,7 @@
               ></div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #5b6270; margin-top: 0.25rem;">
               <span>{{ Math.round((alloc.monthly_amount / allocation.total_available) * 100) }}% du budget</span>
               <span>{{ formatDate(new Date(Date.now() + alloc.months_to_complete * 30 * 24 * 60 * 60 * 1000)) }}</span>
             </div>
@@ -187,7 +187,7 @@
                 <h3 style="font-weight: 600; color: #111827; margin-bottom: 0.25rem;">
                   {{ rec.title }}
                 </h3>
-                <p style="font-size: 0.875rem; color: #6b7280;">
+                <p style="font-size: 0.875rem; color: #5b6270;">
                   {{ rec.description }}
                 </p>
                 <div v-if="rec.impact > 0" style="margin-top: 0.5rem; font-size: 0.875rem; font-weight: 600; color: #059669;">
@@ -225,7 +225,7 @@
               ></div>
             </div>
 
-            <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">
+            <div style="font-size: 0.75rem; color: #5b6270; margin-top: 0.25rem;">
               {{ Math.round(cat.percentage) }}% de vos dépenses
             </div>
           </div>

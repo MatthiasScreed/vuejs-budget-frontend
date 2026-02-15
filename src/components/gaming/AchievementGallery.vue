@@ -714,7 +714,7 @@ onMounted(async () => {
 
 .achievement-card-description {
   font-size: 13px;
-  color: #6b7280;
+  color: #5b6270;
   line-height: 1.4;
   margin: 0;
 }
@@ -758,7 +758,7 @@ onMounted(async () => {
 
 .achievement-progress-text {
   font-size: 11px;
-  color: #6b7280;
+  color: #5b6270;
   font-weight: 500;
 }
 
@@ -861,7 +861,7 @@ onMounted(async () => {
 
 .achievement-list-description {
   font-size: 14px;
-  color: #6b7280;
+  color: #5b6270;
   margin: 0 0 8px 0;
   line-height: 1.4;
 }
@@ -874,7 +874,7 @@ onMounted(async () => {
 }
 
 .achievement-category-text {
-  color: #9ca3af;
+  color: #8c939f;
 }
 
 .achievement-list-progress {
@@ -939,7 +939,7 @@ onMounted(async () => {
 
 .achievement-category-subtitle {
   font-size: 14px;
-  color: #6b7280;
+  color: #5b6270;
   margin: 0;
 }
 
@@ -1004,7 +1004,7 @@ onMounted(async () => {
 .badge-purple { background: #8b5cf6; color: white; }
 .badge-yellow { background: #f59e0b; color: white; }
 .badge-red { background: #ef4444; color: white; }
-.badge-gray { background: #6b7280; color: white; }
+.badge-gray { background: #5b6270; color: white; }
 
 /* ==========================================
    ÉTATS
@@ -1032,7 +1032,7 @@ onMounted(async () => {
 }
 
 .empty-text {
-  color: #6b7280;
+  color: #5b6270;
   margin: 0;
 }
 

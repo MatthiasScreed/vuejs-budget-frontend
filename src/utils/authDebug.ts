@@ -44,11 +44,11 @@ export class AuthDebugger {
       GUARD: '#06b6d4', // cyan
     }
 
-    const color = colors[category] || '#6b7280'
+    const color = colors[category] || '#5b6270'
 
     console.log(
       `%c[${entry.time}] %c[${category}]%c ${message}`,
-      'color: #9ca3af',
+      'color: #8c939f',
       `color: ${color}; font-weight: bold`,
       'color: inherit',
       data !== undefined ? data : '',

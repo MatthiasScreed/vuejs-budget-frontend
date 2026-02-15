@@ -211,7 +211,7 @@ export const achievementService = {
       'epic': '#F59E0B',       // Orange
       'legendary': '#EF4444'   // Rouge
     }
-    return colors[rarity] || '#6B7280'
+    return colors[rarity] || '#5b6270'
   },
 
   /**

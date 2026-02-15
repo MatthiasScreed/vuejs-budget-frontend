@@ -69,7 +69,7 @@ export const formsApi = {
       ...data,
       is_active: data.is_active ?? true,
       icon: data.icon || 'folder',
-      color: data.color || '#6B7280'
+      color: data.color || '#5b6270'
     })
     return response.data
   },

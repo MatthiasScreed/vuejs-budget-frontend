@@ -533,7 +533,7 @@ onMounted(() => {
 
 .form-subtitle {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
   margin: 0.25rem 0 0 0;
 }
 
@@ -541,7 +541,7 @@ onMounted(() => {
   background: none;
   border: none;
   cursor: pointer;
-  color: #6b7280;
+  color: #5b6270;
   padding: 0.5rem;
   border-radius: 0.5rem;
   transition: all 0.2s;
@@ -624,7 +624,7 @@ onMounted(() => {
 
 .char-count {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: #8c939f;
   text-align: right;
   margin: 0;
 }
@@ -650,7 +650,7 @@ onMounted(() => {
 }
 
 .type-btn:hover {
-  border-color: #9ca3af;
+  border-color: #8c939f;
 }
 
 .type-selected {
@@ -690,7 +690,7 @@ onMounted(() => {
   right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #6b7280;
+  color: #5b6270;
   font-weight: 500;
 }
 
@@ -729,7 +729,7 @@ onMounted(() => {
 
 .checkbox-hint {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 .recurring-options {
@@ -804,7 +804,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 /* Actions */

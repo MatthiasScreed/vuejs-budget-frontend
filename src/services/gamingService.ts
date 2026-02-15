@@ -1,12 +1,14 @@
-import { useApi } from '@/composables/core/useApi'
-import { useCache } from '@/composables/core/useCache'
-import type { ApiResponse } from '@/stores/authStore'
-import type {
-  Achievement,
-  Challenge,
-  Streak,
-  GamingStats
-} from '@/stores/gamingStore'
+// src/services/gamingService.ts - VERSION CORRIGÉE
+// ✅ Utilise le singleton api (même client que tous les stores)
+// ✅ Routes sans /api/ (baseURL le contient déjà)
+// ✅ Cache simplifié (Map in-memory au lieu de useCache composable)
+import api from '@/services/api'
+import type { ApiResponse } from '@/services/api'
+import type { Achievement, Challenge, Streak, GamingStats } from '@/stores/gamingStore'
+
+// ==========================================
+// TYPES
+// ==========================================
 
 export interface LeaderboardEntry {
   user_id: number
@@ -16,7 +18,7 @@ export interface LeaderboardEntry {
   total_xp: number
   weekly_xp: number
   position: number
-  change: number // +/- depuis la semaine dernière
+  change: number
 }
 
 export interface XPTransaction {
@@ -37,23 +39,78 @@ export interface DashboardData {
   recent_xp: XPTransaction[]
 }
 
-/**
- * Service gaming pour toutes les fonctionnalités de gamification
- */
+// ==========================================
+// CACHE SIMPLE IN-MEMORY
+// ==========================================
+
+interface CacheEntry<T = any> {
+  data: T
+  expires: number
+  tags: string[]
+}
+
+const cache = new Map<string, CacheEntry>()
+
+function cacheGet<T>(key: string): T | null {
+  const entry = cache.get(key)
+  if (!entry) return null
+  if (Date.now() > entry.expires) {
+    cache.delete(key)
+    return null
+  }
+  return entry.data as T
+}
+
+function cacheSet<T>(key: string, data: T, ttlMs: number, tags: string[] = []): void {
+  cache.set(key, {
+    data,
+    expires: Date.now() + ttlMs,
+    tags,
+  })
+}
+
+function cacheInvalidateByTag(tag: string): void {
+  for (const [key, entry] of cache.entries()) {
+    if (entry.tags.includes(tag)) {
+      cache.delete(key)
+    }
+  }
+}
+
+// ==========================================
+// SERVICE
+// ==========================================
+
 class GamingService {
-  private api = useApi()
-  private cache = useCache()
+  /**
+   * Helper: GET avec cache
+   */
+  private async cachedGet<T>(
+    key: string,
+    url: string,
+    ttlMs: number,
+    tags: string[],
+  ): Promise<ApiResponse<T>> {
+    const cached = cacheGet<ApiResponse<T>>(key)
+    if (cached) return cached
+
+    const response = await api.get<T>(url)
+    if (response.success) {
+      cacheSet(key, response, ttlMs, tags)
+    }
+    return response
+  }
 
   /**
-   * Récupérer le dashboard gaming complet
+   * Dashboard gaming complet
    */
   async getDashboard(): Promise<ApiResponse<DashboardData>> {
     try {
-      return await this.cache.remember(
+      return await this.cachedGet<DashboardData>(
         'gaming_dashboard',
-        () => this.api.get<DashboardData>('/api/gaming/dashboard'),
-        2 * 60 * 1000, // Cache 2 minutes
-        ['gaming', 'dashboard']
+        '/gaming/dashboard',
+        2 * 60 * 1000,
+        ['gaming', 'dashboard'],
       )
     } catch (error: any) {
       console.error('Get gaming dashboard error:', error)
@@ -62,16 +119,14 @@ class GamingService {
   }
 
   /**
-   * Récupérer les stats du joueur
+   * Stats du joueur
    */
   async getPlayerStats(): Promise<ApiResponse<GamingStats>> {
     try {
-      return await this.cache.remember(
-        'player_stats',
-        () => this.api.get<GamingStats>('/api/gaming/stats'),
-        1 * 60 * 1000, // Cache 1 minute
-        ['gaming', 'stats']
-      )
+      return await this.cachedGet<GamingStats>('player_stats', '/gaming/stats', 60 * 1000, [
+        'gaming',
+        'stats',
+      ])
     } catch (error: any) {
       console.error('Get player stats error:', error)
       throw error
@@ -81,25 +136,24 @@ class GamingService {
   /**
    * Ajouter de l'XP
    */
-  async addXP(amount: number, action: string, metadata?: Record<string, any>): Promise<ApiResponse<{
-    new_total: number
-    level_up: boolean
-    new_level?: number
-    achievements_unlocked?: Achievement[]
-  }>> {
+  async addXP(
+    amount: number,
+    action: string,
+    metadata?: Record<string, any>,
+  ): Promise<
+    ApiResponse<{
+      new_total: number
+      level_up: boolean
+      new_level?: number
+      achievements_unlocked?: Achievement[]
+    }>
+  > {
     try {
-      const response = await this.api.post('/api/gaming/level/xp', {
-        amount,
-        action,
-        metadata
-      })
-
+      const response = await api.post('/gaming/level/xp', { amount, action, metadata })
       if (response.success) {
-        // Invalider cache gaming
-        this.cache.invalidateByTag('gaming')
+        cacheInvalidateByTag('gaming')
         console.log(`XP ajouté: +${amount} pour ${action}`)
       }
-
       return response
     } catch (error: any) {
       console.error('Add XP error:', error)
@@ -112,13 +166,11 @@ class GamingService {
    */
   async unlockAchievement(achievementId: number): Promise<ApiResponse<Achievement>> {
     try {
-      const response = await this.api.post<Achievement>(`/api/gaming/achievements/${achievementId}/unlock`)
-
+      const response = await api.post<Achievement>(`/gaming/achievements/${achievementId}/unlock`)
       if (response.success) {
-        this.cache.invalidateByTag('gaming')
+        cacheInvalidateByTag('gaming')
         console.log('Achievement débloqué:', response.data?.name)
       }
-
       return response
     } catch (error: any) {
       console.error('Unlock achievement error:', error)
@@ -127,17 +179,17 @@ class GamingService {
   }
 
   /**
-   * Récupérer tous les succès disponibles
+   * Tous les succès disponibles
    */
-  async getAchievements(filter: 'all' | 'unlocked' | 'locked' = 'all'): Promise<ApiResponse<Achievement[]>> {
+  async getAchievements(
+    filter: 'all' | 'unlocked' | 'locked' = 'all',
+  ): Promise<ApiResponse<Achievement[]>> {
     try {
-      const cacheKey = `achievements_${filter}`
-
-      return await this.cache.remember(
-        cacheKey,
-        () => this.api.get<Achievement[]>(`/api/gaming/achievements?filter=${filter}`),
-        10 * 60 * 1000, // Cache 10 minutes
-        ['gaming', 'achievements']
+      return await this.cachedGet<Achievement[]>(
+        `achievements_${filter}`,
+        `/gaming/achievements?filter=${filter}`,
+        10 * 60 * 1000,
+        ['gaming', 'achievements'],
       )
     } catch (error: any) {
       console.error('Get achievements error:', error)
@@ -146,15 +198,15 @@ class GamingService {
   }
 
   /**
-   * Récupérer les défis actifs
+   * Défis actifs
    */
   async getChallenges(): Promise<ApiResponse<Challenge[]>> {
     try {
-      return await this.cache.remember(
+      return await this.cachedGet<Challenge[]>(
         'active_challenges',
-        () => this.api.get<Challenge[]>('/api/gaming/challenges'),
-        5 * 60 * 1000, // Cache 5 minutes
-        ['gaming', 'challenges']
+        '/gaming/challenges',
+        5 * 60 * 1000,
+        ['gaming', 'challenges'],
       )
     } catch (error: any) {
       console.error('Get challenges error:', error)
@@ -163,19 +215,19 @@ class GamingService {
   }
 
   /**
-   * Mettre à jour la progression d'un défi
+   * Mettre à jour progression d'un défi
    */
-  async updateChallengeProgress(challengeId: number, progress: number): Promise<ApiResponse<Challenge>> {
+  async updateChallengeProgress(
+    challengeId: number,
+    progress: number,
+  ): Promise<ApiResponse<Challenge>> {
     try {
-      const response = await this.api.post<Challenge>(`/api/gaming/challenges/${challengeId}/progress`, {
-        progress
+      const response = await api.post<Challenge>(`/gaming/challenges/${challengeId}/progress`, {
+        progress,
       })
-
       if (response.success) {
-        this.cache.invalidateByTag('challenges')
-        console.log(`Défi ${challengeId} progression: ${progress}`)
+        cacheInvalidateByTag('challenges')
       }
-
       return response
     } catch (error: any) {
       console.error('Update challenge progress error:', error)
@@ -184,16 +236,14 @@ class GamingService {
   }
 
   /**
-   * Récupérer les streaks actives
+   * Streaks actives
    */
   async getStreaks(): Promise<ApiResponse<Streak[]>> {
     try {
-      return await this.cache.remember(
-        'active_streaks',
-        () => this.api.get<Streak[]>('/api/gaming/streaks'),
-        3 * 60 * 1000, // Cache 3 minutes
-        ['gaming', 'streaks']
-      )
+      return await this.cachedGet<Streak[]>('active_streaks', '/gaming/streaks', 3 * 60 * 1000, [
+        'gaming',
+        'streaks',
+      ])
     } catch (error: any) {
       console.error('Get streaks error:', error)
       throw error
@@ -205,13 +255,10 @@ class GamingService {
    */
   async updateStreak(type: string): Promise<ApiResponse<Streak>> {
     try {
-      const response = await this.api.post<Streak>(`/api/gaming/streaks/${type}/update`)
-
+      const response = await api.post<Streak>(`/gaming/streaks/${type}/update`)
       if (response.success) {
-        this.cache.invalidateByTag('streaks')
-        console.log(`Streak ${type} mis à jour`)
+        cacheInvalidateByTag('streaks')
       }
-
       return response
     } catch (error: any) {
       console.error('Update streak error:', error)
@@ -220,17 +267,17 @@ class GamingService {
   }
 
   /**
-   * Récupérer le leaderboard
+   * Leaderboard
    */
-  async getLeaderboard(period: 'weekly' | 'monthly' | 'all_time' = 'weekly'): Promise<ApiResponse<LeaderboardEntry[]>> {
+  async getLeaderboard(
+    period: 'weekly' | 'monthly' | 'all_time' = 'weekly',
+  ): Promise<ApiResponse<LeaderboardEntry[]>> {
     try {
-      const cacheKey = `leaderboard_${period}`
-
-      return await this.cache.remember(
-        cacheKey,
-        () => this.api.get<LeaderboardEntry[]>(`/api/gaming/leaderboard?period=${period}`),
-        10 * 60 * 1000, // Cache 10 minutes
-        ['gaming', 'leaderboard']
+      return await this.cachedGet<LeaderboardEntry[]>(
+        `leaderboard_${period}`,
+        `/gaming/leaderboard?period=${period}`,
+        10 * 60 * 1000,
+        ['gaming', 'leaderboard'],
       )
     } catch (error: any) {
       console.error('Get leaderboard error:', error)
@@ -239,17 +286,15 @@ class GamingService {
   }
 
   /**
-   * Récupérer l'historique XP
+   * Historique XP
    */
   async getXPHistory(days: number = 30): Promise<ApiResponse<XPTransaction[]>> {
     try {
-      const cacheKey = `xp_history_${days}`
-
-      return await this.cache.remember(
-        cacheKey,
-        () => this.api.get<XPTransaction[]>(`/api/gaming/xp-history?days=${days}`),
-        5 * 60 * 1000, // Cache 5 minutes
-        ['gaming', 'xp_history']
+      return await this.cachedGet<XPTransaction[]>(
+        `xp_history_${days}`,
+        `/gaming/xp-history?days=${days}`,
+        5 * 60 * 1000,
+        ['gaming', 'xp_history'],
       )
     } catch (error: any) {
       console.error('Get XP history error:', error)
@@ -260,21 +305,21 @@ class GamingService {
   /**
    * Vérifier les succès disponibles
    */
-  async checkAvailableAchievements(): Promise<ApiResponse<{
-    unlocked: Achievement[]
-    progress_updated: Array<{
-      achievement: Achievement
-      old_progress: number
-      new_progress: number
+  async checkAvailableAchievements(): Promise<
+    ApiResponse<{
+      unlocked: Achievement[]
+      progress_updated: Array<{
+        achievement: Achievement
+        old_progress: number
+        new_progress: number
+      }>
     }>
-  }>> {
+  > {
     try {
-      const response = await this.api.post('/api/gaming/achievements/check')
-
+      const response = await api.post('/gaming/achievements/check')
       if (response.success) {
-        this.cache.invalidateByTag('achievements')
+        cacheInvalidateByTag('achievements')
       }
-
       return response
     } catch (error: any) {
       console.error('Check achievements error:', error)
@@ -283,23 +328,11 @@ class GamingService {
   }
 
   /**
-   * Générer un rapport gaming personnalisé
+   * Rapport gaming personnalisé
    */
-  async generateGamingReport(period: 'week' | 'month' | 'year'): Promise<ApiResponse<{
-    period: string
-    xp_gained: number
-    achievements_unlocked: Achievement[]
-    challenges_completed: Challenge[]
-    streaks_maintained: Streak[]
-    level_progression: {
-      start_level: number
-      end_level: number
-      levels_gained: number
-    }
-    recommendations: string[]
-  }>> {
+  async generateGamingReport(period: 'week' | 'month' | 'year'): Promise<ApiResponse<any>> {
     try {
-      return await this.api.get(`/api/gaming/report?period=${period}`)
+      return await api.get(`/gaming/report?period=${period}`)
     } catch (error: any) {
       console.error('Generate gaming report error:', error)
       throw error
@@ -307,7 +340,7 @@ class GamingService {
   }
 
   /**
-   * Configuration des préférences gaming
+   * Préférences gaming
    */
   async updateGamingPreferences(preferences: {
     notifications_enabled?: boolean
@@ -317,36 +350,29 @@ class GamingService {
     difficulty_level?: 'casual' | 'normal' | 'hardcore'
   }): Promise<ApiResponse> {
     try {
-      const response = await this.api.put('/api/gaming/preferences', preferences)
-
+      const response = await api.put('/gaming/preferences', preferences)
       if (response.success) {
-        this.cache.invalidateByTag('gaming')
+        cacheInvalidateByTag('gaming')
       }
-
       return response
     } catch (error: any) {
-      console.error('Update gaming preferences error:', error)
+      console.error('Update preferences error:', error)
       throw error
     }
   }
 
   /**
-   * Reset complet du gaming (dev only)
+   * Reset gaming (dev only)
    */
   async resetGamingProgress(): Promise<ApiResponse> {
     if (import.meta.env.PROD) {
-      throw new Error('Reset gaming non disponible en production')
+      throw new Error('Reset non disponible en production')
     }
-
     try {
-      const response = await this.api.post('/api/gaming/reset')
-
+      const response = await api.post('/gaming/reset')
       if (response.success) {
-        // Clear cache complet gaming
-        this.cache.invalidateByTag('gaming')
-        console.log('Gaming progress reset')
+        cacheInvalidateByTag('gaming')
       }
-
       return response
     } catch (error: any) {
       console.error('Reset gaming error:', error)
@@ -355,5 +381,4 @@ class GamingService {
   }
 }
 
-// Export singleton
 export const gamingService = new GamingService()

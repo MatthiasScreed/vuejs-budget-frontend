@@ -366,7 +366,7 @@ document.addEventListener('click', () => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
   flex-wrap: wrap;
 }
 
@@ -439,7 +439,7 @@ document.addEventListener('click', () => {
 
 .budget-text {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #5b6270;
   white-space: nowrap;
 }
 
@@ -447,7 +447,7 @@ document.addEventListener('click', () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #9ca3af;
+  color: #8c939f;
   font-style: italic;
   font-size: 0.875rem;
 }
@@ -472,7 +472,7 @@ document.addEventListener('click', () => {
 .more-tags {
   padding: 0.25rem 0.5rem;
   background-color: #f3f4f6;
-  color: #6b7280;
+  color: #5b6270;
   border-radius: 9999px;
   font-size: 0.75rem;
 }

@@ -192,7 +192,7 @@ function handleDismiss(): void {
 .dismiss-btn {
   flex-shrink: 0;
   padding: 0.375rem;
-  color: #6b7280;
+  color: #5b6270;
   background: transparent;
   border: none;
   border-radius: 0.375rem;

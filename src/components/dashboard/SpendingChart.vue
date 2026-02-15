@@ -139,7 +139,7 @@ const donutSegments = computed(() => {
     currentOffset += percentage * circumference
 
     return {
-      color: category.color || '#6B7280',
+      color: category.color || '#5b6270',
       dasharray,
       dashoffset,
     }

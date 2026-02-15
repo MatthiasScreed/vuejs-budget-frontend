@@ -112,7 +112,7 @@
                 <div class="mobile-info">
                   <div
                     class="category-icon"
-                    :style="{ backgroundColor: (category.color || '#6B7280') + '20' }"
+                    :style="{ backgroundColor: (category.color || '#5b6270') + '20' }"
                   >
                     <span class="category-emoji">{{ category.icon || '📁' }}</span>
                   </div>
@@ -175,7 +175,7 @@
               <div class="desktop-icon-col">
                 <div
                   class="category-icon-desktop"
-                  :style="{ backgroundColor: (category.color || '#6B7280') + '20' }"
+                  :style="{ backgroundColor: (category.color || '#5b6270') + '20' }"
                 >
                   <span class="category-emoji">{{ category.icon || '📁' }}</span>
                 </div>
@@ -716,7 +716,7 @@ onMounted(async () => {
 }
 
 .page-subtitle {
-  color: #6b7280;
+  color: #5b6270;
   margin: 0.5rem 0 0 0;
   font-size: 0.9375rem;
 }
@@ -804,7 +804,7 @@ onMounted(async () => {
 .btn-link {
   background: none;
   border: none;
-  color: #6b7280;
+  color: #5b6270;
   cursor: pointer;
   font-weight: 500;
   transition: color 0.2s;
@@ -875,7 +875,7 @@ onMounted(async () => {
 
 .stat-label {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 @media (max-width: 640px) {
@@ -983,7 +983,7 @@ onMounted(async () => {
 
 .loading-text {
   margin-top: 1rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 /* ========================================== */
@@ -1019,7 +1019,7 @@ onMounted(async () => {
 
 .categories-count {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 /* ========================================== */
@@ -1044,7 +1044,7 @@ onMounted(async () => {
 }
 
 .empty-text {
-  color: #6b7280;
+  color: #5b6270;
   margin: 0 0 1.5rem 0;
 }
 
@@ -1130,7 +1130,7 @@ onMounted(async () => {
 
 .mobile-desc {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
   margin: 0 0 0.5rem 0;
 }
 
@@ -1189,7 +1189,7 @@ onMounted(async () => {
 }
 
 .total-amount {
-  color: #6b7280;
+  color: #5b6270;
 }
 
 .budget-bar-wrapper {
@@ -1223,7 +1223,7 @@ onMounted(async () => {
 .budget-percentage {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #6b7280;
+  color: #5b6270;
   min-width: 2.5rem;
   text-align: right;
 }
@@ -1308,7 +1308,7 @@ onMounted(async () => {
 
 .desktop-desc {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
   margin: 0 0 0.5rem 0;
 }
 
@@ -1337,7 +1337,7 @@ onMounted(async () => {
 
 .amount-total {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 .desktop-progress-col {
@@ -1347,7 +1347,7 @@ onMounted(async () => {
 .progress-label {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #6b7280;
+  color: #5b6270;
   margin-bottom: 0.25rem;
   text-align: center;
 }
@@ -1444,7 +1444,7 @@ onMounted(async () => {
 
 .template-desc {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #5b6270;
   margin: 0;
 }
 
@@ -1492,7 +1492,7 @@ onMounted(async () => {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #6b7280;
+  color: #5b6270;
   padding: 0.5rem;
   min-height: 44px;
   min-width: 44px;
@@ -1546,7 +1546,7 @@ onMounted(async () => {
 }
 
 .delete-subtitle {
-  color: #6b7280;
+  color: #5b6270;
   font-size: 0.875rem;
   margin: 0.25rem 0 0 0;
 }
@@ -1562,7 +1562,7 @@ onMounted(async () => {
 
 .delete-info {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 .modal-delete-actions {

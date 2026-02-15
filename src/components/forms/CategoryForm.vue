@@ -299,7 +299,7 @@ const presetColors = [
   '#EC4899',
   '#F43F5E',
   '#78716C',
-  '#6B7280',
+  '#5b6270',
   '#1F2937',
 ]
 
@@ -547,14 +547,14 @@ onMounted(() => {
 }
 .char-count {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: #8c939f;
   text-align: right;
   display: block;
   margin-top: 0.25rem;
 }
 .help-text {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #5b6270;
   margin-top: 0.25rem;
 }
 
@@ -566,7 +566,7 @@ onMounted(() => {
   right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #6b7280;
+  color: #5b6270;
   font-weight: 500;
 }
 .input-with-suffix .form-input {
@@ -590,7 +590,7 @@ onMounted(() => {
   transition: all 0.2s;
 }
 .type-btn:hover {
-  border-color: #9ca3af;
+  border-color: #8c939f;
 }
 .type-btn.selected.expense {
   border-color: #ef4444;
@@ -634,7 +634,7 @@ onMounted(() => {
   color: #374151;
 }
 .picker-arrow {
-  color: #9ca3af;
+  color: #8c939f;
   font-size: 0.75rem;
 }
 
@@ -717,7 +717,7 @@ onMounted(() => {
 .custom-color label {
   display: block;
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #5b6270;
   margin-bottom: 0.5rem;
 }
 .custom-color-input {
@@ -770,7 +770,7 @@ onMounted(() => {
 }
 .checkbox-hint {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 /* Preview */
@@ -829,11 +829,11 @@ onMounted(() => {
   color: #991b1b;
 }
 .preview-budget {
-  color: #6b7280;
+  color: #5b6270;
 }
 .preview-desc {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
   margin: 0.5rem 0 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -890,6 +890,6 @@ onMounted(() => {
   color: #374151;
 }
 .btn-outline:hover {
-  border-color: #9ca3af;
+  border-color: #8c939f;
 }
 </style>

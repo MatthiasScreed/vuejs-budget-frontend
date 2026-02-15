@@ -12,12 +12,8 @@
             <span>{{ loading ? '⏳' : '🔄' }}</span>
             {{ loading ? 'Chargement...' : 'Actualiser' }}
           </button>
-          <button @click="showTemplates = true" class="btn btn-outline">
-            📋 Templates
-          </button>
-          <button @click="openCreateModal" class="btn btn-primary">
-            ➕ Nouvel objectif
-          </button>
+          <button @click="showTemplates = true" class="btn btn-outline">📋 Templates</button>
+          <button @click="openCreateModal" class="btn btn-primary">➕ Nouvel objectif</button>
         </div>
       </div>
     </div>
@@ -85,11 +81,11 @@
     <!-- Liste vide -->
     <div v-else-if="!filteredGoals.length" class="empty-state">
       <div class="empty-icon">🎯</div>
-      <h3 class="empty-title">Aucun objectif {{ activeFilter !== 'all' ? 'dans cette catégorie' : '' }}</h3>
+      <h3 class="empty-title">
+        Aucun objectif {{ activeFilter !== 'all' ? 'dans cette catégorie' : '' }}
+      </h3>
       <p class="empty-text">Créez votre premier objectif financier pour commencer à épargner !</p>
-      <button @click="openCreateModal" class="btn btn-primary">
-        ➕ Créer un objectif
-      </button>
+      <button @click="openCreateModal" class="btn btn-primary">➕ Créer un objectif</button>
     </div>
 
     <!-- Liste des objectifs -->
@@ -113,7 +109,9 @@
               <button @click="openEditModal(goal)">✏️ Modifier</button>
               <button @click="handleAddContribution(goal)">💰 Contribution</button>
               <button v-if="goal.status === 'active'" @click="handlePause(goal)">⏸️ Pause</button>
-              <button v-if="goal.status === 'paused'" @click="handleResume(goal)">▶️ Reprendre</button>
+              <button v-if="goal.status === 'paused'" @click="handleResume(goal)">
+                ▶️ Reprendre
+              </button>
               <button @click="confirmDelete(goal)" class="danger">🗑️ Supprimer</button>
             </div>
           </div>
@@ -163,9 +161,7 @@
           <button @click="handleAddContribution(goal)" class="btn btn-sm btn-primary">
             💰 Ajouter
           </button>
-          <button @click="openEditModal(goal)" class="btn btn-sm btn-secondary">
-            ✏️ Modifier
-          </button>
+          <button @click="openEditModal(goal)" class="btn btn-sm btn-secondary">✏️ Modifier</button>
         </div>
 
         <!-- Badge de statut -->
@@ -215,10 +211,16 @@
 
     <!-- Modal Contribution -->
     <Teleport to="body">
-      <div v-if="showContributionModal" class="modal-overlay" @click.self="showContributionModal = false">
+      <div
+        v-if="showContributionModal"
+        class="modal-overlay"
+        @click.self="showContributionModal = false"
+      >
         <div class="contribution-modal">
           <h3>💰 Ajouter une contribution</h3>
-          <p>Objectif: <strong>{{ contributionGoal?.name }}</strong></p>
+          <p>
+            Objectif: <strong>{{ contributionGoal?.name }}</strong>
+          </p>
           <div class="form-group">
             <label>Montant (€)</label>
             <input
@@ -231,8 +233,14 @@
             />
           </div>
           <div class="modal-actions">
-            <button @click="showContributionModal = false" class="btn btn-secondary">Annuler</button>
-            <button @click="submitContribution" :disabled="!contributionAmount" class="btn btn-primary">
+            <button @click="showContributionModal = false" class="btn btn-secondary">
+              Annuler
+            </button>
+            <button
+              @click="submitContribution"
+              :disabled="!contributionAmount"
+              class="btn btn-primary"
+            >
               ✅ Ajouter
             </button>
           </div>
@@ -246,7 +254,10 @@
         <div class="delete-modal">
           <div class="delete-icon">🗑️</div>
           <h3>Supprimer cet objectif ?</h3>
-          <p>Cette action est irréversible. L'objectif "{{ deletingGoal?.name }}" sera définitivement supprimé.</p>
+          <p>
+            Cette action est irréversible. L'objectif "{{ deletingGoal?.name }}" sera définitivement
+            supprimé.
+          </p>
           <div class="modal-actions">
             <button @click="showDeleteConfirm = false" class="btn btn-secondary">Annuler</button>
             <button @click="handleDelete" :disabled="deleting" class="btn btn-danger">
@@ -288,8 +299,13 @@ const stats = computed(() => goalStore.stats)
 
 // Templates d'objectifs
 const goalTemplates = [
-  { id: 'travel', icon: '✈️', name: 'Voyage', description: 'Économisez pour votre prochaine aventure' },
-  { id: 'emergency', icon: '🛡️', name: 'Fonds d\'urgence', description: '3-6 mois de dépenses' },
+  {
+    id: 'travel',
+    icon: '✈️',
+    name: 'Voyage',
+    description: 'Économisez pour votre prochaine aventure',
+  },
+  { id: 'emergency', icon: '🛡️', name: "Fonds d'urgence", description: '3-6 mois de dépenses' },
   { id: 'house', icon: '🏠', name: 'Immobilier', description: 'Apport pour un achat immobilier' },
   { id: 'car', icon: '🚗', name: 'Voiture', description: 'Achat ou remplacement de véhicule' },
   { id: 'education', icon: '🎓', name: 'Formation', description: 'Investir dans vos compétences' },
@@ -308,7 +324,7 @@ const filterTabs = computed(() => [
 
 const filteredGoals = computed(() => {
   if (activeFilter.value === 'all') return goals.value
-  return goals.value.filter(g => g.status === activeFilter.value)
+  return goals.value.filter((g) => g.status === activeFilter.value)
 })
 
 // Methods
@@ -318,7 +334,11 @@ function formatCurrency(amount: number): string {
 
 function formatDate(dateString: string): string {
   if (!dateString) return '-'
-  return new Date(dateString).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+  return new Date(dateString).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
 }
 
 function calculateProgress(goal: any): number {
@@ -362,7 +382,7 @@ function getStatusLabel(status: string): string {
   const labels: Record<string, string> = {
     active: '🎯 Actif',
     completed: '✅ Atteint',
-    paused: '⏸️ En pause'
+    paused: '⏸️ En pause',
   }
   return labels[status] || status
 }
@@ -410,7 +430,7 @@ function applyTemplate(template: any) {
     target_amount: 0,
     current_amount: 0,
     target_date: '',
-    status: 'active'
+    status: 'active',
   }
   showTemplates.value = false
   showModal.value = true
@@ -445,10 +465,11 @@ function handleAddContribution(goal: any) {
 async function submitContribution() {
   if (!contributionGoal.value || !contributionAmount.value) return
 
-  const success = await goalStore.addContribution(
-    contributionGoal.value.id,
-    contributionAmount.value
-  )
+  // ✅ Passer un objet { amount, description } au lieu d'un number
+  const success = await goalStore.addContribution(contributionGoal.value.id, {
+    amount: contributionAmount.value,
+    description: `Contribution manuelle`,
+  })
 
   if (success) {
     showContributionModal.value = false
@@ -501,135 +522,570 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.goals-page { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+.goals-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
 
 /* Header */
-.page-header { margin-bottom: 2rem; }
-.header-content { display: flex; flex-direction: column; gap: 1rem; }
-@media (min-width: 768px) { .header-content { flex-direction: row; align-items: center; justify-content: space-between; } }
-.page-title { font-size: 2rem; font-weight: 700; color: #1f2937; margin: 0; }
-.page-subtitle { color: #6b7280; margin: 0.5rem 0 0 0; }
-.header-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.page-header {
+  margin-bottom: 2rem;
+}
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+@media (min-width: 768px) {
+  .header-content {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+.page-subtitle {
+  color: #5b6270;
+  margin: 0.5rem 0 0 0;
+}
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
 
 /* Buttons */
-.btn { padding: 0.625rem 1rem; border-radius: 0.5rem; font-weight: 500; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s; }
-.btn-primary { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; }
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); }
-.btn-secondary { background: #f3f4f6; color: #374151; }
-.btn-secondary:hover { background: #e5e7eb; }
-.btn-outline { background: white; border: 1px solid #d1d5db; color: #374151; }
-.btn-outline:hover { border-color: #9ca3af; }
-.btn-danger { background: #dc2626; color: white; }
-.btn-sm { padding: 0.375rem 0.75rem; font-size: 0.875rem; }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn {
+  padding: 0.625rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+.btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+.btn-secondary:hover {
+  background: #e5e7eb;
+}
+.btn-outline {
+  background: white;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+.btn-outline:hover {
+  border-color: #8c939f;
+}
+.btn-danger {
+  background: #dc2626;
+  color: white;
+}
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* Error banner */
-.error-banner { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-.error-close { background: none; border: none; cursor: pointer; font-size: 1.25rem; }
+.error-banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.error-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+}
 
 /* Stats Grid */
-.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
-@media (min-width: 768px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
-.stat-card { background: white; border-radius: 1rem; padding: 1.25rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-.stat-icon { width: 3rem; height: 3rem; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-.stat-icon-blue { background: #dbeafe; }
-.stat-icon-green { background: #dcfce7; }
-.stat-icon-purple { background: #f3e8ff; }
-.stat-icon-orange { background: #ffedd5; }
-.stat-value { font-size: 1.5rem; font-weight: 700; color: #1f2937; }
-.stat-label { font-size: 0.875rem; color: #6b7280; }
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+@media (min-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.stat-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.stat-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+.stat-icon-blue {
+  background: #dbeafe;
+}
+.stat-icon-green {
+  background: #dcfce7;
+}
+.stat-icon-purple {
+  background: #f3e8ff;
+}
+.stat-icon-orange {
+  background: #ffedd5;
+}
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+.stat-label {
+  font-size: 0.875rem;
+  color: #5b6270;
+}
 
 /* Filters */
-.filters-bar { margin-bottom: 1.5rem; }
-.filter-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-.filter-tab { padding: 0.5rem 1rem; border-radius: 9999px; background: #f3f4f6; border: none; cursor: pointer; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s; }
-.filter-tab.active_tab { background: #3b82f6; color: white; }
-.filter-count { background: rgba(0,0,0,0.1); padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; }
+.filters-bar {
+  margin-bottom: 1.5rem;
+}
+.filter-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.filter-tab {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  background: #f3f4f6;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+.filter-tab.active_tab {
+  background: #3b82f6;
+  color: white;
+}
+.filter-count {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
 
 /* Loading & Empty */
-.loading-state, .empty-state { text-align: center; padding: 4rem 2rem; }
-.loading-spinner { width: 3rem; height: 3rem; border: 3px solid #e5e7eb; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.empty-icon { font-size: 4rem; margin-bottom: 1rem; }
-.empty-title { font-size: 1.25rem; font-weight: 600; color: #1f2937; margin: 0 0 0.5rem; }
-.empty-text { color: #6b7280; margin: 0 0 1.5rem; }
+.loading-state,
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+.loading-spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+.empty-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 0.5rem;
+}
+.empty-text {
+  color: #5b6270;
+  margin: 0 0 1.5rem;
+}
 
 /* Goals Grid */
-.goals-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
-@media (min-width: 768px) { .goals-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1024px) { .goals-grid { grid-template-columns: repeat(3, 1fr); } }
+.goals-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+@media (min-width: 768px) {
+  .goals-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .goals-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
 
 /* Goal Card */
-.goal-card { background: white; border-radius: 1rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; transition: all 0.3s; }
-.goal-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
-.goal-card.status-paused { opacity: 0.7; }
-.goal-card.status-completed { border: 2px solid #22c55e; }
+.goal-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
+  transition: all 0.3s;
+}
+.goal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+.goal-card.status-paused {
+  opacity: 0.7;
+}
+.goal-card.status-completed {
+  border: 2px solid #22c55e;
+}
 
-.goal-header { display: flex; gap: 1rem; margin-bottom: 1rem; }
-.goal-icon { width: 3rem; height: 3rem; background: #f3f4f6; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
-.goal-info { flex: 1; min-width: 0; }
-.goal-name { font-size: 1.125rem; font-weight: 600; color: #1f2937; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.goal-description { font-size: 0.875rem; color: #6b7280; margin: 0.25rem 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.goal-header {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.goal-icon {
+  width: 3rem;
+  height: 3rem;
+  background: #f3f4f6;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+.goal-info {
+  flex: 1;
+  min-width: 0;
+}
+.goal-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.goal-description {
+  font-size: 0.875rem;
+  color: #5b6270;
+  margin: 0.25rem 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-.goal-menu { position: relative; }
-.menu-btn { background: none; border: none; cursor: pointer; font-size: 1.25rem; padding: 0.25rem; }
-.menu-dropdown { position: absolute; right: 0; top: 100%; background: white; border-radius: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 10; min-width: 150px; overflow: hidden; }
-.menu-dropdown button { width: 100%; padding: 0.75rem 1rem; border: none; background: none; text-align: left; cursor: pointer; font-size: 0.875rem; }
-.menu-dropdown button:hover { background: #f3f4f6; }
-.menu-dropdown button.danger { color: #dc2626; }
+.goal-menu {
+  position: relative;
+}
+.menu-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  padding: 0.25rem;
+}
+.menu-dropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  min-width: 150px;
+  overflow: hidden;
+}
+.menu-dropdown button {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+.menu-dropdown button:hover {
+  background: #f3f4f6;
+}
+.menu-dropdown button.danger {
+  color: #dc2626;
+}
 
 /* Progress */
-.goal-progress { margin-bottom: 1rem; }
-.progress-header { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
-.progress-amount { font-size: 1.25rem; font-weight: 700; color: #1f2937; }
-.progress-target { font-size: 0.875rem; color: #6b7280; }
-.progress-bar-container { height: 0.5rem; background: #e5e7eb; border-radius: 9999px; overflow: hidden; }
-.progress-bar { height: 100%; border-radius: 9999px; transition: width 0.5s ease; }
-.progress-low { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-.progress-medium { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
-.progress-good { background: linear-gradient(90deg, #10b981, #34d399); }
-.progress-complete { background: linear-gradient(90deg, #22c55e, #4ade80); }
-.progress-footer { display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.875rem; }
-.progress-percent { font-weight: 600; color: #1f2937; }
-.progress-remaining { color: #6b7280; }
+.goal-progress {
+  margin-bottom: 1rem;
+}
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.progress-amount {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+.progress-target {
+  font-size: 0.875rem;
+  color: #5b6270;
+}
+.progress-bar-container {
+  height: 0.5rem;
+  background: #e5e7eb;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.5s ease;
+}
+.progress-low {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+.progress-medium {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+.progress-good {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+.progress-complete {
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+}
+.progress-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+}
+.progress-percent {
+  font-weight: 600;
+  color: #1f2937;
+}
+.progress-remaining {
+  color: #5b6270;
+}
 
 /* Meta */
-.goal-meta { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem; }
-.meta-item { display: flex; align-items: center; gap: 0.25rem; font-size: 0.875rem; }
-.meta-icon { opacity: 0.7; }
-.meta-text { color: #4b5563; }
-.text-danger { color: #dc2626 !important; font-weight: 600; }
-.text-warning { color: #f59e0b !important; }
+.goal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+}
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+}
+.meta-icon {
+  opacity: 0.7;
+}
+.meta-text {
+  color: #4b5563;
+}
+.text-danger {
+  color: #dc2626 !important;
+  font-weight: 600;
+}
+.text-warning {
+  color: #f59e0b !important;
+}
 
 /* Actions */
-.goal-actions { display: flex; gap: 0.5rem; }
-.goal-actions .btn { flex: 1; justify-content: center; }
+.goal-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.goal-actions .btn {
+  flex: 1;
+  justify-content: center;
+}
 
 /* Status Badge */
-.status-badge { position: absolute; top: 1rem; right: 1rem; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
-.badge-active { background: #dbeafe; color: #1e40af; }
-.badge-completed { background: #dcfce7; color: #166534; }
-.badge-paused { background: #fef3c7; color: #92400e; }
+.status-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.badge-active {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.badge-completed {
+  background: #dcfce7;
+  color: #166534;
+}
+.badge-paused {
+  background: #fef3c7;
+  color: #92400e;
+}
 
 /* Modals */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1rem; }
-.modal-container { max-width: 48rem; width: 100%; max-height: 90vh; overflow-y: auto; }
-.templates-modal, .contribution-modal, .delete-modal { background: white; border-radius: 1rem; padding: 1.5rem; max-width: 32rem; width: 100%; }
-.templates-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-.templates-header h2 { margin: 0; font-size: 1.25rem; }
-.close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
-.templates-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-.template-card { display: flex; flex-direction: column; align-items: center; padding: 1rem; border: 2px solid #e5e7eb; border-radius: 0.75rem; background: white; cursor: pointer; transition: all 0.2s; text-align: center; }
-.template-card:hover { border-color: #3b82f6; background: #eff6ff; }
-.template-icon { font-size: 2rem; margin-bottom: 0.5rem; }
-.template-name { font-weight: 600; color: #1f2937; }
-.template-desc { font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem; }
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+}
+.modal-container {
+  max-width: 48rem;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.templates-modal,
+.contribution-modal,
+.delete-modal {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  max-width: 32rem;
+  width: 100%;
+}
+.templates-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+.templates-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+.templates-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+.template-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.template-card:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+.template-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+.template-name {
+  font-weight: 600;
+  color: #1f2937;
+}
+.template-desc {
+  font-size: 0.75rem;
+  color: #5b6270;
+  margin-top: 0.25rem;
+}
 
-.contribution-modal h3, .delete-modal h3 { margin: 0 0 0.5rem; }
-.contribution-modal p, .delete-modal p { color: #6b7280; margin: 0 0 1rem; }
-.delete-icon { font-size: 3rem; text-align: center; margin-bottom: 1rem; }
-.form-group { margin-bottom: 1rem; }
-.form-group label { display: block; font-weight: 500; margin-bottom: 0.5rem; }
-.form-input { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 1rem; }
-.modal-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; }
+.contribution-modal h3,
+.delete-modal h3 {
+  margin: 0 0 0.5rem;
+}
+.contribution-modal p,
+.delete-modal p {
+  color: #5b6270;
+  margin: 0 0 1rem;
+}
+.delete-icon {
+  font-size: 3rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.form-group {
+  margin-bottom: 1rem;
+}
+.form-group label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+.form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
 </style>

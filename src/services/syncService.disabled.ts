@@ -685,9 +685,9 @@ class SyncService {
       'healthy': '#10B981',
       'warning': '#F59E0B',
       'critical': '#EF4444',
-      'offline': '#6B7280'
+      'offline': '#5b6270'
     }
-    return colors[health] || '#6B7280'
+    return colors[health] || '#5b6270'
   }
 
   /**

@@ -106,7 +106,7 @@ class DashboardService {
     const colors = {
       up: '#10b981',
       down: '#ef4444',
-      stable: '#6b7280'
+      stable: '#5b6270'
     }
     return colors[trend]
   }

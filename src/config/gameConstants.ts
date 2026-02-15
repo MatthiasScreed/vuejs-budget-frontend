@@ -20,7 +20,7 @@ export const GAME_CONSTANTS = {
 
   // Achievement Rarities
   RARITY: {
-    COMMON: { color: '#6B7280', multiplier: 1.0 },
+    COMMON: { color: '#5b6270', multiplier: 1.0 },
     RARE: { color: '#3B82F6', multiplier: 1.2 },
     EPIC: { color: '#8B5CF6', multiplier: 1.5 },
     LEGENDARY: { color: '#F59E0B', multiplier: 2.0 }

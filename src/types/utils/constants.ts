@@ -130,7 +130,7 @@ export const BREAKPOINTS = {
 
 export const COLORS = {
   PRIMARY: '#3B82F6',
-  SECONDARY: '#6B7280',
+  SECONDARY: '#5b6270',
   SUCCESS: '#10B981',
   WARNING: '#F59E0B',
   ERROR: '#EF4444',
@@ -144,13 +144,13 @@ export const COLORS = {
   // Transaction colors
   INCOME: '#10B981',
   EXPENSE: '#EF4444',
-  TRANSFER: '#6B7280',
+  TRANSFER: '#5b6270',
 
   // Status colors
   ACTIVE: '#10B981',
   PENDING: '#F59E0B',
   COMPLETED: '#06B6D4',
-  CANCELLED: '#6B7280',
+  CANCELLED: '#5b6270',
   ERROR: '#EF4444'
 } as const
 
@@ -462,7 +462,7 @@ export const DEFAULT_CATEGORIES = {
     { name: 'Santé', icon: '🏥', color: '#10B981' },
     { name: 'Éducation', icon: '📚', color: '#3B82F6' },
     { name: 'Vêtements', icon: '👕', color: '#EC4899' },
-    { name: 'Électronique', icon: '📱', color: '#6B7280' }
+    { name: 'Électronique', icon: '📱', color: '#5b6270' }
   ]
 } as const
 

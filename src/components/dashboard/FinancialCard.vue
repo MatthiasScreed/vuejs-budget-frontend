@@ -122,7 +122,7 @@ withDefaults(defineProps<Props>(), {
 .financial-card-title {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #6b7280;
+  color: #5b6270;
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -131,7 +131,7 @@ withDefaults(defineProps<Props>(), {
 
 .financial-card-subtitle {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: #8c939f;
   margin: 0.25rem 0 0 0;
   word-break: break-word;
 }
@@ -252,11 +252,11 @@ withDefaults(defineProps<Props>(), {
   }
 
   .financial-card-title {
-    color: #9ca3af;
+    color: #8c939f;
   }
 
   .financial-card-subtitle {
-    color: #6b7280;
+    color: #5b6270;
   }
 
   .financial-card-value {

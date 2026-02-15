@@ -220,7 +220,7 @@ function getTrendMessage(): string {
 .savings-capacity-title {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #6b7280;
+  color: #5b6270;
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -229,7 +229,7 @@ function getTrendMessage(): string {
 
 .savings-capacity-period {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: #8c939f;
   margin: 0.25rem 0 0 0;
 }
 
@@ -288,7 +288,7 @@ function getTrendMessage(): string {
 
 .savings-detail-label {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
   word-break: break-word;
 }
 
@@ -532,11 +532,11 @@ function getTrendMessage(): string {
   }
 
   .savings-capacity-title {
-    color: #9ca3af;
+    color: #8c939f;
   }
 
   .savings-capacity-period {
-    color: #6b7280;
+    color: #5b6270;
   }
 
   .savings-capacity-amount {
@@ -548,7 +548,7 @@ function getTrendMessage(): string {
   }
 
   .savings-detail-label {
-    color: #9ca3af;
+    color: #8c939f;
   }
 
   .savings-detail-value {

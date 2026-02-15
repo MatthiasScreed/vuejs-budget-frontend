@@ -642,7 +642,7 @@ onMounted(async () => {
 
 .chart-bar-label {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #5b6270;
   font-weight: 500;
 }
 
@@ -689,7 +689,7 @@ onMounted(async () => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 .legend-color {
@@ -794,7 +794,7 @@ onMounted(async () => {
 
 .gaming-stat-label {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
   margin-bottom: 0.25rem;
 }
 
@@ -807,7 +807,7 @@ onMounted(async () => {
 
 .gaming-stat-detail {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: #8c939f;
 }
 
 /* ==========================================
@@ -852,7 +852,7 @@ onMounted(async () => {
 
 .transaction-details {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 .transaction-category {

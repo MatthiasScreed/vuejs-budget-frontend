@@ -122,14 +122,14 @@
               <div class="flex items-center space-x-3">
                 <div
                   class="w-12 h-12 rounded-lg border-2 border-gray-200 cursor-pointer"
-                  :style="{ backgroundColor: formData.color || '#6B7280' }"
+                  :style="{ backgroundColor: formData.color || '#5b6270' }"
                   @click="colorPickerOpen = true"
                 ></div>
                 <input
                   v-model="formData.color"
                   type="text"
                   class="form-input flex-1"
-                  placeholder="#6B7280"
+                  placeholder="#5b6270"
                   pattern="^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$"
                 >
               </div>

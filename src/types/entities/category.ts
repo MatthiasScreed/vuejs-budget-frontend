@@ -332,8 +332,8 @@ export const CATEGORY_COLORS = {
   EXPENSE_FAMILY: '#F97316',
 
   // Neutres (tons gris)
-  DEFAULT: '#6B7280',
-  TRANSFER: '#9CA3AF',
+  DEFAULT: '#5b6270',
+  TRANSFER: '#8c939f',
   OTHER: '#374151'
 } as const
 

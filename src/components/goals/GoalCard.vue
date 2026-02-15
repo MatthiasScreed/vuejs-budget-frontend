@@ -203,7 +203,7 @@ function formatDate(dateString: string): string {
 
 .goal-description {
   font-size: 0.8125rem;
-  color: #6b7280;
+  color: #5b6270;
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -232,11 +232,11 @@ function formatDate(dateString: string): string {
 }
 
 .goal-separator {
-  color: #9ca3af;
+  color: #8c939f;
 }
 
 .goal-target {
-  color: #6b7280;
+  color: #5b6270;
 }
 
 /* Progress Bar */
@@ -268,7 +268,7 @@ function formatDate(dateString: string): string {
   align-items: center;
   gap: 0.375rem;
   font-size: 0.8125rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 .goal-deadline-icon {

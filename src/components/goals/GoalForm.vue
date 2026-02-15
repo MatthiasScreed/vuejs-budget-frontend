@@ -631,7 +631,7 @@ onMounted(() => {
   right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #6b7280;
+  color: #5b6270;
   font-weight: 500;
 }
 .input-with-suffix .form-input {
@@ -775,7 +775,7 @@ onMounted(() => {
   justify-content: space-between;
   margin-top: 0.5rem;
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 /* Summary */
@@ -801,7 +801,7 @@ onMounted(() => {
 }
 .summary-label {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 .summary-value {
   font-size: 1rem;
@@ -872,6 +872,6 @@ onMounted(() => {
   color: #374151;
 }
 .btn-outline:hover {
-  border-color: #9ca3af;
+  border-color: #8c939f;
 }
 </style>

@@ -134,7 +134,7 @@ const containerClasses = computed(() => {
 
 .empty-description {
   font-size: 0.9375rem;
-  color: #6b7280;
+  color: #5b6270;
   margin: 0 0 1.5rem 0;
   line-height: 1.6;
 }
@@ -150,7 +150,7 @@ const containerClasses = computed(() => {
 .empty-secondary {
   margin-top: 1rem;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 /* Responsive */

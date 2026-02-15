@@ -1,6 +1,33 @@
+// src/composables/useCategories.ts - VERSION CORRIGÉE
+// ✅ Utilise le singleton api au lieu de useApi()
+// ✅ Cache in-memory simple au lieu de useCache composable
 import { ref, computed } from 'vue'
-import { useApi, useCache, useErrorHandler } from '@/composables/core'
-import type { Category, CategoryForm, ApiResponse } from '@/types'
+import api from '@/services/api'
+import type { ApiResponse } from '@/services/api'
+
+// ==========================================
+// TYPES
+// ==========================================
+
+interface Category {
+  id: number
+  name: string
+  icon?: string
+  color: string
+  type: 'income' | 'expense' | 'both'
+  budget_limit?: number
+  is_default: boolean
+  description?: string
+}
+
+interface CategoryForm {
+  name: string
+  icon?: string
+  color: string
+  type: 'income' | 'expense' | 'both'
+  budget_limit?: number
+  description?: string
+}
 
 interface CategoryBudget {
   category_id: number
@@ -17,15 +44,46 @@ interface CategoryStats {
   budget_compliance: number
 }
 
-/**
- * Composable pour gestion complète des catégories
- * CRUD, budgets, statistiques et recommandations IA
- */
-export function useCategories() {
-  const { get, post, put, delete: del } = useApi()
-  const { remember, invalidateByTag } = useCache()
-  const { handleApiError } = useErrorHandler()
+// ==========================================
+// CACHE SIMPLE
+// ==========================================
 
+const cache = new Map<
+  string,
+  {
+    data: any
+    expires: number
+    tags: string[]
+  }
+>()
+
+function remember<T>(
+  key: string,
+  fetcher: () => Promise<T>,
+  ttlMs: number,
+  tags: string[] = [],
+): Promise<T> {
+  const entry = cache.get(key)
+  if (entry && Date.now() < entry.expires) {
+    return Promise.resolve(entry.data as T)
+  }
+  return fetcher().then((data) => {
+    cache.set(key, { data, expires: Date.now() + ttlMs, tags })
+    return data
+  })
+}
+
+function invalidateByTag(tag: string): void {
+  for (const [key, entry] of cache.entries()) {
+    if (entry.tags.includes(tag)) cache.delete(key)
+  }
+}
+
+// ==========================================
+// COMPOSABLE
+// ==========================================
+
+export function useCategories() {
   // State
   const categories = ref<Category[]>([])
   const budgets = ref<CategoryBudget[]>([])
@@ -37,39 +95,36 @@ export function useCategories() {
    */
   async function loadCategories(): Promise<void> {
     loading.value = true
-
     try {
       categories.value = await remember(
         'user_categories',
         async () => {
-          const response = await get<Category[]>('/categories')
+          const response = await api.get<Category[]>('/categories')
           return response.data || []
         },
-        5 * 60 * 1000, // 5 minutes
-        ['categories']
+        5 * 60 * 1000,
+        ['categories'],
       )
     } catch (error: any) {
-      await handleApiError(error, 'loadCategories')
+      console.error('loadCategories error:', error)
     } finally {
       loading.value = false
     }
   }
 
   /**
-   * Créer une nouvelle catégorie
+   * Créer une catégorie
    */
   async function createCategory(data: CategoryForm): Promise<ApiResponse<Category>> {
     try {
-      const response = await post<Category>('/categories', data)
-
+      const response = await api.post<Category>('/categories', data)
       if (response.success && response.data) {
         categories.value.push(response.data)
         invalidateCategoryCaches()
       }
-
       return response
     } catch (error: any) {
-      await handleApiError(error, 'createCategory')
+      console.error('createCategory error:', error)
       return { success: false, message: error.message }
     }
   }
@@ -79,17 +134,15 @@ export function useCategories() {
    */
   async function updateCategory(id: number, data: Partial<CategoryForm>): Promise<boolean> {
     try {
-      const response = await put<Category>(`/categories/${id}`, data)
-
+      const response = await api.put<Category>(`/categories/${id}`, data)
       if (response.success && response.data) {
         updateCategoryInList(response.data)
         invalidateCategoryCaches()
         return true
       }
-
       return false
     } catch (error: any) {
-      await handleApiError(error, 'updateCategory')
+      console.error('updateCategory error:', error)
       return false
     }
   }
@@ -99,17 +152,15 @@ export function useCategories() {
    */
   async function deleteCategory(id: number): Promise<boolean> {
     try {
-      const response = await del(`/categories/${id}`)
-
+      const response = await api.delete(`/categories/${id}`)
       if (response.success) {
-        categories.value = categories.value.filter(c => c.id !== id)
+        categories.value = categories.value.filter((c) => c.id !== id)
         invalidateCategoryCaches()
         return true
       }
-
       return false
     } catch (error: any) {
-      await handleApiError(error, 'deleteCategory')
+      console.error('deleteCategory error:', error)
       return false
     }
   }
@@ -122,169 +173,134 @@ export function useCategories() {
       budgets.value = await remember(
         'category_budgets',
         async () => {
-          const response = await get<CategoryBudget[]>('/categories/budgets')
+          const response = await api.get<CategoryBudget[]>('/categories/budgets')
           return response.data || []
         },
-        2 * 60 * 1000, // 2 minutes
-        ['categories', 'budgets']
+        2 * 60 * 1000,
+        ['categories', 'budgets'],
       )
     } catch (error: any) {
-      await handleApiError(error, 'loadCategoryBudgets')
+      console.error('loadCategoryBudgets error:', error)
     }
   }
 
   /**
-   * Définir un budget pour une catégorie
+   * Définir un budget
    */
   async function setCategoryBudget(categoryId: number, monthlyLimit: number): Promise<boolean> {
     try {
-      const response = await post(`/categories/${categoryId}/budget`, {
-        monthly_limit: monthlyLimit
+      const response = await api.post(`/categories/${categoryId}/budget`, {
+        monthly_limit: monthlyLimit,
       })
-
       if (response.success) {
         await loadCategoryBudgets()
         invalidateCategoryCaches()
         return true
       }
-
       return false
     } catch (error: any) {
-      await handleApiError(error, 'setCategoryBudget')
+      console.error('setCategoryBudget error:', error)
       return false
     }
   }
 
-  /**
-   * Obtenir les catégories par type
-   */
+  // ==========================================
+  // HELPERS
+  // ==========================================
+
   function getCategoriesByType(type: 'income' | 'expense' | 'both'): Category[] {
-    return categories.value.filter(c => c.type === type || c.type === 'both')
+    return categories.value.filter((c) => c.type === type || c.type === 'both')
   }
 
-  /**
-   * Trouver une catégorie par ID
-   */
   function findCategory(id: number): Category | undefined {
-    return categories.value.find(c => c.id === id)
+    return categories.value.find((c) => c.id === id)
   }
 
-  /**
-   * Vérifier si une catégorie dépasse son budget
-   */
   function isBudgetExceeded(categoryId: number): boolean {
-    const budget = budgets.value.find(b => b.category_id === categoryId)
-    return budget ? budget.status === 'exceeded' : false
+    const b = budgets.value.find((b) => b.category_id === categoryId)
+    return b ? b.status === 'exceeded' : false
   }
 
-  /**
-   * Obtenir le pourcentage d'utilisation du budget
-   */
   function getBudgetUsage(categoryId: number): number {
-    const budget = budgets.value.find(b => b.category_id === categoryId)
-    return budget ? budget.percentage_used : 0
+    const b = budgets.value.find((b) => b.category_id === categoryId)
+    return b ? b.percentage_used : 0
   }
 
-  /**
-   * Obtenir les recommandations de catégories IA
-   */
   async function getAIRecommendations(): Promise<any[]> {
     return remember(
       'category_recommendations',
       async () => {
-        const response = await get('/categories/recommendations')
+        const response = await api.get('/categories/recommendations')
         return response.data || []
       },
-      10 * 60 * 1000, // 10 minutes
-      ['categories', 'ai']
+      10 * 60 * 1000,
+      ['categories', 'ai'],
     )
   }
 
-  /**
-   * Dupliquer une catégorie
-   */
   async function duplicateCategory(id: number, newName: string): Promise<boolean> {
     const original = findCategory(id)
-
     if (!original) return false
 
-    const duplicateData: CategoryForm = {
+    const result = await createCategory({
       name: newName,
       icon: original.icon,
       color: original.color,
       type: original.type,
       budget_limit: original.budget_limit,
-      description: original.description
-    }
-
-    const result = await createCategory(duplicateData)
+      description: original.description,
+    })
     return result.success
   }
 
-  /**
-   * Mettre à jour une catégorie dans la liste
-   */
-  function updateCategoryInList(updatedCategory: Category): void {
-    const index = categories.value.findIndex(c => c.id === updatedCategory.id)
-
-    if (index !== -1) {
-      categories.value[index] = updatedCategory
-    }
+  function updateCategoryInList(updated: Category): void {
+    const idx = categories.value.findIndex((c) => c.id === updated.id)
+    if (idx !== -1) categories.value[idx] = updated
   }
 
-  /**
-   * Invalider les caches liés aux catégories
-   */
   function invalidateCategoryCaches(): void {
     invalidateByTag('categories')
     invalidateByTag('budgets')
     invalidateByTag('analytics')
   }
 
-  /**
-   * Obtenir les statistiques des catégories
-   */
-  async function getCategoryStats(): Promise<CategoryStats> {
+  async function getCategoryStats(): Promise<CategoryStats | null> {
     return remember(
       'category_stats',
       async () => {
-        const response = await get<CategoryStats>('/categories/stats')
-        return response.data
+        const response = await api.get<CategoryStats>('/categories/stats')
+        return response.data || null
       },
       5 * 60 * 1000,
-      ['categories', 'stats']
+      ['categories', 'stats'],
     )
   }
 
-  // Computed properties
+  // ==========================================
+  // COMPUTED
+  // ==========================================
+
   const incomeCategories = computed(() => getCategoriesByType('income'))
   const expenseCategories = computed(() => getCategoriesByType('expense'))
   const allCategories = computed(() => getCategoriesByType('both'))
-
   const categoriesWithBudget = computed(() =>
-    categories.value.filter(c => c.budget_limit && c.budget_limit > 0)
+    categories.value.filter((c) => c.budget_limit && c.budget_limit > 0),
   )
-
-  const exceededBudgets = computed(() =>
-    budgets.value.filter(b => b.status === 'exceeded')
-  )
-
-  const warningBudgets = computed(() =>
-    budgets.value.filter(b => b.status === 'warning')
-  )
-
+  const exceededBudgets = computed(() => budgets.value.filter((b) => b.status === 'exceeded'))
+  const warningBudgets = computed(() => budgets.value.filter((b) => b.status === 'warning'))
   const totalBudgetAllocated = computed(() =>
-    categoriesWithBudget.value.reduce((sum, c) => sum + (c.budget_limit || 0), 0)
+    categoriesWithBudget.value.reduce((sum, c) => sum + (c.budget_limit || 0), 0),
   )
+
+  // ==========================================
+  // RETURN
+  // ==========================================
 
   return {
-    // State
     categories,
     budgets,
     currentCategory,
     loading,
-
-    // Computed
     incomeCategories,
     expenseCategories,
     allCategories,
@@ -292,8 +308,6 @@ export function useCategories() {
     exceededBudgets,
     warningBudgets,
     totalBudgetAllocated,
-
-    // Methods
     loadCategories,
     createCategory,
     updateCategory,
@@ -306,6 +320,6 @@ export function useCategories() {
     isBudgetExceeded,
     getBudgetUsage,
     getAIRecommendations,
-    getCategoryStats
+    getCategoryStats,
   }
 }

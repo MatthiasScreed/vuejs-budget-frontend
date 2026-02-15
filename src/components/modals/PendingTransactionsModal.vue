@@ -672,7 +672,7 @@ onMounted(() => {
 }
 
 .modal-subtitle {
-  color: #6b7280;
+  color: #5b6270;
   margin: 0;
   font-size: 0.875rem;
 }
@@ -681,7 +681,7 @@ onMounted(() => {
   padding: 0.5rem;
   border: none;
   background: none;
-  color: #6b7280;
+  color: #5b6270;
   cursor: pointer;
   border-radius: 0.5rem;
   transition: all 0.2s;
@@ -805,7 +805,7 @@ onMounted(() => {
 }
 
 .loading-text {
-  color: #6b7280;
+  color: #5b6270;
   font-medium: 500;
   margin: 0;
 }
@@ -829,7 +829,7 @@ onMounted(() => {
 }
 
 .empty-text {
-  color: #6b7280;
+  color: #5b6270;
   margin: 0;
 }
 
@@ -907,7 +907,7 @@ onMounted(() => {
 .transaction-date,
 .transaction-source {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 .transaction-amount {
@@ -998,7 +998,7 @@ onMounted(() => {
 
 .ignore-button {
   background: #f3f4f6;
-  color: #6b7280;
+  color: #5b6270;
   border: 1px solid #d1d5db;
 }
 
@@ -1049,7 +1049,7 @@ onMounted(() => {
 
 .pagination-info {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
   font-weight: 500;
 }
 
@@ -1079,7 +1079,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #5b6270;
 }
 
 .stat-icon {

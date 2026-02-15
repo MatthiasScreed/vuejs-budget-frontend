@@ -274,6 +274,78 @@ export const useTransactionStore = defineStore('transaction', () => {
     }
   }
 
+  // À ajouter dans transactionStore.ts, dans la section ACTIONS,
+  // après createTransaction et avant deleteTransaction
+
+  async function updateTransaction(id: number, data: UpdateTransactionData): Promise<boolean> {
+    if (!checkAuth()) {
+      error.value = 'Authentification requise'
+      return false
+    }
+
+    updating.value = true
+    error.value = null
+
+    try {
+      console.log('✏️ [Transactions] Update:', id, data)
+
+      // Nettoyer les données avant envoi
+      // (ne pas envoyer les relations/objets)
+      const cleanData: Record<string, any> = {}
+      const allowedFields = [
+        'type',
+        'amount',
+        'description',
+        'transaction_date',
+        'category_id',
+        'is_recurring',
+        'recurrence_frequency',
+        'recurrence_end_date',
+        'tags',
+        'notes',
+        'status',
+      ]
+
+      for (const key of allowedFields) {
+        if (key in data) {
+          cleanData[key] = (data as any)[key]
+        }
+      }
+
+      const response = await api.put<Transaction>(`/transactions/${id}`, cleanData)
+
+      if (response?.success && response.data) {
+        // Mettre à jour dans le tableau local
+        const index = transactions.value.findIndex((t) => t.id === id)
+        if (index !== -1) {
+          transactions.value[index] = response.data
+        }
+        console.log('✅ [Transactions] Mise à jour:', id)
+        return true
+      }
+
+      if (response?.errors) {
+        validationErrors.value = response.errors
+      }
+      error.value = response?.message || 'Erreur mise à jour'
+      return false
+    } catch (err: any) {
+      console.error('❌ [Transactions] Erreur update:', err)
+
+      if (err.response?.status === 422) {
+        validationErrors.value = err.response?.data?.errors || {}
+        error.value = 'Erreur de validation'
+      } else {
+        error.value = err.message || 'Erreur mise à jour'
+      }
+      return false
+    } finally {
+      updating.value = false
+    }
+  }
+
+  // ⚠️ Ne pas oublier d'ajouter updateTransaction dans le return {}
+
   async function deleteTransaction(id: number): Promise<boolean> {
     if (!checkAuth()) {
       error.value = 'Authentification requise'
@@ -405,6 +477,7 @@ export const useTransactionStore = defineStore('transaction', () => {
     fetchPendingTransactions,
     fetchStats,
     createTransaction,
+    updateTransaction,
     deleteTransaction,
     categorizeTransaction,
     autoCategorize,

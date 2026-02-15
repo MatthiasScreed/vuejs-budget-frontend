@@ -122,7 +122,7 @@ async function bootstrapApp() {
 
           <h1 style="color: #1f2937; margin-bottom: 15px; font-size: 24px; font-weight: 700;">Erreur de chargement</h1>
 
-          <p style="color: #6b7280; margin-bottom: 30px; font-size: 16px; line-height: 1.6;">
+          <p style="color: #5b6270; margin-bottom: 30px; font-size: 16px; line-height: 1.6;">
             Une erreur est survenue lors du chargement de CoinQuest. Cela peut être temporaire.
           </p>
 
@@ -148,7 +148,7 @@ async function bootstrapApp() {
             🔄 Recharger la page
           </button>
 
-          <p style="margin-top: 20px; color: #9ca3af; font-size: 14px;">
+          <p style="margin-top: 20px; color: #8c939f; font-size: 14px;">
             Si le problème persiste,
             <a href="mailto:support@coinquest.com" style="color: #667eea; text-decoration: none; font-weight: 600;">
               contacte le support

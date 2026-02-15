@@ -103,7 +103,7 @@
                 {{ achievementStats.unlocked }}/{{ achievementStats.total }} débloqués
               </p>
             </div>
-            <span class="ml-auto text-gray-400">→</span>
+            <span class="ml-auto text-gray-500">→</span>
           </div>
         </router-link>
 
@@ -117,7 +117,7 @@
               <h3 class="font-semibold text-gray-900">Défis actifs</h3>
               <p class="text-sm text-gray-600">{{ activeChallenges }} en cours</p>
             </div>
-            <span class="ml-auto text-gray-400">→</span>
+            <span class="ml-auto text-gray-500">→</span>
           </div>
         </router-link>
 

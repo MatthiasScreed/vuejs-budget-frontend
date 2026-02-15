@@ -700,10 +700,10 @@ class LevelService {
       'streak_bonus': '#EF4444',
       'challenge_completed': '#EC4899',
       'level_bonus': '#14B8A6',
-      'manual_add': '#6B7280',
+      'manual_add': '#5b6270',
       'simulation': '#F97316'
     }
-    return colors[eventType] || '#6B7280'
+    return colors[eventType] || '#5b6270'
   }
 
   /**
