@@ -1086,6 +1086,10 @@ onUnmounted(() => {
   border-radius: 0.5rem;
   font-size: 1rem;
 }
+.form-input::placeholder {
+  color: #5b6270;
+  opacity: 1;
+}
 .modal-actions {
   display: flex;
   justify-content: flex-end;

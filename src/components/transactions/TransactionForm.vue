@@ -604,6 +604,12 @@ onMounted(() => {
   background: white;
 }
 
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: #5b6270;
+  opacity: 1;
+}
+
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {

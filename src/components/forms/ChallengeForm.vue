@@ -400,3 +400,38 @@
     </div>
   </div>
 </template>
+
+<style scoped>
+.form-label {
+  @apply block text-sm font-medium text-gray-700 mb-2;
+}
+
+.form-label.required::after {
+  content: ' *';
+  @apply text-red-500;
+}
+
+.form-input, .form-select, .form-textarea {
+  @apply w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200;
+}
+
+.form-input::placeholder, .form-textarea::placeholder {
+  @apply placeholder-gray-500;
+}
+
+.input-error {
+  @apply border-red-500 bg-red-50;
+}
+
+.form-error {
+  @apply text-sm text-red-600 mt-1 flex items-center;
+}
+
+.form-checkbox {
+  @apply h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded;
+}
+
+.form-group {
+  @apply space-y-1;
+}
+</style>

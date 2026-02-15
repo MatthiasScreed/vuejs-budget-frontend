@@ -949,6 +949,10 @@ onUnmounted(() => {
   @apply w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200;
 }
 
+.form-input::placeholder, .form-textarea::placeholder {
+  @apply placeholder-gray-500;
+}
+
 .form-input:focus, .form-select:focus, .form-textarea:focus {
   @apply shadow-lg;
 }

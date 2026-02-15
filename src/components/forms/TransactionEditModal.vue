@@ -1012,6 +1012,10 @@ onUnmounted(() => {
   @apply w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200;
 }
 
+.form-input::placeholder, .form-textarea::placeholder {
+  @apply placeholder-gray-500;
+}
+
 .input-error {
   @apply border-red-500 bg-red-50;
 }
