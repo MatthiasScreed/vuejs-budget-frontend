@@ -833,7 +833,7 @@ onMounted(async () => {
 @media (min-width: 640px) { .header-content { flex-direction: row; align-items: center; justify-content: space-between; } }
 .header-text { flex: 1; min-width: 0; }
 .page-title { font-size: 1.875rem; font-weight: 700; color: #111827; margin: 0; }
-.page-subtitle { color: #5b6270; margin: 0.5rem 0 0 0; font-size: 0.9375rem; }
+.page-subtitle { color: #4b5563; margin: 0.5rem 0 0 0; font-size: 0.9375rem; }
 .header-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 
 /* ========================================== */
@@ -864,14 +864,14 @@ onMounted(async () => {
 .pending-info { display: flex; align-items: start; gap: 1rem; flex: 1; }
 .pending-icon { font-size: 2.5rem; flex-shrink: 0; }
 .pending-title { font-size: 1.125rem; font-weight: 600; color: #111827; margin: 0; }
-.pending-subtitle { font-size: 0.875rem; color: #5b6270; margin: 0.25rem 0 0 0; }
+.pending-subtitle { font-size: 0.875rem; color: #4b5563; margin: 0.25rem 0 0 0; }
 .pending-list { display: flex; flex-direction: column; gap: 0.5rem; }
 .pending-item { background-color: white; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
 .pending-item-content { display: flex; flex-direction: column; gap: 1rem; }
 @media (min-width: 640px) { .pending-item-content { flex-direction: row; align-items: center; justify-content: space-between; } }
 .pending-item-info { flex: 1; min-width: 0; }
 .pending-item-desc { font-weight: 500; color: #111827; margin: 0; overflow: hidden; text-overflow: ellipsis; }
-.pending-item-date { font-size: 0.875rem; color: #5b6270; margin: 0.25rem 0 0 0; }
+.pending-item-date { font-size: 0.875rem; color: #4b5563; margin: 0.25rem 0 0 0; }
 .pending-item-actions { display: flex; flex-direction: column; gap: 0.75rem; }
 @media (min-width: 640px) { .pending-item-actions { flex-direction: row; align-items: center; } }
 .pending-item-amount { font-size: 1.125rem; font-weight: 700; }
@@ -895,7 +895,7 @@ onMounted(async () => {
 .stat-income .stat-amount { color: var(--color-income); }
 .stat-expense .stat-amount { color: var(--color-expense); }
 .stat-balance .stat-amount { color: var(--color-balance); }
-.stat-label { font-size: 0.875rem; color: #5b6270; margin-top: 0.25rem; }
+.stat-label { font-size: 0.875rem; color: #4b5563; margin-top: 0.25rem; }
 
 /* ========================================== */
 /* GAMING CARD */
@@ -984,7 +984,7 @@ onMounted(async () => {
 .mobile-desc { font-weight: 500; color: #111827; margin: 0; overflow: hidden; text-overflow: ellipsis; }
 .mobile-category { font-size: 0.875rem; color: #2563eb; margin: 0.25rem 0 0 0; }
 .mobile-meta { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; flex-wrap: wrap; }
-.mobile-date { font-size: 0.75rem; color: #5b6270; }
+.mobile-date { font-size: 0.75rem; color: #4b5563; }
 .badge-recurring { font-size: 0.75rem; background-color: #dbeafe; color: #1e40af; padding: 0.125rem 0.5rem; border-radius: 9999px; }
 .transaction-amount { font-weight: 700; font-size: 1.125rem; flex-shrink: 0; }
 .amount-income { color: var(--color-income); }
@@ -998,7 +998,7 @@ onMounted(async () => {
 .link-duplicate:hover { color: #047857; }
 .link-delete { color: #dc2626; }
 .link-delete:hover { color: #b91c1c; }
-.mobile-time { font-size: 0.75rem; color: #5b6270; }
+.mobile-time { font-size: 0.75rem; color: #4b5563; }
 
 /* ========================================== */
 /* DESKTOP TRANSACTION */
@@ -1010,9 +1010,9 @@ onMounted(async () => {
 .desktop-badges { display: flex; gap: 0.5rem; margin-top: 0.25rem; }
 .desktop-amount { font-weight: 700; }
 .desktop-category { font-size: 0.875rem; color: #2563eb; }
-.desktop-uncategorized { font-size: 0.875rem; color: #8c939f; }
-.desktop-date { font-size: 0.875rem; color: #5b6270; }
-.desktop-time { font-size: 0.75rem; color: #8c939f; margin-top: 0.25rem; }
+.desktop-uncategorized { font-size: 0.875rem; color: #5b6270; }
+.desktop-date { font-size: 0.875rem; color: #4b5563; }
+.desktop-time { font-size: 0.75rem; color: #5b6270; margin-top: 0.25rem; }
 .desktop-actions { display: flex; gap: 0.25rem; }
 .icon-btn { background: none; border: none; cursor: pointer; padding: 0.5rem; border-radius: 0.5rem; transition: background-color 0.2s; min-height: 44px; min-width: 44px; display: flex; align-items: center; justify-content: center; }
 .icon-btn:hover { background-color: #f3f4f6; }

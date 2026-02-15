@@ -5,7 +5,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
       <div>
         <h2 class="text-2xl font-bold text-gray-900 mb-2">💰 Mes Transactions</h2>
-        <p class="text-gray-600">
+        <p class="text-gray-700">
           {{ transactionStore.hasTransactions ? `${transactionStore.pagination.total} transactions` : 'Aucune transaction' }}
         </p>
       </div>
@@ -160,7 +160,7 @@
               <p class="font-medium text-gray-900 truncate">
                 {{ transaction.description || 'Sans description' }}
               </p>
-              <p v-if="transaction.reference" class="text-sm text-gray-500">
+              <p v-if="transaction.reference" class="text-sm text-gray-600">
                 Réf: {{ transaction.reference }}
               </p>
             </div>
@@ -193,7 +193,7 @@
               <p class="text-sm font-medium text-gray-900">
                 {{ formatDate(transaction.transaction_date) }}
               </p>
-              <p class="text-xs text-gray-500">
+              <p class="text-xs text-gray-600">
                 {{ formatTime(transaction.created_at) }}
               </p>
             </div>
