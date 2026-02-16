@@ -17,7 +17,7 @@
         </div>
         <div class="debug-section">
           <strong>First Transaction:</strong>
-          <pre>{{ transactions?.[0] || 'Aucune' }}</pre>
+          <pre>{{ transactions?.[0] || 'None' }}</pre>
         </div>
         <div class="debug-section">
           <strong>Stats Computed:</strong>
@@ -30,16 +30,16 @@
     <div class="page-header">
       <div class="header-content">
         <div class="header-text">
-          <h1 class="page-title">💰 Transactions</h1>
-          <p class="page-subtitle">Gérez vos revenus et dépenses</p>
+          <h1 class="page-title">💰 {{ t('transactions.title') }}</h1>
+          <p class="page-subtitle">{{ t('transactions.subtitle') }}</p>
         </div>
         <div class="header-actions">
           <button @click="handleSync" :disabled="syncing" class="btn btn-sync">
             <span>{{ syncing ? '⏳' : '🔄' }}</span>
-            {{ syncing ? 'Synchronisation...' : 'Synchroniser' }}
+            {{ syncing ? t('transactions.syncing') : t('transactions.sync') }}
           </button>
           <button @click="handleNewTransaction('expense')" class="btn btn-primary">
-            ➕ Nouvelle
+            ➕ {{ t('transactions.new') }}
           </button>
         </div>
       </div>
@@ -51,21 +51,23 @@
         <div class="pending-info">
           <span class="pending-icon">⏳</span>
           <div>
-            <h3 class="pending-title">À catégoriser</h3>
+            <h3 class="pending-title">{{ t('transactions.pendingTitle') }}</h3>
             <p class="pending-subtitle">
-              {{ pendingCount }} transaction{{ pendingCount > 1 ? 's' : '' }}
+              {{ pendingCount }} {{ t('transactions.title').toLowerCase() }}
             </p>
           </div>
         </div>
         <button @click="handleAutoCategorize" :disabled="syncing" class="btn btn-auto">
-          🤖 Auto
+          🤖 {{ t('transactions.autoCategorize') }}
         </button>
       </div>
       <div class="pending-list">
         <div v-for="tx in displayedPending" :key="tx.id" class="pending-item">
           <div class="pending-item-content">
             <div class="pending-item-info">
-              <p class="pending-item-desc">{{ tx.description || 'Sans description' }}</p>
+              <p class="pending-item-desc">
+                {{ tx.description || t('transactions.noDescription') }}
+              </p>
               <p class="pending-item-date">{{ formatDisplayDate(tx.transaction_date) }}</p>
             </div>
             <div class="pending-item-actions">
@@ -76,7 +78,7 @@
                 {{ formatDisplayAmount(tx) }}
               </span>
               <select @change="handleQuickCategorize(tx, $event)" class="category-select">
-                <option value="">Choisir...</option>
+                <option value="">{{ t('transactions.chooseCat') }}</option>
                 <option v-for="cat in getCategoriesForType(tx.type)" :key="cat.id" :value="cat.id">
                   {{ cat.icon || '📁' }} {{ cat.name }}
                 </option>
@@ -95,7 +97,7 @@
           <span class="stat-badge badge-success">{{ stats.incomeChange }}</span>
         </div>
         <div class="stat-amount">{{ formatDisplayCurrency(stats.totalIncome) }}</div>
-        <div class="stat-label">Revenus ce mois</div>
+        <div class="stat-label">{{ t('transactions.incomeThisMonth') }}</div>
       </div>
       <div class="stat-card stat-expense">
         <div class="stat-header">
@@ -103,7 +105,7 @@
           <span class="stat-badge badge-danger">{{ stats.expenseChange }}</span>
         </div>
         <div class="stat-amount">{{ formatDisplayCurrency(stats.totalExpenses) }}</div>
-        <div class="stat-label">Dépenses ce mois</div>
+        <div class="stat-label">{{ t('transactions.expensesThisMonth') }}</div>
       </div>
       <div class="stat-card stat-balance">
         <div class="stat-header">
@@ -111,37 +113,37 @@
           <span class="stat-badge badge-info">{{ stats.balanceStatus }}</span>
         </div>
         <div class="stat-amount">{{ formatDisplayCurrency(stats.balance) }}</div>
-        <div class="stat-label">Balance</div>
+        <div class="stat-label">{{ t('transactions.balance') }}</div>
       </div>
     </div>
 
     <!-- Filtres -->
     <div class="gaming-card filters-card">
-      <h3 class="card-title">🔍 Filtres</h3>
+      <h3 class="card-title">🔍 {{ t('transactions.filters') }}</h3>
       <div class="filters-grid">
         <div class="filter-group">
-          <label class="filter-label">Type</label>
+          <label class="filter-label">{{ t('transactions.filterType') }}</label>
           <select v-model="localFilters.type" @change="handleApplyFilters" class="filter-input">
-            <option value="">Tous</option>
-            <option value="income">💚 Revenus</option>
-            <option value="expense">❤️ Dépenses</option>
+            <option value="">{{ t('transactions.filterAllTypes') }}</option>
+            <option value="income">💚 {{ t('transactions.income') }}</option>
+            <option value="expense">❤️ {{ t('transactions.expense') }}</option>
           </select>
         </div>
         <div class="filter-group">
-          <label class="filter-label">Catégorie</label>
+          <label class="filter-label">{{ t('transactions.filterCategory') }}</label>
           <select
             v-model="localFilters.category_id"
             @change="handleApplyFilters"
             class="filter-input"
           >
-            <option value="">Toutes</option>
+            <option value="">{{ t('transactions.filterAllCategories') }}</option>
             <option v-for="cat in availableCategories" :key="cat.id" :value="cat.id">
               {{ cat.icon || '📁' }} {{ cat.name }}
             </option>
           </select>
         </div>
         <div class="filter-group">
-          <label class="filter-label">Date début</label>
+          <label class="filter-label">{{ t('transactions.filterDateFrom') }}</label>
           <input
             v-model="localFilters.date_from"
             @change="handleApplyFilters"
@@ -150,7 +152,7 @@
           />
         </div>
         <div class="filter-group">
-          <label class="filter-label">Date fin</label>
+          <label class="filter-label">{{ t('transactions.filterDateTo') }}</label>
           <input
             v-model="localFilters.date_to"
             @change="handleApplyFilters"
@@ -160,33 +162,41 @@
         </div>
       </div>
       <div class="filters-actions">
-        <button @click="handleApplyFilters" class="btn btn-primary">Appliquer</button>
-        <button @click="handleResetFilters" class="btn-link">Réinitialiser</button>
+        <button @click="handleApplyFilters" class="btn btn-primary">
+          {{ t('common.apply') }}
+        </button>
+        <button @click="handleResetFilters" class="btn-link">
+          {{ t('common.reset') }}
+        </button>
       </div>
     </div>
 
     <!-- Actions rapides -->
     <div class="quick-actions">
       <button @click="handleNewTransaction('income')" class="action-btn action-income">
-        💰 Revenu
+        💰 {{ t('transactions.income') }}
       </button>
       <button @click="handleNewTransaction('expense')" class="action-btn action-expense">
-        💸 Dépense
+        💸 {{ t('transactions.expense') }}
       </button>
-      <button @click="handleExport" class="action-btn action-neutral">📊 Export</button>
-      <button @click="handleImport" class="action-btn action-info">📥 Import</button>
+      <button @click="handleExport" class="action-btn action-neutral">
+        📊 {{ t('common.export') }}
+      </button>
+      <button @click="handleImport" class="action-btn action-info">
+        📥 {{ t('common.import') }}
+      </button>
     </div>
 
     <!-- Chargement -->
     <div v-if="loading" class="loading-state">
       <div class="loading-spinner"></div>
-      <p class="loading-text">Chargement des transactions...</p>
+      <p class="loading-text">{{ t('transactions.loadingTransactions') }}</p>
     </div>
 
     <!-- Liste des transactions -->
     <div v-else class="gaming-card transactions-card">
       <div class="transactions-header">
-        <h2 class="card-title">Transactions récentes</h2>
+        <h2 class="card-title">{{ t('transactions.recentTitle') }}</h2>
         <div class="transactions-controls">
           <span class="transactions-count">
             {{ displayCount }} transaction{{ displayCount > 1 ? 's' : '' }}
@@ -196,9 +206,9 @@
             @change="handleApplyFilters"
             class="per-page-select"
           >
-            <option :value="15">15 par page</option>
-            <option :value="30">30 par page</option>
-            <option :value="50">50 par page</option>
+            <option :value="15">{{ t('common.perPage', { n: 15 }) }}</option>
+            <option :value="30">{{ t('common.perPage', { n: 30 }) }}</option>
+            <option :value="50">{{ t('common.perPage', { n: 50 }) }}</option>
           </select>
         </div>
       </div>
@@ -206,16 +216,14 @@
       <!-- Liste vide -->
       <div v-if="isEmpty" class="empty-state">
         <div class="empty-icon">🔭</div>
-        <h3 class="empty-title">Aucune transaction</h3>
+        <h3 class="empty-title">{{ t('transactions.noTransactions') }}</h3>
         <p class="empty-text">
           {{
-            hasFilters
-              ? 'Aucun résultat pour ces filtres'
-              : 'Commencez par créer votre première transaction'
+            hasFilters ? t('transactions.noFilterResults') : t('transactions.noTransactionsDesc')
           }}
         </p>
         <button @click="handleNewTransaction('expense')" class="btn btn-primary">
-          Créer ma première transaction
+          {{ t('transactions.createFirst') }}
         </button>
       </div>
 
@@ -223,10 +231,10 @@
       <div v-else class="transactions-list">
         <div class="transaction-header-row">
           <div>Type</div>
-          <div class="col-span-3">Description</div>
-          <div class="col-span-2">Montant</div>
-          <div class="col-span-2">Catégorie</div>
-          <div class="col-span-2">Date</div>
+          <div class="col-span-3">{{ t('transactions.description') }}</div>
+          <div class="col-span-2">{{ t('transactions.amount') }}</div>
+          <div class="col-span-2">{{ t('transactions.category') }}</div>
+          <div class="col-span-2">{{ t('transactions.date') }}</div>
           <div class="col-span-2">Actions</div>
         </div>
 
@@ -248,13 +256,19 @@
                     {{ tx.type === 'income' ? '↗' : '↘' }}
                   </span>
                   <div class="mobile-details">
-                    <p class="mobile-desc">{{ tx.description || 'Sans description' }}</p>
+                    <p class="mobile-desc">
+                      {{ tx.description || t('transactions.noDescription') }}
+                    </p>
                     <p v-if="tx.category" class="mobile-category">
                       {{ tx.category.icon || '📁' }} {{ tx.category.name }}
                     </p>
                     <div class="mobile-meta">
-                      <span class="mobile-date">{{ formatDisplayDate(tx.transaction_date) }}</span>
-                      <span v-if="tx.is_recurring" class="badge-recurring">Récurrente</span>
+                      <span class="mobile-date">
+                        {{ formatDisplayDate(tx.transaction_date) }}
+                      </span>
+                      <span v-if="tx.is_recurring" class="badge-recurring">
+                        {{ t('transactions.recurring') }}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -267,12 +281,14 @@
               </div>
               <div class="mobile-actions">
                 <div class="action-links">
-                  <button @click="handleEdit(tx)" class="action-link link-edit">Modifier</button>
+                  <button @click="handleEdit(tx)" class="action-link link-edit">
+                    {{ t('common.edit') }}
+                  </button>
                   <button @click="handleDuplicate(tx)" class="action-link link-duplicate">
-                    Dupliquer
+                    {{ t('common.duplicate') }}
                   </button>
                   <button @click="handleDelete(tx)" class="action-link link-delete">
-                    Supprimer
+                    {{ t('common.delete') }}
                   </button>
                 </div>
                 <span class="mobile-time">{{ formatDisplayRelative(tx.created_at) }}</span>
@@ -290,9 +306,13 @@
                 </span>
               </div>
               <div class="col-span-3">
-                <p class="desktop-desc">{{ tx.description || 'Sans description' }}</p>
+                <p class="desktop-desc">
+                  {{ tx.description || t('transactions.noDescription') }}
+                </p>
                 <div class="desktop-badges">
-                  <span v-if="tx.is_recurring" class="badge-recurring">Récurrente</span>
+                  <span v-if="tx.is_recurring" class="badge-recurring">
+                    {{ t('transactions.recurring') }}
+                  </span>
                 </div>
               </div>
               <div class="col-span-2">
@@ -307,7 +327,9 @@
                 <span v-if="tx.category" class="desktop-category">
                   {{ tx.category.icon || '📁' }} {{ tx.category.name }}
                 </span>
-                <span v-else class="desktop-uncategorized">Non catégorisée</span>
+                <span v-else class="desktop-uncategorized">
+                  {{ t('transactions.uncategorized') }}
+                </span>
               </div>
               <div class="col-span-2">
                 <span class="desktop-date">{{ formatDisplayDate(tx.transaction_date) }}</span>
@@ -315,11 +337,19 @@
               </div>
               <div class="col-span-2">
                 <div class="desktop-actions">
-                  <button @click="handleEdit(tx)" class="icon-btn" title="Modifier">✏️</button>
-                  <button @click="handleDuplicate(tx)" class="icon-btn" title="Dupliquer">
+                  <button @click="handleEdit(tx)" class="icon-btn" :title="t('common.edit')">
+                    ✏️
+                  </button>
+                  <button
+                    @click="handleDuplicate(tx)"
+                    class="icon-btn"
+                    :title="t('common.duplicate')"
+                  >
                     📋
                   </button>
-                  <button @click="handleDelete(tx)" class="icon-btn" title="Supprimer">🗑️</button>
+                  <button @click="handleDelete(tx)" class="icon-btn" :title="t('common.delete')">
+                    🗑️
+                  </button>
                 </div>
               </div>
             </div>
@@ -329,12 +359,17 @@
         <!-- Pagination -->
         <nav v-if="showPagination" class="pagination">
           <div class="pagination-info">
-            Affichage de {{ paginationInfo.from }} à {{ paginationInfo.to }} sur
-            {{ paginationInfo.total }}
+            {{
+              t('common.showing', {
+                from: paginationInfo.from,
+                to: paginationInfo.to,
+                total: paginationInfo.total,
+              })
+            }}
           </div>
           <div class="pagination-controls">
             <button @click="handlePrevPage" :disabled="!canGoPrev" class="pagination-btn">
-              Précédent
+              {{ t('common.previous') }}
             </button>
             <div class="pagination-numbers">
               <button
@@ -348,14 +383,14 @@
               </button>
             </div>
             <button @click="handleNextPage" :disabled="!canGoNext" class="pagination-btn">
-              Suivant
+              {{ t('common.next') }}
             </button>
           </div>
         </nav>
       </div>
     </div>
 
-    <!-- ✅ MODAL TRANSACTION CORRIGÉ -->
+    <!-- Modal Transaction -->
     <Teleport to="body">
       <div v-if="showModal" class="modal-overlay" @click.self="handleCloseModal">
         <div class="modal-form-container">
@@ -380,22 +415,25 @@
               <span class="delete-icon">🗑️</span>
             </div>
             <div>
-              <h3 class="delete-title">Confirmer la suppression</h3>
-              <p class="delete-subtitle">Cette action est irréversible</p>
+              <h3 class="delete-title">{{ t('transactions.deleteConfirmTitle') }}</h3>
+              <p class="delete-subtitle">{{ t('transactions.deleteIrreversible') }}</p>
             </div>
           </div>
           <div class="modal-delete-content">
             <p class="delete-text">
-              Supprimer <strong>"{{ deletingItem?.description }}"</strong> ?
+              {{ t('transactions.deleteConfirmText', { name: deletingItem?.description }) }}
             </p>
             <div class="delete-amount">
-              Montant: {{ deletingItem ? formatDisplayAmount(deletingItem) : '' }}
+              {{ t('transactions.amount') }}:
+              {{ deletingItem ? formatDisplayAmount(deletingItem) : '' }}
             </div>
           </div>
           <div class="modal-delete-actions">
-            <button @click="handleCancelDelete" class="btn btn-secondary">Annuler</button>
+            <button @click="handleCancelDelete" class="btn btn-secondary">
+              {{ t('common.cancel') }}
+            </button>
             <button @click="handleConfirmDelete" :disabled="isDeleting" class="btn btn-danger">
-              {{ isDeleting ? 'Suppression...' : 'Supprimer' }}
+              {{ isDeleting ? t('transactions.deleting') : t('common.delete') }}
             </button>
           </div>
         </div>
@@ -415,9 +453,16 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useTransactionStore } from '@/stores/transactionStore'
 import { useCategoryStore } from '@/stores/categoryStore'
 import TransactionForm from '@/components/transactions/TransactionForm.vue'
+
+// ==========================================
+// I18N
+// ==========================================
+
+const { t, locale } = useI18n()
 
 // ==========================================
 // TYPES
@@ -472,8 +517,8 @@ const isEditing = ref(false)
 const isDeleting = ref(false)
 const editingItem = ref<Transaction | null>(null)
 const deletingItem = ref<Transaction | null>(null)
-const defaultTransactionType = ref<'income' | 'expense'>('expense')
 const fileInput = ref<HTMLInputElement>()
+const defaultTransactionType = ref<'income' | 'expense'>('expense')
 
 const localFilters = ref({
   type: '',
@@ -489,14 +534,11 @@ const localFilters = ref({
 // ==========================================
 
 const displayedTransactions = computed(() => {
-  const txs = transactions.value || []
-  console.log('📦 [COMPUTED] displayedTransactions:', txs.length, 'items')
-  return txs
+  return transactions.value || []
 })
 
 const displayedPending = computed(() => {
-  const pending = pendingTransactions.value || []
-  return pending.slice(0, 5)
+  return (pendingTransactions.value || []).slice(0, 5)
 })
 
 const pendingCount = computed(() => (pendingTransactions.value || []).length)
@@ -521,36 +563,41 @@ const stats = computed(() => {
       balance: 0,
       incomeChange: '0%',
       expenseChange: '0%',
-      balanceStatus: 'Nul',
+      balanceStatus: t('transactions.neutral'),
     }
   }
 
-  const currentMonth = new Date().getMonth()
-  const currentYear = new Date().getFullYear()
+  const now = new Date()
+  const curMonth = now.getMonth()
+  const curYear = now.getFullYear()
 
-  const thisMonth = displayedTransactions.value.filter((t) => {
-    if (!t.transaction_date) return false
-    const date = new Date(t.transaction_date)
-    return date.getMonth() === currentMonth && date.getFullYear() === currentYear
+  const thisMonth = displayedTransactions.value.filter((tx) => {
+    if (!tx.transaction_date) return false
+    const d = new Date(tx.transaction_date)
+    return d.getMonth() === curMonth && d.getFullYear() === curYear
   })
 
   const income = thisMonth
-    .filter((t) => t.type === 'income')
-    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
+    .filter((tx) => tx.type === 'income')
+    .reduce((s, tx) => s + (Number(tx.amount) || 0), 0)
 
   const expenses = thisMonth
-    .filter((t) => t.type === 'expense')
-    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
+    .filter((tx) => tx.type === 'expense')
+    .reduce((s, tx) => s + (Number(tx.amount) || 0), 0)
 
   const balance = income - expenses
+
+  let status = t('transactions.neutral')
+  if (balance > 0) status = t('transactions.positive')
+  if (balance < 0) status = t('transactions.negative')
 
   return {
     totalIncome: income,
     totalExpenses: expenses,
-    balance: balance,
+    balance,
     incomeChange: income > 0 ? '+12.5%' : '0%',
     expenseChange: expenses > 0 ? '-8.3%' : '0%',
-    balanceStatus: balance > 0 ? 'Positif' : balance < 0 ? 'Négatif' : 'Nul',
+    balanceStatus: status,
   }
 })
 
@@ -563,63 +610,76 @@ const canGoPrev = computed(() => currentPageNumber.value > 1)
 const canGoNext = computed(() => currentPageNumber.value < totalPages.value)
 
 const visiblePageNumbers = computed(() => {
-  const current = currentPageNumber.value
+  const cur = currentPageNumber.value
   const total = totalPages.value
   const pages: number[] = []
-  const start = Math.max(1, current - 2)
-  const end = Math.min(total, current + 2)
-  for (let i = start; i <= end; i++) pages.push(i)
+  const start = Math.max(1, cur - 2)
+  const end = Math.min(total, cur + 2)
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
   return pages
 })
 
 const showPagination = computed(() => totalPages.value > 1)
 
 const paginationInfo = computed(() => {
-  const perPage = localFilters.value.per_page
-  const current = currentPageNumber.value
+  const pp = localFilters.value.per_page
+  const cur = currentPageNumber.value
   const total = displayCount.value
   if (!total) return { from: 0, to: 0, total: 0 }
-  const from = (current - 1) * perPage + 1
-  const to = Math.min(current * perPage, total)
+  const from = (cur - 1) * pp + 1
+  const to = Math.min(cur * pp, total)
   return { from, to, total }
 })
 
 // ==========================================
-// FORMATTING METHODS
+// FORMATTING (locale-aware)
 // ==========================================
 
 function formatDisplayCurrency(amount: number): string {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount || 0)
+  const loc = locale.value === 'en' ? 'en-GB' : 'fr-FR'
+  return new Intl.NumberFormat(loc, {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(amount || 0)
 }
 
 function formatDisplayAmount(tx: Transaction): string {
   const sign = tx.type === 'income' ? '+' : '-'
-  const amount = Math.abs(Number(tx.amount) || 0)
-  return `${sign}${formatDisplayCurrency(amount)}`
+  const amt = Math.abs(Number(tx.amount) || 0)
+  return `${sign}${formatDisplayCurrency(amt)}`
 }
 
-function formatDisplayDate(dateString: string): string {
-  if (!dateString) return '-'
+function formatDisplayDate(dateStr: string): string {
+  if (!dateStr) return '-'
   try {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+    const loc = locale.value === 'en' ? 'en-GB' : 'fr-FR'
+    return new Date(dateStr).toLocaleDateString(loc, {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    })
   } catch {
-    return dateString
+    return dateStr
   }
 }
 
-function formatDisplayRelative(dateString: string): string {
-  if (!dateString) return '-'
+function formatDisplayRelative(dateStr: string): string {
+  if (!dateStr) return '-'
   try {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-    if (diffDays === 0) return "Aujourd'hui"
-    if (diffDays === 1) return 'Hier'
-    if (diffDays < 7) return `Il y a ${diffDays} jours`
-    if (diffDays < 30) return `Il y a ${Math.floor(diffDays / 7)} semaines`
-    return `Il y a ${Math.floor(diffDays / 30)} mois`
+    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000)
+    if (diff === 0) return t('time.today')
+    if (diff === 1) return t('time.yesterday')
+    if (diff < 7) return t('time.daysAgo', { n: diff })
+    if (diff < 30) {
+      return t('time.weeksAgo', {
+        n: Math.floor(diff / 7),
+      })
+    }
+    return t('time.monthsAgo', {
+      n: Math.floor(diff / 30),
+    })
   } catch {
     return '-'
   }
@@ -636,102 +696,79 @@ function getCategoriesForType(type: string): Category[] {
 
 async function handleSync() {
   try {
-    console.log('🔄 Synchronisation...')
     await transactionStore.syncAllBankConnections()
-    console.log('✅ Synchronisation OK')
   } catch (error) {
-    console.error('❌ Erreur sync:', error)
+    console.error('❌ Sync error:', error)
   }
 }
 
 async function handleAutoCategorize() {
   try {
-    console.log('🤖 Auto-catégorisation...')
     await transactionStore.autoCategorize()
-    console.log('✅ Catégorisation OK')
   } catch (error) {
-    console.error('❌ Erreur catégorisation:', error)
+    console.error('❌ Auto-categorize error:', error)
   }
 }
 
 async function handleQuickCategorize(tx: Transaction, event: Event) {
   const target = event.target as HTMLSelectElement
-  const categoryId = Number(target.value)
-  if (!categoryId) return
+  const catId = Number(target.value)
+  if (!catId) return
   try {
-    console.log(`📝 Catégorisation de ${tx.id} vers ${categoryId}`)
-    await transactionStore.categorizeTransaction(tx.id, categoryId)
-    console.log('✅ Catégorisé')
+    await transactionStore.categorizeTransaction(tx.id, catId)
   } catch (error) {
-    console.error('❌ Erreur:', error)
+    console.error('❌ Quick categorize error:', error)
   }
 }
 
-// ✅ CORRIGÉ: Ouvrir le modal avec le bon type
 function handleNewTransaction(type: 'income' | 'expense' = 'expense') {
-  console.log(`➕ Nouvelle transaction type: ${type}`)
   isEditing.value = false
   editingItem.value = null
   defaultTransactionType.value = type
   showModal.value = true
 }
 
-// ✅ CORRIGÉ: Édition avec le bon type
 function handleEdit(tx: Transaction) {
-  console.log(`✏️ Édition transaction ${tx.id}`)
   isEditing.value = true
   editingItem.value = { ...tx }
   defaultTransactionType.value = tx.type
   showModal.value = true
 }
 
-// ✅ NOUVEAU: Handler pour sauvegarder la transaction
-async function handleSaveTransaction(transactionData: any) {
-  console.log('💾 Sauvegarde transaction:', transactionData)
-
+async function handleSaveTransaction(data: any) {
   try {
     if (isEditing.value && editingItem.value?.id) {
-      // Mise à jour
-      await transactionStore.updateTransaction(editingItem.value.id, transactionData)
-      console.log('✅ Transaction mise à jour')
+      await transactionStore.updateTransaction(editingItem.value.id, data)
     } else {
-      // Création
-      await transactionStore.createTransaction(transactionData)
-      console.log('✅ Transaction créée')
+      await transactionStore.createTransaction(data)
     }
-
     handleCloseModal()
-
-    // Rafraîchir la liste
     await transactionStore.fetchTransactions()
     await transactionStore.fetchPendingTransactions()
   } catch (error) {
-    console.error('❌ Erreur sauvegarde:', error)
-    alert('Erreur lors de la sauvegarde. Veuillez réessayer.')
+    console.error('❌ Save error:', error)
+    alert(t('transactions.errorSave'))
   }
 }
 
 async function handleDuplicate(tx: Transaction) {
   try {
-    console.log(`📋 Duplication transaction ${tx.id}`)
-    const duplicated = {
+    const dup = {
       ...tx,
-      description: `${tx.description} (copie)`,
+      description: `${tx.description} (${t('common.duplicate').toLowerCase()})`,
       transaction_date: new Date().toISOString().split('T')[0],
     }
-    delete (duplicated as any).id
-    delete (duplicated as any).created_at
-    delete (duplicated as any).updated_at
-    await transactionStore.createTransaction(duplicated)
+    delete (dup as any).id
+    delete (dup as any).created_at
+    delete (dup as any).updated_at
+    await transactionStore.createTransaction(dup)
     await transactionStore.fetchTransactions()
-    console.log('✅ Dupliqué')
   } catch (error) {
-    console.error('❌ Erreur duplication:', error)
+    console.error('❌ Duplicate error:', error)
   }
 }
 
 function handleDelete(tx: Transaction) {
-  console.log(`🗑️ Demande suppression ${tx.id}`)
   deletingItem.value = tx
   showDeleteConfirm.value = true
 }
@@ -740,13 +777,11 @@ async function handleConfirmDelete() {
   if (!deletingItem.value) return
   isDeleting.value = true
   try {
-    console.log(`🗑️ Suppression ${deletingItem.value.id}`)
     await transactionStore.deleteTransaction(deletingItem.value.id)
     handleCancelDelete()
     await transactionStore.fetchTransactions()
-    console.log('✅ Supprimé')
   } catch (error) {
-    console.error('❌ Erreur suppression:', error)
+    console.error('❌ Delete error:', error)
   } finally {
     isDeleting.value = false
   }
@@ -764,16 +799,14 @@ function handleCloseModal() {
 }
 
 async function handleApplyFilters() {
-  console.log('🔍 Application filtres:', localFilters.value)
   try {
     await transactionStore.applyFilters(localFilters.value)
   } catch (error) {
-    console.error('❌ Erreur filtres:', error)
+    console.error('❌ Filter error:', error)
   }
 }
 
 function handleResetFilters() {
-  console.log('🔄 Reset filtres')
   localFilters.value = {
     type: '',
     category_id: '',
@@ -786,39 +819,39 @@ function handleResetFilters() {
 }
 
 async function handleGoToPage(page: number) {
-  console.log(`📄 Page ${page}`)
   localFilters.value.page = page
   try {
     await transactionStore.changePage(page)
   } catch (error) {
-    console.error('❌ Erreur pagination:', error)
+    console.error('❌ Page error:', error)
   }
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 function handlePrevPage() {
-  if (canGoPrev.value) handleGoToPage(currentPageNumber.value - 1)
+  if (canGoPrev.value) {
+    handleGoToPage(currentPageNumber.value - 1)
+  }
 }
 
 function handleNextPage() {
-  if (canGoNext.value) handleGoToPage(currentPageNumber.value + 1)
+  if (canGoNext.value) {
+    handleGoToPage(currentPageNumber.value + 1)
+  }
 }
 
 function handleExport() {
-  console.log('📊 Export CSV')
   window.open('/api/transactions/export-csv', '_blank')
 }
 
 function handleImport() {
-  console.log('📥 Import CSV')
   fileInput.value?.click()
 }
 
 function handleFileChange(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0]
   if (file) {
-    console.log('📄 Fichier sélectionné:', file.name)
-    alert(`Import CSV: ${file.name} - Fonctionnalité à implémenter`)
+    alert(`Import CSV: ${file.name}`)
   }
   if (fileInput.value) fileInput.value.value = ''
 }
@@ -828,27 +861,13 @@ function handleFileChange(event: Event) {
 // ==========================================
 
 onMounted(async () => {
-  console.log('🚀 [MOUNT] Mounting Transactions.vue')
   try {
-    console.log('📡 [MOUNT] Chargement catégories...')
     await categoryStore.fetchCategories()
-    console.log(`✅ [MOUNT] ${availableCategories.value?.length || 0} catégories chargées`)
-
-    console.log('📡 [MOUNT] Chargement transactions...')
     await transactionStore.fetchTransactions()
-    console.log(`✅ [MOUNT] ${displayedTransactions.value.length} transactions chargées`)
-
-    console.log('📡 [MOUNT] Chargement pending...')
     await transactionStore.fetchPendingTransactions()
-    console.log(`✅ [MOUNT] ${pendingCount.value} pending chargées`)
-
-    console.log('📡 [MOUNT] Chargement stats...')
     await transactionStore.fetchStats()
-    console.log('✅ [MOUNT] Stats chargées')
-
-    console.log('✅ [MOUNT] Transactions.vue prêt')
   } catch (error) {
-    console.error('❌ [MOUNT] Erreur montage:', error)
+    console.error('❌ Mount error:', error)
   }
 })
 </script>
@@ -860,18 +879,12 @@ onMounted(async () => {
 * {
   box-sizing: border-box;
 }
-:root {
-  --color-income: #059669;
-  --color-expense: #dc2626;
-  --color-balance: #2563eb;
-  --color-pending: #f59e0b;
-}
 
 /* ========================================== */
 /* DEBUG PANEL */
 /* ========================================== */
 .debug-panel {
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  background: linear-gradient(135deg, #1e293b, #334155);
   border: 2px solid #10b981;
   border-radius: 0.75rem;
   padding: 1.5rem;
@@ -1018,7 +1031,7 @@ onMounted(async () => {
 .btn-link {
   background: none;
   border: none;
-  color: #5b6270;
+  color: #6b7280;
   cursor: pointer;
   font-weight: 500;
   transition: color 0.2s;
@@ -1039,7 +1052,6 @@ onMounted(async () => {
   padding: 1.5rem;
   margin-bottom: 1.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  width: 100%;
 }
 .pending-header {
   display: flex;
@@ -1145,11 +1157,11 @@ onMounted(async () => {
 }
 
 /* ========================================== */
-/* STATS GRID */
+/* STATS GRID — ✅ FIX COULEURS */
 /* ========================================== */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
+  grid-template-columns: 1fr;
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -1197,19 +1209,23 @@ onMounted(async () => {
   background-color: #dbeafe;
   color: #2563eb;
 }
+
+/* ✅ Couleurs en dur — pas de var() qui peut échouer en scoped */
 .stat-amount {
   font-size: 1.875rem;
   font-weight: 700;
+  color: #111827;
 }
 .stat-income .stat-amount {
-  color: var(--color-income);
+  color: #059669;
 }
 .stat-expense .stat-amount {
-  color: var(--color-expense);
+  color: #dc2626;
 }
 .stat-balance .stat-amount {
-  color: var(--color-balance);
+  color: #2563eb;
 }
+
 .stat-label {
   font-size: 0.875rem;
   color: #4b5563;
@@ -1235,11 +1251,11 @@ onMounted(async () => {
 }
 
 /* ========================================== */
-/* FILTERS */
+/* FILTERS — ✅ FIX PLACEHOLDERS */
 /* ========================================== */
 .filters-grid {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
+  grid-template-columns: 1fr;
   gap: 1rem;
 }
 @media (min-width: 640px) {
@@ -1266,22 +1282,21 @@ onMounted(async () => {
   width: 100%;
   padding: 0.5rem 0.75rem;
   border: 1px solid #d1d5db;
-  color: #111827;
   border-radius: 0.375rem;
   outline: none;
   transition: all 0.2s;
   font-size: 1rem;
+  color: #111827;
+  background-color: white;
 }
 .filter-input:focus {
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
-
 .filter-input::placeholder {
   color: #6b7280;
   opacity: 1;
 }
-
 .filters-actions {
   display: flex;
   flex-direction: column;
@@ -1372,7 +1387,7 @@ onMounted(async () => {
 }
 .loading-text {
   margin-top: 1rem;
-  color: #5b6270;
+  color: #6b7280;
 }
 
 /* ========================================== */
@@ -1398,7 +1413,7 @@ onMounted(async () => {
 }
 .transactions-count {
   font-size: 0.875rem;
-  color: #5b6270;
+  color: #6b7280;
 }
 .per-page-select {
   padding: 0.375rem 0.5rem;
@@ -1426,7 +1441,7 @@ onMounted(async () => {
   margin: 0 0 0.5rem 0;
 }
 .empty-text {
-  color: #5b6270;
+  color: #6b7280;
   margin: 0 0 1.5rem 0;
 }
 
@@ -1564,10 +1579,10 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 .amount-income {
-  color: var(--color-income);
+  color: #059669;
 }
 .amount-expense {
-  color: var(--color-expense);
+  color: #dc2626;
 }
 .mobile-actions {
   display: flex;
@@ -1659,7 +1674,7 @@ onMounted(async () => {
 }
 .desktop-uncategorized {
   font-size: 0.875rem;
-  color: #5b6270;
+  color: #6b7280;
 }
 .desktop-date {
   font-size: 0.875rem;
@@ -1667,7 +1682,7 @@ onMounted(async () => {
 }
 .desktop-time {
   font-size: 0.75rem;
-  color: #5b6270;
+  color: #6b7280;
   margin-top: 0.25rem;
 }
 .desktop-actions {
@@ -1759,15 +1774,12 @@ onMounted(async () => {
   padding: 1rem;
   overflow-y: auto;
 }
-
-/* ✅ NOUVEAU: Container pour le formulaire */
 .modal-form-container {
   width: 100%;
   max-width: 42rem;
   max-height: 90vh;
   overflow-y: auto;
 }
-
 .modal-delete {
   background-color: white;
   border-radius: 0.5rem;
@@ -1803,7 +1815,7 @@ onMounted(async () => {
   margin: 0;
 }
 .delete-subtitle {
-  color: #5b6270;
+  color: #6b7280;
   font-size: 0.875rem;
   margin: 0.25rem 0 0 0;
 }
@@ -1817,7 +1829,7 @@ onMounted(async () => {
 .delete-amount {
   margin-top: 0.5rem;
   font-size: 0.875rem;
-  color: #5b6270;
+  color: #6b7280;
 }
 .modal-delete-actions {
   display: flex;

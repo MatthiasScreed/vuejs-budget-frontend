@@ -3,12 +3,11 @@
     <!-- Header -->
     <div class="dashboard-header">
       <div>
-        <h1 class="dashboard-title">Bonjour {{ userName }} 👋</h1>
+        <h1 class="dashboard-title">{{ t('dashboard.greeting', { name: userName }) }} 👋</h1>
         <p class="dashboard-subtitle">{{ encouragementMessage }}</p>
       </div>
 
       <div class="header-right">
-        <!-- Mini Progress (Niveau 2+) -->
         <ProgressBar v-if="shouldShowMiniProgress" variant="mini" class="hidden md:block" />
         <QuickActions />
       </div>
@@ -17,20 +16,21 @@
     <!-- Loading State -->
     <div v-if="isLoading" class="loading-state">
       <div class="spinner"></div>
-      <p>Chargement de vos données...</p>
+      <p>{{ t('dashboard.loading') }}</p>
     </div>
 
     <!-- Error State -->
     <div v-else-if="error" class="error-state">
       <p>{{ error }}</p>
-      <button @click="reload" class="btn-retry">Réessayer</button>
+      <button @click="reload" class="btn-retry">
+        {{ t('errors.tryAgain') }}
+      </button>
     </div>
 
     <!-- Main Content -->
     <div v-else class="dashboard-content">
       <!-- Zone principale: Finance (75%) -->
       <main class="finance-main">
-        <!-- Encouragement Card (Niveau 1) -->
         <EncouragementCard
           v-if="showEncouragementCard"
           :message="dailyEncouragement?.message"
@@ -38,7 +38,6 @@
           @dismiss="dismissEncouragement"
         />
 
-        <!-- Métriques principales -->
         <FinancialMetrics
           v-if="metrics"
           :savings-capacity="metrics.savings_capacity"
@@ -47,13 +46,10 @@
           :savings-rate="metrics.savings_rate"
         />
 
-        <!-- Objectifs en cours -->
         <GoalsProgressCard :goals="mappedGoals" />
 
-        <!-- Graphique de dépenses -->
         <SpendingChart :categories="categories" />
 
-        <!-- Projections IA -->
         <AIProjections
           v-if="metrics"
           :monthly-income="metrics.monthly_income"
@@ -63,7 +59,6 @@
           :insights="insights"
         />
 
-        <!-- Transactions récentes -->
         <RecentTransactions @transaction-created="handleTransactionCreated" />
       </main>
 
@@ -93,6 +88,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/authStore'
 import { useDashboardData } from '@/composables/useDashboardData'
 import {
@@ -118,9 +114,10 @@ import EncouragementCard from '@/components/gaming/EncouragementCard.vue'
 import MilestoneCelebration from '@/components/gaming/MilestoneCelebration.vue'
 
 // ==========================================
-// STORES & COMPOSABLES
+// I18N & STORES
 // ==========================================
 
+const { t } = useI18n()
 const authStore = useAuthStore()
 
 const { isLoading, error, metrics, goals, categories, projections, insights, loadDashboardData } =
@@ -145,31 +142,37 @@ const currentFeedback = ref<Feedback | null>(null)
 const currentFeedbackPoints = ref(0)
 const celebratingMilestone = ref<Milestone | null>(null)
 const encouragementDismissed = ref(false)
-const dailyEncouragement = ref<{ message: string; stats_highlight: any } | null>(null)
+const dailyEncouragement = ref<{
+  message: string
+  stats_highlight: any
+} | null>(null)
 
 // ==========================================
 // COMPUTED
 // ==========================================
 
-const userName = computed(() => authStore.user?.name?.split(' ')[0] || 'Utilisateur')
+const userName = computed(() => {
+  return authStore.user?.name?.split(' ')[0] || t('dashboard.defaultUser')
+})
 
 const encouragementMessage = computed(() => {
   if (dailyEncouragement.value?.message) {
     return dailyEncouragement.value.message
   }
-  return 'Voici votre situation financière'
+  return t('dashboard.defaultSubtitle')
 })
 
-const shouldShowMiniProgress = computed(
-  () => engagementLevel.value >= ENGAGEMENT_LEVELS.REWARDS && uiConfig.value.show_xp_bar,
-)
+const shouldShowMiniProgress = computed(() => {
+  return engagementLevel.value >= ENGAGEMENT_LEVELS.REWARDS && uiConfig.value.show_xp_bar
+})
 
-const showEncouragementCard = computed(
-  () =>
+const showEncouragementCard = computed(() => {
+  return (
     engagementLevel.value === ENGAGEMENT_LEVELS.SOFT &&
     !encouragementDismissed.value &&
-    dailyEncouragement.value?.stats_highlight,
-)
+    dailyEncouragement.value?.stats_highlight
+  )
+})
 
 const mappedGoals = computed(() => {
   return goals.value.map((goal) => ({
@@ -185,7 +188,7 @@ const mappedGoals = computed(() => {
 })
 
 // ==========================================
-// MÉTHODES
+// METHODS
 // ==========================================
 
 async function reload(): Promise<void> {
@@ -193,8 +196,6 @@ async function reload(): Promise<void> {
 }
 
 async function handleTransactionCreated(transaction: any): Promise<void> {
-  // Le backend traite automatiquement via Observer
-  // Mais on peut récupérer le feedback en attente
   const result = await processEvent('transaction_created', {
     amount: transaction.amount,
     type: transaction.type,
@@ -204,12 +205,10 @@ async function handleTransactionCreated(transaction: any): Promise<void> {
     showFeedback(result.feedback, result.milestones.length > 0 ? 10 : 0)
   }
 
-  // Afficher les milestones débloqués
   if (result.milestones.length > 0) {
     celebratingMilestone.value = result.milestones[0]
   }
 
-  // Rafraîchir les données
   await loadDashboardData()
 }
 
@@ -222,7 +221,6 @@ function clearCurrentFeedback(): void {
   currentFeedback.value = null
   currentFeedbackPoints.value = 0
 
-  // Vérifier s'il y a d'autres feedbacks en attente
   const next = consumePendingFeedback()
   if (next) {
     setTimeout(() => showFeedback(next), 300)
@@ -233,7 +231,7 @@ function dismissEncouragement(): void {
   encouragementDismissed.value = true
 }
 
-function handleMilestoneClaimed(milestone: Milestone): void {
+function handleMilestoneClaimed(_milestone: Milestone): void {
   celebratingMilestone.value = null
   refreshDashboard()
 }
@@ -249,11 +247,9 @@ async function loadEncouragement(): Promise<void> {
 // WATCHERS
 // ==========================================
 
-// Observer les changements de niveau pour adapter l'UI
-watch(engagementLevel, (newLevel, oldLevel) => {
-  if (newLevel > oldLevel) {
-    // L'utilisateur a progressé, on peut afficher un message
-    console.log(`🎮 Niveau d'engagement augmenté: ${oldLevel} → ${newLevel}`)
+watch(engagementLevel, (newLvl, oldLvl) => {
+  if (newLvl > oldLvl) {
+    console.log(`🎮 Engagement level up: ${oldLvl} → ${newLvl}`)
   }
 })
 
@@ -262,10 +258,7 @@ watch(engagementLevel, (newLevel, oldLevel) => {
 // ==========================================
 
 onMounted(async () => {
-  // Charger en parallèle pour performance
   await Promise.all([initialize(), loadDashboardData()])
-
-  // Charger l'encouragement après initialisation
   await loadEncouragement()
 })
 </script>
@@ -370,7 +363,6 @@ onMounted(async () => {
   .dashboard-content {
     grid-template-columns: 1fr;
   }
-
   .gaming-sidebar {
     position: static;
     max-height: none;
@@ -381,22 +373,18 @@ onMounted(async () => {
   .dashboard-container {
     padding: 1rem;
   }
-
   .dashboard-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
-
   .header-right {
     width: 100%;
     justify-content: flex-end;
   }
-
   .dashboard-title {
     font-size: 1.5rem;
   }
-
   .dashboard-subtitle {
     font-size: 0.875rem;
   }

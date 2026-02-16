@@ -78,6 +78,7 @@
 import { onBeforeMount, ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
 // Import du logo
 import iconSvg from '@/assets/images/icon/icon.svg'
@@ -90,6 +91,7 @@ const appInitialized = ref(false)
 const initializationError = ref<string | null>(null)
 const initProgress = ref(0)
 const loadingMessage = ref('Préparation de ton aventure...')
+const { locale } = useI18n()
 
 /**
  * 🔐 Initialiser l'application AVANT le premier rendu
@@ -167,6 +169,9 @@ onBeforeMount(async () => {
   console.log('📍 App.vue - BEFORE MOUNT')
   await initializeApp()
   console.log('📍 App.vue - Initialization complete, ready for navigation')
+})
+watch(locale, (newLocale) => {
+  document.documentElement.lang = newLocale
 })
 </script>
 

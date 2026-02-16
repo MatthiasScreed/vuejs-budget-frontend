@@ -5,10 +5,10 @@
 
         <!-- Left: Logo + Copyright -->
         <div class="flex items-center space-x-3">
-          <img src="@/assets/images/icon/icon.svg" class="w-8" alt="">
+          <img src="@/assets/images/icon/icon.svg" class="w-8" alt="CoinQuest">
           <div>
-            <p class="text-sm font-semibold text-gray-900">Budget Gaming</p>
-            <p class="text-xs text-gray-500">© 2025 - Tous droits réservés</p>
+            <p class="text-sm font-semibold text-gray-900">CoinQuest</p>
+            <p class="text-xs text-gray-500">{{ t('footer.copyright', { year: currentYear }) }}</p>
           </div>
         </div>
 
@@ -18,7 +18,7 @@
             <TrophyIcon class="w-5 h-5 text-yellow-500" />
             <div class="text-center">
               <p class="text-sm font-semibold text-gray-900">{{ totalAchievements }}</p>
-              <p class="text-xs text-gray-500">Succès</p>
+              <p class="text-xs text-gray-500">{{ t('gaming.achievements') }}</p>
             </div>
           </div>
 
@@ -26,7 +26,7 @@
             <FireIcon class="w-5 h-5 text-orange-500" />
             <div class="text-center">
               <p class="text-sm font-semibold text-gray-900">{{ currentStreak }}</p>
-              <p class="text-xs text-gray-500">Jours</p>
+              <p class="text-xs text-gray-500">{{ t('gaming.days') }}</p>
             </div>
           </div>
 
@@ -34,7 +34,7 @@
             <StarIcon class="w-5 h-5 text-purple-500" />
             <div class="text-center">
               <p class="text-sm font-semibold text-gray-900">{{ playerLevel }}</p>
-              <p class="text-xs text-gray-500">Niveau</p>
+              <p class="text-xs text-gray-500">{{ t('gaming.level') }}</p>
             </div>
           </div>
         </div>
@@ -46,22 +46,22 @@
               to="/help"
               class="text-sm text-gray-600 hover:text-gray-900 transition-colors"
             >
-              Aide
+              {{ t('footer.help') }}
             </router-link>
             <router-link
               to="/privacy"
               class="text-sm text-gray-600 hover:text-gray-900 transition-colors"
             >
-              Confidentialité
+              {{ t('footer.privacy') }}
             </router-link>
-            <a
-              href="https://github.com/budget-gaming"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-sm text-gray-600 hover:text-gray-900 transition-colors flex items-center space-x-1"
+
+            href="https://github.com/budget-gaming"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-sm text-gray-600 hover:text-gray-900 transition-colors flex items-center space-x-1"
             >
-              <CodeBracketIcon class="w-4 h-4" />
-              <span>GitHub</span>
+            <CodeBracketIcon class="w-4 h-4" />
+            <span>GitHub</span>
             </a>
           </nav>
         </div>
@@ -71,7 +71,7 @@
       <div v-if="isDevelopment" class="mt-4 pt-4 border-t border-gray-100">
         <div class="flex items-center justify-between text-xs text-gray-500">
           <div class="flex items-center space-x-4">
-            <span>Version: {{ appVersion }}</span>
+            <span>{{ t('footer.version') }}: {{ appVersion }}</span>
             <span class="flex items-center space-x-1">
               <div
                 class="w-2 h-2 rounded-full"
@@ -82,12 +82,12 @@
           </div>
 
           <div class="flex items-center space-x-2">
-            <span>Env: {{ environment }}</span>
+            <span>{{ t('footer.env') }}: {{ environment }}</span>
             <button
               @click="clearCache"
               class="text-blue-600 hover:text-blue-700 underline"
             >
-              Clear Cache
+              {{ t('footer.clearCache') }}
             </button>
           </div>
         </div>
@@ -98,15 +98,18 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useGamingStore } from '@/stores/gamingStore'
 import { useSystemStore } from '@/stores/systemStore'
 import {
-  CurrencyDollarIcon,
   TrophyIcon,
   FireIcon,
   StarIcon,
   CodeBracketIcon
 } from '@heroicons/vue/24/outline'
+
+// ✅ Utiliser vue-i18n
+const { t } = useI18n()
 
 // Stores
 const gamingStore = useGamingStore()
@@ -122,10 +125,10 @@ const isDevelopment = computed(() => import.meta.env.DEV)
 const appVersion = computed(() => import.meta.env.VITE_APP_VERSION || '1.0.0')
 const environment = computed(() => import.meta.env.MODE)
 const apiStatus = computed(() => systemStore.apiStatus || 'disconnected')
+const currentYear = computed(() => new Date().getFullYear())
 
 // Methods
 const clearCache = (): void => {
-  // Vider le cache du navigateur pour le dev
   localStorage.clear()
   sessionStorage.clear()
   location.reload()
