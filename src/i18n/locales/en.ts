@@ -107,7 +107,7 @@ export default {
   // FOOTER
   // ==========================================
   footer: {
-    copyright: '© {year} - All rights reserved',
+    rights: 'All rights reserved',
     help: 'Help',
     privacy: 'Privacy',
     version: 'Version',

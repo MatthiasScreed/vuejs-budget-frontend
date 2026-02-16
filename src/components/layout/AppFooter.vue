@@ -2,13 +2,12 @@
   <footer class="bg-white border-t border-gray-200 py-6">
     <div class="max-w-7xl mx-auto px-4 lg:px-6">
       <div class="flex flex-col lg:flex-row items-center justify-between space-y-4 lg:space-y-0">
-
         <!-- Left: Logo + Copyright -->
         <div class="flex items-center space-x-3">
-          <img src="@/assets/images/icon/icon.svg" class="w-8" alt="CoinQuest">
+          <img src="@/assets/images/icon/icon.svg" class="w-8" alt="CoinQuest" />
           <div>
             <p class="text-sm font-semibold text-gray-900">CoinQuest</p>
-            <p class="text-xs text-gray-500">{{ t('footer.copyright', { year: currentYear }) }}</p>
+            <p class="text-xs text-gray-500">© {{ currentYear }} - {{ t('footer.rights') }}</p>
           </div>
         </div>
 
@@ -42,16 +41,10 @@
         <!-- Right: Links -->
         <div class="flex items-center space-x-6">
           <nav class="flex items-center space-x-4">
-            <router-link
-              to="/help"
-              class="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-            >
+            <router-link to="/help" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
               {{ t('footer.help') }}
             </router-link>
-            <router-link
-              to="/privacy"
-              class="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-            >
+            <router-link to="/privacy" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
               {{ t('footer.privacy') }}
             </router-link>
 
@@ -73,20 +66,14 @@
           <div class="flex items-center space-x-4">
             <span>{{ t('footer.version') }}: {{ appVersion }}</span>
             <span class="flex items-center space-x-1">
-              <div
-                class="w-2 h-2 rounded-full"
-                :class="apiStatus === 'connected' ? 'bg-green-500' : 'bg-red-500'"
-              ></div>
+              <div class="w-2 h-2 rounded-full" :class="apiStatusClass"></div>
               <span>API: {{ apiStatus }}</span>
             </span>
           </div>
 
           <div class="flex items-center space-x-2">
             <span>{{ t('footer.env') }}: {{ environment }}</span>
-            <button
-              @click="clearCache"
-              class="text-blue-600 hover:text-blue-700 underline"
-            >
+            <button @click="clearCache" class="text-blue-600 hover:text-blue-700 underline">
               {{ t('footer.clearCache') }}
             </button>
           </div>
@@ -101,33 +88,22 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGamingStore } from '@/stores/gamingStore'
 import { useSystemStore } from '@/stores/systemStore'
-import {
-  TrophyIcon,
-  FireIcon,
-  StarIcon,
-  CodeBracketIcon
-} from '@heroicons/vue/24/outline'
+import { TrophyIcon, FireIcon, StarIcon, CodeBracketIcon } from '@heroicons/vue/24/outline'
 
-// ✅ Utiliser vue-i18n 23
 const { t } = useI18n()
-
-// Stores
 const gamingStore = useGamingStore()
 const systemStore = useSystemStore()
 
-// Computed gaming data
 const totalAchievements = computed(() => gamingStore.achievements?.length || 0)
 const currentStreak = computed(() => gamingStore.currentStreak || 0)
 const playerLevel = computed(() => gamingStore.playerLevel || 1)
-
-// System info
 const isDevelopment = computed(() => import.meta.env.DEV)
 const appVersion = computed(() => import.meta.env.VITE_APP_VERSION || '1.0.0')
 const environment = computed(() => import.meta.env.MODE)
 const apiStatus = computed(() => systemStore.apiStatus || 'disconnected')
 const currentYear = computed(() => new Date().getFullYear())
+const apiStatusClass = computed(() => apiStatus.value === 'connected' ? 'bg-green-500' : 'bg-red-500')
 
-// Methods
 const clearCache = (): void => {
   localStorage.clear()
   sessionStorage.clear()
@@ -136,7 +112,6 @@ const clearCache = (): void => {
 </script>
 
 <style scoped>
-/* Effet gaming sur les stats */
 .gaming-stat {
   transition: all 0.2s ease;
 }
@@ -145,10 +120,13 @@ const clearCache = (): void => {
   transform: translateY(-1px);
 }
 
-/* Animation pour le status API */
 @keyframes pulse-api {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .api-pulse {

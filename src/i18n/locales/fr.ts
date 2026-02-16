@@ -372,12 +372,12 @@ export default {
   // FOOTER
   // ==========================================
   footer: {
-    copyright: '© {year} - Tous droits réservés',
+    rights: 'Tous droits réservés',
     help: 'Aide',
     privacy: 'Confidentialité',
     version: 'Version',
     env: 'Env',
-    clearCache: 'Clear Cache',
+    clearCache: 'Vider le cache',
   },
 
   // ==========================================
