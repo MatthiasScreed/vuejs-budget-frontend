@@ -1009,11 +1009,13 @@ onUnmounted(() => {
 }
 
 .form-input, .form-select, .form-textarea {
-  @apply w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200;
+  @apply w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white;
 }
 
 .form-input::placeholder, .form-textarea::placeholder {
   @apply placeholder-gray-500;
+  color: #5b6270;
+  opacity: 1;
 }
 
 .input-error {
@@ -1085,7 +1087,7 @@ onUnmounted(() => {
 }
 
 .amount-input {
-  @apply w-full pl-12 pr-4 py-4 text-2xl font-bold border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200;
+  @apply w-full pl-12 pr-4 py-4 text-2xl font-bold border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white;
 }
 
 /* Category buttons */

@@ -57,7 +57,7 @@
               v-model="form.description"
               type="text"
               required
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white placeholder-gray-500"
               :placeholder="transaction.description"
             />
             <p class="text-xs text-gray-500 mt-1">
@@ -73,7 +73,7 @@
             <select
               v-model="form.category_id"
               required
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
             >
               <option value="">Choisir une catégorie</option>
               <optgroup
@@ -146,12 +146,12 @@
                   min="0.01"
                   :max="Math.abs(transaction.amount)"
                   placeholder="Montant"
-                  class="w-24 border border-gray-300 rounded px-2 py-1 text-sm"
+                  class="w-24 border border-gray-300 rounded px-2 py-1 text-sm text-gray-900 bg-white placeholder-gray-500"
                 />
 
                 <select
                   v-model="split.category_id"
-                  class="flex-1 border border-gray-300 rounded px-2 py-1 text-sm"
+                  class="flex-1 border border-gray-300 rounded px-2 py-1 text-sm text-gray-900 bg-white"
                 >
                   <option value="">Choisir catégorie</option>
                   <option
@@ -211,7 +211,7 @@
             <textarea
               v-model="form.notes"
               rows="3"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white placeholder-gray-500"
               placeholder="Ajouter des notes sur cette transaction..."
             ></textarea>
           </div>
