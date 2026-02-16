@@ -1,6 +1,6 @@
 <template>
   <div id="app" class="min-h-screen">
-    <!-- 🔄 ÉCRAN DE CHARGEMENT INITIAL -->
+    <!-- 📄 ÉCRAN DE CHARGEMENT INITIAL -->
     <div
       v-if="!appInitialized"
       class="fixed inset-0 bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center z-50"
@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, ref, computed } from 'vue'
+import { onBeforeMount, ref, computed, watch } from 'vue' // ✅ Ajouter watch ici
 import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -111,13 +111,13 @@ async function initializeApp(): Promise<void> {
 
     // 2️⃣ Initialiser l'authentification (CRITIQUE)
     loadingMessage.value = 'Chargement de ton profil...'
-    console.log('📍 Début initAuth()')
+    console.log('🔐 Début initAuth()')
 
     const authResult = await authStore.initAuth()
 
-    console.log('📍 initAuth() terminée:', authResult)
-    console.log('📍 isAuthenticated:', authStore.isAuthenticated)
-    console.log('📍 user:', authStore.user?.email || 'null')
+    console.log('🔐 initAuth() terminée:', authResult)
+    console.log('🔐 isAuthenticated:', authStore.isAuthenticated)
+    console.log('🔐 user:', authStore.user?.email || 'null')
 
     initProgress.value = 70
 
@@ -166,10 +166,12 @@ async function retryInitialization(): Promise<void> {
  * Cela garantit que l'init se fait AVANT que le router ne tente la première navigation
  */
 onBeforeMount(async () => {
-  console.log('📍 App.vue - BEFORE MOUNT')
+  console.log('🔍 App.vue - BEFORE MOUNT')
   await initializeApp()
-  console.log('📍 App.vue - Initialization complete, ready for navigation')
+  console.log('🔍 App.vue - Initialization complete, ready for navigation')
 })
+
+// ✅ Watcher pour changer la langue du HTML
 watch(locale, (newLocale) => {
   document.documentElement.lang = newLocale
 })
