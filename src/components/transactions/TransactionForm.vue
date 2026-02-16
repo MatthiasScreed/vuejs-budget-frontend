@@ -599,6 +599,7 @@ onMounted(() => {
   padding: 0.75rem;
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
+  color: #111827;
   font-size: 1rem;
   transition: all 0.2s;
   background: white;
@@ -606,7 +607,7 @@ onMounted(() => {
 
 .form-input::placeholder,
 .form-textarea::placeholder {
-  color: #5b6270;
+  color: #9ca3af;
   opacity: 1;
 }
 
