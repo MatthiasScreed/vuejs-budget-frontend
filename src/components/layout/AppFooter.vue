@@ -7,7 +7,7 @@
           <img src="@/assets/images/icon/icon.svg" class="w-8" alt="CoinQuest" />
           <div>
             <p class="text-sm font-semibold text-gray-900">CoinQuest</p>
-            <p class="text-xs text-gray-500">© {{ currentYear }} - {{ t('footer.rights') }}</p>
+            <p class="text-xs text-gray-500">© {{ currentYear }} - Tous droits réservés</p>
           </div>
         </div>
 
@@ -17,7 +17,7 @@
             <TrophyIcon class="w-5 h-5 text-yellow-500" />
             <div class="text-center">
               <p class="text-sm font-semibold text-gray-900">{{ totalAchievements }}</p>
-              <p class="text-xs text-gray-500">{{ t('gaming.achievements') }}</p>
+              <p class="text-xs text-gray-500">Succès</p>
             </div>
           </div>
 
@@ -25,7 +25,7 @@
             <FireIcon class="w-5 h-5 text-orange-500" />
             <div class="text-center">
               <p class="text-sm font-semibold text-gray-900">{{ currentStreak }}</p>
-              <p class="text-xs text-gray-500">{{ t('gaming.days') }}</p>
+              <p class="text-xs text-gray-500">Jours</p>
             </div>
           </div>
 
@@ -33,7 +33,7 @@
             <StarIcon class="w-5 h-5 text-purple-500" />
             <div class="text-center">
               <p class="text-sm font-semibold text-gray-900">{{ playerLevel }}</p>
-              <p class="text-xs text-gray-500">{{ t('gaming.level') }}</p>
+              <p class="text-xs text-gray-500">Niveau</p>
             </div>
           </div>
         </div>
@@ -41,20 +41,26 @@
         <!-- Right: Links -->
         <div class="flex items-center space-x-6">
           <nav class="flex items-center space-x-4">
-            <router-link to="/help" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-              {{ t('footer.help') }}
-            </router-link>
-            <router-link to="/privacy" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-              {{ t('footer.privacy') }}
-            </router-link>
-
-            href="https://github.com/budget-gaming"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-sm text-gray-600 hover:text-gray-900 transition-colors flex items-center space-x-1"
+            <router-link
+              to="/help"
+              class="text-sm text-gray-600 hover:text-gray-900 transition-colors"
             >
-            <CodeBracketIcon class="w-4 h-4" />
-            <span>GitHub</span>
+              Aide
+            </router-link>
+            <router-link
+              to="/privacy"
+              class="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              Confidentialité
+            </router-link>
+            <a
+              href="https://github.com/budget-gaming"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-sm text-gray-600 hover:text-gray-900 transition-colors flex items-center space-x-1"
+            >
+              <CodeBracketIcon class="w-4 h-4" />
+              <span>GitHub</span>
             </a>
           </nav>
         </div>
@@ -64,7 +70,7 @@
       <div v-if="isDevelopment" class="mt-4 pt-4 border-t border-gray-100">
         <div class="flex items-center justify-between text-xs text-gray-500">
           <div class="flex items-center space-x-4">
-            <span>{{ t('footer.version') }}: {{ appVersion }}</span>
+            <span>Version: {{ appVersion }}</span>
             <span class="flex items-center space-x-1">
               <div class="w-2 h-2 rounded-full" :class="apiStatusClass"></div>
               <span>API: {{ apiStatus }}</span>
@@ -72,9 +78,9 @@
           </div>
 
           <div class="flex items-center space-x-2">
-            <span>{{ t('footer.env') }}: {{ environment }}</span>
+            <span>Env: {{ environment }}</span>
             <button @click="clearCache" class="text-blue-600 hover:text-blue-700 underline">
-              {{ t('footer.clearCache') }}
+              Clear Cache
             </button>
           </div>
         </div>
@@ -85,12 +91,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useGamingStore } from '@/stores/gamingStore'
 import { useSystemStore } from '@/stores/systemStore'
 import { TrophyIcon, FireIcon, StarIcon, CodeBracketIcon } from '@heroicons/vue/24/outline'
 
-const { t } = useI18n()
 const gamingStore = useGamingStore()
 const systemStore = useSystemStore()
 
@@ -102,7 +106,9 @@ const appVersion = computed(() => import.meta.env.VITE_APP_VERSION || '1.0.0')
 const environment = computed(() => import.meta.env.MODE)
 const apiStatus = computed(() => systemStore.apiStatus || 'disconnected')
 const currentYear = computed(() => new Date().getFullYear())
-const apiStatusClass = computed(() => apiStatus.value === 'connected' ? 'bg-green-500' : 'bg-red-500')
+const apiStatusClass = computed(() =>
+  apiStatus.value === 'connected' ? 'bg-green-500' : 'bg-red-500',
+)
 
 const clearCache = (): void => {
   localStorage.clear()
@@ -121,7 +127,8 @@ const clearCache = (): void => {
 }
 
 @keyframes pulse-api {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
