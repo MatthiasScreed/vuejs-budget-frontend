@@ -1,3 +1,4 @@
+// src/i18n/locales/en.ts
 export default {
   // ==========================================
   // NAVIGATION & LAYOUT
@@ -70,6 +71,38 @@ export default {
   },
 
   // ==========================================
+  // DASHBOARD
+  // ==========================================
+  dashboard: {
+    greeting: 'Hello {name}',
+    greetingDefault: 'Hello',
+    defaultSubtitle: 'Here is your financial overview',
+    loading: 'Loading your data...',
+    financialOverview: 'Financial Overview',
+    savingsCapacity: 'Savings Capacity',
+    savingsRate: 'Savings Rate',
+    activeGoals: 'Active Goals',
+    spendingByCategory: 'Spending by Category',
+    aiProjections: 'AI Projections',
+    recentActivity: 'Recent Activity',
+
+    // Cards
+    monthlyIncome: 'Monthly Income',
+    monthlyExpenses: 'Monthly Expenses',
+
+    // Actions
+    newGoal: 'New Goal',
+    newBank: 'Bank',
+    analyze: 'Analyze',
+
+    // Messages
+    welcome: 'Welcome!',
+    welcomeMessage: 'Track your finances daily',
+    nextSteps: 'Next Steps',
+    allGoalsReached: 'All your goals are reached!',
+  },
+
+  // ==========================================
   // GAMING
   // ==========================================
   gaming: {
@@ -87,6 +120,19 @@ export default {
     days: 'days',
     dailyTransactions: 'Daily transactions',
     gamingImpact: 'Gaming Impact',
+  },
+
+  // ==========================================
+  // SIDEBAR
+  // ==========================================
+  sidebar: {
+    sectionFinances: 'Finances',
+    sectionGaming: 'Gaming',
+    sectionTools: 'Tools',
+    quickActions: 'Quick Actions',
+    quickTransaction: 'Quick transaction',
+    dailyChallenge: 'Daily challenge',
+    badgeNew: 'NEW',
   },
 
   // ==========================================
@@ -116,6 +162,22 @@ export default {
   },
 
   // ==========================================
+  // FINANCIAL GOALS
+  // ==========================================
+  goals: {
+    title: 'Financial Goals',
+    newGoal: 'New Goal',
+    targetAmount: 'Target Amount',
+    currentAmount: 'Current Amount',
+    deadline: 'Deadline',
+    progress: 'Progress',
+    completed: 'Completed!',
+    remaining: 'Remaining',
+    viewAll: 'View All',
+    activeGoals: 'Active Goals',
+  },
+
+  // ==========================================
   // ERRORS
   // ==========================================
   errors: {
@@ -128,19 +190,6 @@ export default {
     tryAgain: 'Try again',
     reload: 'Reload page',
     persistContact: 'If the problem persists, contact support',
-  },
-
-  // ==========================================
-  // SIDEBAR
-  // ==========================================
-  sidebar: {
-    sectionFinances: 'Finances',
-    sectionGaming: 'Gaming',
-    sectionTools: 'Tools',
-    quickActions: 'Quick Actions',
-    quickTransaction: 'Quick transaction',
-    dailyChallenge: 'Daily challenge',
-    badgeNew: 'NEW',
   },
 
   // ==========================================

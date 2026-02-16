@@ -73,6 +73,141 @@ export default {
   },
 
   // ==========================================
+  // DASHBOARD
+  // ==========================================
+  dashboard: {
+    greeting: 'Bonjour {name}',
+    greetingDefault: 'Bonjour',
+    defaultSubtitle: 'Voici votre situation financière',
+    loading: 'Chargement de vos données...',
+    financialOverview: "Vue d'ensemble financière",
+    savingsCapacity: "Capacité d'épargne",
+    savingsRate: "Taux d'épargne",
+    activeGoals: 'Objectifs en cours',
+    spendingByCategory: 'Dépenses par catégorie',
+    aiProjections: 'Projections IA',
+    recentActivity: 'Activité récente',
+
+    // Cards
+    monthlyIncome: 'Revenus mensuels',
+    monthlyExpenses: 'Dépenses mensuelles',
+
+    // Actions
+    newGoal: 'Nouvel objectif',
+    newBank: 'Banque',
+    analyze: 'Analyse',
+
+    // Messages
+    welcome: 'Bienvenue !',
+    welcomeMessage: 'Suivez vos finances au quotidien',
+    nextSteps: 'Prochaines étapes',
+    allGoalsReached: 'Tous vos objectifs sont atteints !',
+  },
+
+  // ==========================================
+  // GAMING
+  // ==========================================
+  gaming: {
+    level: 'Niveau',
+    xp: 'XP',
+    points: 'Points',
+    achievements: 'Succès',
+    streak: 'Série',
+    rank: 'Rang',
+    dailyProgress: 'Progrès du jour',
+    xpEarned: 'XP gagné sur la période',
+    achievementsUnlocked: 'Succès débloqués',
+    currentStreak: 'Série actuelle',
+    transactionsAdded: '{n} transaction(s) ajoutée(s)',
+    days: 'jours',
+    dailyTransactions: 'Transactions quotidiennes',
+    gamingImpact: 'Impact Gaming',
+  },
+
+  // ==========================================
+  // SIDEBAR
+  // ==========================================
+  sidebar: {
+    sectionFinances: 'Finances',
+    sectionGaming: 'Gaming',
+    sectionTools: 'Outils',
+    quickActions: 'Actions Rapides',
+    quickTransaction: 'Transaction rapide',
+    dailyChallenge: 'Défi du jour',
+    badgeNew: 'NEW',
+  },
+
+  // ==========================================
+  // NOTIFICATIONS
+  // ==========================================
+  notifications: {
+    title: 'Notifications',
+    viewAll: 'Voir toutes les notifications',
+    achievementUnlocked: 'Nouveau succès débloqué !',
+    goalReached: 'Objectif épargne atteint',
+    streakDays: 'Série de {n} jours !',
+    minutesAgo: 'Il y a {n} min',
+    hoursAgo: 'Il y a {n}h',
+    daysAgo: 'Il y a {n}j',
+  },
+
+  // ==========================================
+  // FOOTER
+  // ==========================================
+  footer: {
+    rights: 'Tous droits réservés',
+    help: 'Aide',
+    privacy: 'Confidentialité',
+    version: 'Version',
+    env: 'Env',
+    clearCache: 'Vider le cache',
+  },
+
+  // ==========================================
+  // OBJECTIFS FINANCIERS
+  // ==========================================
+  goals: {
+    title: 'Objectifs financiers',
+    newGoal: 'Nouvel objectif',
+    targetAmount: 'Montant cible',
+    currentAmount: 'Montant actuel',
+    deadline: 'Échéance',
+    progress: 'Progression',
+    completed: 'Atteint !',
+    remaining: 'Restant',
+    viewAll: 'Voir tout',
+    activeGoals: 'Objectifs actifs',
+  },
+
+  // ==========================================
+  // ERREURS GLOBALES
+  // ==========================================
+  errors: {
+    generic: 'Une erreur est survenue',
+    network: 'Erreur de connexion',
+    unauthorized: 'Non autorisé',
+    notFound: 'Non trouvé',
+    loadingError: 'Erreur de chargement',
+    loadingErrorDesc: 'Une erreur est survenue lors du chargement de CoinQuest.',
+    tryAgain: 'Réessayer',
+    reload: 'Recharger la page',
+    persistContact: 'Si le problème persiste, contacte le support',
+  },
+
+  // ==========================================
+  // DEBUG (dev only)
+  // ==========================================
+  debug: {
+    info: 'Debug Info',
+    route: 'Route',
+    apiStatusVisible: 'API Status visible',
+    paddingTop: 'Padding-top',
+    userLevel: 'User level',
+    sidebarOpen: 'Sidebar open',
+    isMobile: 'Is mobile',
+  },
+
+  // ==========================================
   // TRANSACTIONS
   // ==========================================
   transactions: {
@@ -216,40 +351,6 @@ export default {
   },
 
   // ==========================================
-  // GAMING
-  // ==========================================
-  gaming: {
-    level: 'Niveau',
-    xp: 'XP',
-    points: 'Points',
-    achievements: 'Succès',
-    streak: 'Série',
-    rank: 'Rang',
-    dailyProgress: 'Progrès du jour',
-    xpEarned: 'XP gagné sur la période',
-    achievementsUnlocked: 'Succès débloqués',
-    currentStreak: 'Série actuelle',
-    transactionsAdded: '{n} transaction(s) ajoutée(s)',
-    days: 'jours',
-    dailyTransactions: 'Transactions quotidiennes',
-    gamingImpact: 'Impact Gaming',
-  },
-
-  // ==========================================
-  // OBJECTIFS FINANCIERS
-  // ==========================================
-  goals: {
-    title: 'Objectifs financiers',
-    newGoal: 'Nouvel objectif',
-    targetAmount: 'Montant cible',
-    currentAmount: 'Montant actuel',
-    deadline: 'Échéance',
-    progress: 'Progression',
-    completed: 'Atteint !',
-    remaining: 'Restant',
-  },
-
-  // ==========================================
   // BUDGET
   // ==========================================
   budget: {
@@ -300,21 +401,6 @@ export default {
   },
 
   // ==========================================
-  // ERREURS GLOBALES
-  // ==========================================
-  errors: {
-    generic: 'Une erreur est survenue',
-    network: 'Erreur de connexion',
-    unauthorized: 'Non autorisé',
-    notFound: 'Non trouvé',
-    loadingError: 'Erreur de chargement',
-    loadingErrorDesc: 'Une erreur est survenue lors du chargement de CoinQuest.',
-    tryAgain: 'Réessayer',
-    reload: 'Recharger la page',
-    persistContact: 'Si le problème persiste, contacte le support',
-  },
-
-  // ==========================================
   // VALIDATION
   // ==========================================
   validation: {
@@ -352,57 +438,5 @@ export default {
     salary: 'Salaire',
     grocery: 'Courses',
     cinema: 'Cinéma',
-  },
-
-  // ==========================================
-  // NOTIFICATIONS
-  // ==========================================
-  notifications: {
-    title: 'Notifications',
-    viewAll: 'Voir toutes les notifications',
-    achievementUnlocked: 'Nouveau succès débloqué !',
-    goalReached: 'Objectif épargne atteint',
-    streakDays: 'Série de {n} jours !',
-    minutesAgo: 'Il y a {n} min',
-    hoursAgo: 'Il y a {n}h',
-    daysAgo: 'Il y a {n}j',
-  },
-
-  // ==========================================
-  // FOOTER
-  // ==========================================
-  footer: {
-    rights: 'Tous droits réservés',
-    help: 'Aide',
-    privacy: 'Confidentialité',
-    version: 'Version',
-    env: 'Env',
-    clearCache: 'Vider le cache',
-  },
-
-  // ==========================================
-  // SIDEBAR
-  // ==========================================
-  sidebar: {
-    sectionFinances: 'Finances',
-    sectionGaming: 'Gaming',
-    sectionTools: 'Outils',
-    quickActions: 'Actions Rapides',
-    quickTransaction: 'Transaction rapide',
-    dailyChallenge: 'Défi du jour',
-    badgeNew: 'NEW',
-  },
-
-  // ==========================================
-  // DEBUG (dev only)
-  // ==========================================
-  debug: {
-    info: 'Debug Info',
-    route: 'Route',
-    apiStatusVisible: 'API Status visible',
-    paddingTop: 'Padding-top',
-    userLevel: 'User level',
-    sidebarOpen: 'Sidebar open',
-    isMobile: 'Is mobile',
   },
 }
