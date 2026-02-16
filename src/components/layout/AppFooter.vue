@@ -108,7 +108,7 @@ import {
   CodeBracketIcon
 } from '@heroicons/vue/24/outline'
 
-// ✅ Utiliser vue-i18n
+// ✅ Utiliser vue-i18n 23
 const { t } = useI18n()
 
 // Stores
