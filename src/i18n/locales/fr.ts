@@ -364,4 +364,256 @@ export default {
     sidebarOpen: 'Sidebar open',
     isMobile: 'Is mobile',
   },
+
+  // ==========================================
+  // CATÉGORIES (page complète)
+  // ==========================================
+  categories: {
+    title: 'Catégories',
+    subtitle: 'Organisez vos dépenses',
+    new: 'Nouvelle',
+
+    // Stats
+    activeCategories: 'Catégories actives',
+    spentThisMonth: 'Dépenses ce mois',
+    mostSpent: 'Plus dépensée',
+    budgetUsed: 'Budget utilisé',
+    none: 'Aucune',
+
+    // Actions
+    income: 'Revenu',
+    expense: 'Dépense',
+    templates: 'Templates',
+    refresh: 'Actualiser',
+
+    // Liste
+    yourCategories: 'Vos catégories',
+    category: 'catégorie',
+    categories_plural: 'catégories',
+
+    // Types
+    revenues: 'Revenus',
+    expenses: 'Dépenses',
+    budget: 'Budget',
+    budgetPerMonth: 'Budget: {amount}/mois',
+
+    // Progress
+    spent: 'Dépensé',
+
+    // Actions
+    modify: 'Modifier',
+    delete: 'Supprimer',
+
+    // Modal
+    newCategory: 'Nouvelle catégorie',
+    editCategory: 'Modifier',
+    confirmDelete: 'Confirmer la suppression',
+    irreversible: 'Cette action est irréversible',
+    deleteQuestion: 'Supprimer "{name}" ?',
+    type: 'Type',
+
+    // Empty state
+    noCategory: 'Aucune catégorie',
+    startCreating: 'Commencez par créer votre première catégorie',
+    createFirst: 'Créer ma première catégorie',
+
+    // Templates
+    templatesTitle: 'Templates de catégories',
+    viewMore: 'Voir {n} templates de plus',
+    viewLess: 'Voir moins',
+  },
+
+  // ==========================================
+  // DÉFIS (Challenges)
+  // ==========================================
+  challenges: {
+    title: 'Défis',
+    subtitle: 'Participez aux défis et grimpez dans les classements',
+    refresh: 'Actualiser',
+    refreshing: 'Chargement...',
+
+    // Tabs
+    myChallenges: 'Mes défis',
+    available: 'Disponibles',
+    leaderboards: 'Classements',
+
+    // Stats
+    activeChallenges: 'Défis actifs',
+    completed: 'Complétés',
+    bestRank: 'Meilleur rang',
+    totalXP: 'XP gagnés',
+
+    // My challenges
+    inProgress: 'Mes défis en cours',
+    noChallenge: 'Vous ne participez à aucun défi pour le moment',
+    discover: 'Découvrir les défis',
+    yourRank: 'Votre rang',
+    progression: 'Progression',
+    toWin: 'à gagner',
+    viewLeaderboard: 'Voir le classement',
+
+    // Available
+    filters: 'Filtres',
+    all: 'Toutes',
+    easy: 'Facile',
+    medium: 'Moyen',
+    hard: 'Difficile',
+    availableChallenges: 'Défis disponibles',
+    participants: 'participants',
+    rewards: 'Récompenses',
+    participate: 'Participer',
+    participating: 'Participation...',
+
+    // Difficulty
+    difficultyEasy: 'Facile',
+    difficultyMedium: 'Moyen',
+    difficultyHard: 'Difficile',
+
+    // Time
+    endsOn: 'Se termine le {date}',
+    remaining: '{n} jours restants',
+    oneDay: '1 jour restant',
+    finished: 'Terminé',
+
+    // Empty
+    noChallengeFound: 'Aucun défi disponible pour ces critères',
+
+    // Leaderboard
+    globalLeaderboard: 'Classements globaux',
+    thisWeek: 'Cette semaine',
+    thisMonth: 'Ce mois',
+    allTime: 'Tous temps',
+    player: 'Joueur',
+    challengesCompleted: 'Défis',
+    you: 'Vous',
+
+    // Toast
+    joined: 'Vous participez maintenant au défi "{name}" !',
+    error: 'Erreur lors de la participation au défi',
+    refreshed: 'Défis actualisés !',
+  },
+
+  // ==========================================
+  // GAMING CENTER
+  // ==========================================
+  gamingCenter: {
+    title: 'Progression',
+    subtitle: 'Suivez votre évolution et débloquez des récompenses',
+
+    // Stats
+    tier: 'Niveau',
+    achievements: 'Succès',
+    streak: 'Série',
+    totalXP: 'Total',
+    points: 'XP',
+    days: 'jours',
+    record: 'Record: {n} jours',
+    completed: 'complétés',
+
+    // Quick links
+    allAchievements: 'Tous les succès',
+    unlocked: '{n}/{total} débloqués',
+    activeChallenges: 'Défis actifs',
+    inProgress: '{n} en cours',
+    ranking: 'Classement',
+    rankPosition: '#{rank} sur {total}',
+
+    // Recent achievements
+    recentAchievements: 'Succès récents',
+
+    // Leaderboard
+    leaderboard: 'Classement',
+
+    // Loading
+    loading: 'Chargement...',
+  },
+
+  // ==========================================
+  // OBJECTIFS (Goals)
+  // ==========================================
+  goals: {
+    title: 'Mes Objectifs',
+    subtitle: "Gérez vos objectifs d'épargne et suivez votre progression",
+    new: 'Nouvel objectif',
+    refresh: 'Actualiser',
+    refreshing: 'Chargement...',
+    templates: 'Templates',
+
+    // Stats
+    activeGoals: 'Objectifs actifs',
+    totalSaved: 'Montant épargné',
+    averageProgress: 'Progression moyenne',
+    goalsReached: 'Objectifs atteints',
+
+    // Filters
+    all: 'Tous',
+    active: 'Actifs',
+    completed: 'Atteints',
+    paused: 'En pause',
+
+    // Goal card
+    noDescription: 'Pas de description',
+    on: 'sur',
+    remaining: 'Reste: {amount}',
+    perMonth: '/mois',
+    add: 'Ajouter',
+    modify: 'Modifier',
+
+    // Status
+    statusActive: 'Actif',
+    statusCompleted: 'Atteint',
+    statusPaused: 'En pause',
+
+    // Menu
+    contribution: 'Contribution',
+    pause: 'Pause',
+    resume: 'Reprendre',
+    delete: 'Supprimer',
+
+    // Time
+    exceeded: 'Dépassé',
+    today: "Aujourd'hui",
+    tomorrow: 'Demain',
+    daysRemaining: '{n} jours',
+    monthsRemaining: '{n} mois',
+    yearsRemaining: '{n} an(s)',
+
+    // Modal
+    newGoal: 'Nouvel objectif',
+    editGoal: 'Modifier',
+    chooseTemplate: 'Choisir un template',
+    addContribution: 'Ajouter une contribution',
+    goal: 'Objectif',
+    amount: 'Montant (€)',
+    cancel: 'Annuler',
+
+    // Delete
+    deleteTitle: 'Supprimer cet objectif ?',
+    deleteText: 'Cette action est irréversible. L\'objectif "{name}" sera définitivement supprimé.',
+    deleting: 'Suppression...',
+
+    // Empty
+    noGoals: 'Aucun objectif',
+    noGoalsInCategory: 'dans cette catégorie',
+    createFirstGoal: 'Créez votre premier objectif financier pour commencer à épargner !',
+    createGoal: 'Créer un objectif',
+
+    // Templates
+    travel: 'Voyage',
+    travelDesc: 'Économisez pour votre prochaine aventure',
+    emergency: "Fonds d'urgence",
+    emergencyDesc: '3-6 mois de dépenses',
+    house: 'Immobilier',
+    houseDesc: 'Apport pour un achat immobilier',
+    car: 'Voiture',
+    carDesc: 'Achat ou remplacement de véhicule',
+    education: 'Formation',
+    educationDesc: 'Investir dans vos compétences',
+    wedding: 'Mariage',
+    weddingDesc: 'Préparer le grand jour',
+    retirement: 'Retraite',
+    retirementDesc: 'Préparer votre avenir',
+    tech: 'High-Tech',
+    techDesc: 'Équipement informatique',
+  },
 }
