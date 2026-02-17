@@ -6,12 +6,12 @@
       <div class="page-header">
         <div class="header-content">
           <div class="header-text">
-            <h1 class="page-title">🏷️ Catégories</h1>
-            <p class="page-subtitle">Organisez vos dépenses</p>
+            <h1 class="page-title">🏷️ {{ t('categories.title') }}</h1>
+            <p class="page-subtitle">{{ t('categories.subtitle') }}</p>
           </div>
 
           <LoadingButton variant="primary" icon="➕" @click="handleNewCategory()">
-            Nouvelle
+            {{ t('categories.new') }}
           </LoadingButton>
         </div>
       </div>
@@ -23,7 +23,7 @@
             <span class="stat-emoji">📊</span>
           </div>
           <div class="stat-amount">{{ categoryStats.total }}</div>
-          <div class="stat-label">Catégories actives</div>
+          <div class="stat-label">{{ t('categories.activeCategories') }}</div>
         </div>
 
         <div class="stat-card stat-spending">
@@ -31,15 +31,17 @@
             <span class="stat-emoji">💸</span>
           </div>
           <div class="stat-amount">{{ formatDisplayCurrency(monthlySpending) }}</div>
-          <div class="stat-label">Dépenses ce mois</div>
+          <div class="stat-label">{{ t('categories.spentThisMonth') }}</div>
         </div>
 
         <div class="stat-card stat-top">
           <div class="stat-header">
             <span class="stat-emoji">{{ mostUsedCategory?.icon || '🎯' }}</span>
           </div>
-          <div class="stat-amount stat-name">{{ mostUsedCategory?.name || 'Aucune' }}</div>
-          <div class="stat-label">Plus dépensée</div>
+          <div class="stat-amount stat-name">
+            {{ mostUsedCategory?.name || t('categories.none') }}
+          </div>
+          <div class="stat-label">{{ t('categories.mostSpent') }}</div>
         </div>
 
         <div class="stat-card stat-usage">
@@ -47,20 +49,20 @@
             <span class="stat-emoji">📈</span>
           </div>
           <div class="stat-amount">{{ averageBudgetUsage }}%</div>
-          <div class="stat-label">Budget utilisé</div>
+          <div class="stat-label">{{ t('categories.budgetUsed') }}</div>
         </div>
       </div>
 
       <!-- Actions rapides -->
       <div class="quick-actions">
         <LoadingButton variant="success" icon="💰" @click="handleNewCategory('income')">
-          Revenu
+          {{ t('categories.income') }}
         </LoadingButton>
         <LoadingButton variant="danger" icon="💸" @click="handleNewCategory('expense')">
-          Dépense
+          {{ t('categories.expense') }}
         </LoadingButton>
         <LoadingButton variant="neutral" icon="📋" @click="handleShowTemplates">
-          Templates
+          {{ t('categories.templates') }}
         </LoadingButton>
         <LoadingButton
           variant="neutral"
@@ -68,24 +70,24 @@
           :loading="crud.loading.value"
           @click="handleRefresh"
         >
-          Actualiser
+          {{ t('categories.refresh') }}
         </LoadingButton>
       </div>
 
       <!-- Loading -->
       <div v-if="loading && categories.length === 0" class="loading-state">
         <div class="loading-spinner"></div>
-        <p class="loading-text">Chargement des catégories...</p>
+        <p class="loading-text">{{ t('common.loading') }}</p>
       </div>
 
       <!-- Empty State -->
       <EmptyState
         v-else-if="isEmpty && !error"
         icon="📂"
-        title="Aucune catégorie"
-        description="Commencez par créer votre première catégorie"
+        :title="t('categories.noCategory')"
+        :description="t('categories.startCreating')"
         show-action
-        action-text="Créer ma première catégorie"
+        :action-text="t('categories.createFirst')"
         action-icon="➕"
         @action="handleNewCategory()"
       />
@@ -93,9 +95,12 @@
       <!-- Categories List -->
       <div v-else class="gaming-card categories-card">
         <div class="categories-header">
-          <h2 class="card-title">Vos catégories</h2>
+          <h2 class="card-title">{{ t('categories.yourCategories') }}</h2>
           <span class="categories-count">
-            {{ categories.length }} catégorie{{ categories.length > 1 ? 's' : '' }}
+            {{ categories.length }}
+            {{
+              categories.length > 1 ? t('categories.categories_plural') : t('categories.category')
+            }}
           </span>
         </div>
 
@@ -127,10 +132,18 @@
                         class="badge-type"
                         :class="category.type === 'income' ? 'badge-income' : 'badge-expense'"
                       >
-                        {{ category.type === 'income' ? '📈 Revenus' : '📉 Dépenses' }}
+                        {{
+                          category.type === 'income'
+                            ? `📈 ${t('categories.revenues')}`
+                            : `📉 ${t('categories.expenses')}`
+                        }}
                       </span>
                       <span v-if="category.monthly_budget" class="badge-budget">
-                        Budget: {{ formatDisplayCurrency(category.monthly_budget) }}/mois
+                        {{
+                          t('categories.budgetPerMonth', {
+                            amount: formatDisplayCurrency(category.monthly_budget),
+                          })
+                        }}
                       </span>
                     </div>
                   </div>
@@ -162,10 +175,10 @@
               <!-- Actions Mobile -->
               <div class="mobile-actions">
                 <LoadingButton variant="secondary" size="sm" @click="handleEdit(category)">
-                  Modifier
+                  {{ t('categories.modify') }}
                 </LoadingButton>
                 <LoadingButton variant="danger" size="sm" @click="handleDelete(category)">
-                  Supprimer
+                  {{ t('categories.delete') }}
                 </LoadingButton>
               </div>
             </div>
@@ -183,16 +196,26 @@
 
               <div class="desktop-info-col">
                 <h3 class="desktop-name">{{ category.name }}</h3>
-                <p class="desktop-desc">{{ category.description || 'Aucune description' }}</p>
+                <p class="desktop-desc">
+                  {{ category.description || t('categories.noDescription') }}
+                </p>
                 <div class="desktop-badges">
                   <span
                     class="badge-type"
                     :class="category.type === 'income' ? 'badge-income' : 'badge-expense'"
                   >
-                    {{ category.type === 'income' ? '📈 Revenus' : '📉 Dépenses' }}
+                    {{
+                      category.type === 'income'
+                        ? `📈 ${t('categories.revenues')}`
+                        : `📉 ${t('categories.expenses')}`
+                    }}
                   </span>
                   <span v-if="category.monthly_budget" class="badge-budget">
-                    Budget: {{ formatDisplayCurrency(category.monthly_budget) }}/mois
+                    {{
+                      t('categories.budgetPerMonth', {
+                        amount: formatDisplayCurrency(category.monthly_budget),
+                      })
+                    }}
                   </span>
                 </div>
               </div>
@@ -234,7 +257,7 @@
 
       <!-- Section Templates -->
       <div v-if="showTemplatesSection && templates.length > 0" class="gaming-card templates-card">
-        <h3 class="card-title">📋 Templates de catégories</h3>
+        <h3 class="card-title">{{ t('categories.templatesTitle') }}</h3>
         <div class="templates-grid">
           <button
             v-for="template in displayedTemplates"
@@ -256,7 +279,11 @@
           @click="showAllTemplates = !showAllTemplates"
           class="btn-link"
         >
-          {{ showAllTemplates ? 'Voir moins' : `Voir ${templates.length - 6} templates de plus` }}
+          {{
+            showAllTemplates
+              ? t('categories.viewLess')
+              : t('categories.viewMore', { n: templates.length - 6 })
+          }}
         </button>
       </div>
     </ErrorBoundary>
@@ -266,7 +293,7 @@
       <div v-if="showModal" class="modal-overlay" @click.self="handleCloseModal">
         <div class="modal-content modal-form">
           <div class="modal-header">
-            <h2>{{ isEditing ? 'Modifier' : 'Nouvelle' }} catégorie</h2>
+            <h2>{{ isEditing ? t('categories.editCategory') : t('categories.newCategory') }}</h2>
             <button @click="handleCloseModal" class="modal-close">✕</button>
           </div>
           <div class="modal-body">
@@ -292,28 +319,35 @@
               <span class="delete-icon">🗑️</span>
             </div>
             <div>
-              <h3 class="delete-title">Confirmer la suppression</h3>
-              <p class="delete-subtitle">Cette action est irréversible</p>
+              <h3 class="delete-title">{{ t('categories.confirmDelete') }}</h3>
+              <p class="delete-subtitle">{{ t('categories.irreversible') }}</p>
             </div>
           </div>
 
           <div class="modal-delete-content">
             <p class="delete-text">
-              Supprimer <strong>"{{ deletingItem?.name }}"</strong> ?
+              {{ t('categories.deleteQuestion', { name: deletingItem?.name }) }}
             </p>
             <div class="delete-info">
-              Type: {{ deletingItem?.type === 'income' ? 'Revenus' : 'Dépenses' }}
+              {{ t('categories.type') }}:
+              {{
+                deletingItem?.type === 'income'
+                  ? t('categories.revenues')
+                  : t('categories.expenses')
+              }}
             </div>
           </div>
 
           <div class="modal-delete-actions">
-            <LoadingButton variant="secondary" @click="handleCancelDelete"> Annuler </LoadingButton>
+            <LoadingButton variant="secondary" @click="handleCancelDelete">
+              {{ t('common.cancel') }}
+            </LoadingButton>
             <LoadingButton
               variant="danger"
               :loading="crud.loading.value"
               @click="handleConfirmDelete"
             >
-              Supprimer
+              {{ t('common.delete') }}
             </LoadingButton>
           </div>
         </div>
@@ -324,6 +358,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useCategoryStore } from '@/stores/categoryStore'
 import { useTransactionStore } from '@/stores/transactionStore'
 import { useCrudOperation } from '@/composables/useAsyncOperation'
@@ -331,6 +366,12 @@ import CategoryForm from '@/components/forms/CategoryForm.vue'
 import LoadingButton from '@/components/ui/LoadingButton.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import ErrorBoundary from '@/components/ui/ErrorBoundary.vue'
+
+// ==========================================
+// I18N
+// ==========================================
+
+const { t } = useI18n()
 
 // ==========================================
 // TYPES
@@ -514,7 +555,7 @@ async function handleConfirmDelete() {
 
   const result = await crud.remove(
     () => categoryStore.deleteCategory(deletingItem.value!.id),
-    'la catégorie',
+    t('categories.category'),
     deletingItem.value.name,
   )
 
@@ -540,28 +581,24 @@ async function handleSave(categoryData: any) {
   if (isEditing.value && editingItem.value) {
     result = await crud.update(
       () => categoryStore.updateCategory(editingItem.value!.id, categoryData),
-      'la catégorie',
+      t('categories.category'),
     )
   } else {
-    result = await crud.create(() => categoryStore.createCategory(categoryData), 'la catégorie')
+    result = await crud.create(
+      () => categoryStore.createCategory(categoryData),
+      t('categories.category'),
+    )
   }
 
   if (result) {
-    // ✅ CORRECTION: Fermer le modal ET rafraîchir la liste
     handleCloseModal()
-
-    // ✅ Forcer le rechargement des catégories depuis l'API
     await categoryStore.fetchCategories()
-
     console.log('✅ Catégories rafraîchies:', categoryStore.categories.length)
   }
 }
 
 async function handleCreateFromTemplate(template: Category) {
-  await crud.create(
-    () => categoryStore.createFromTemplate(template.id),
-    'la catégorie depuis le template',
-  )
+  await crud.create(() => categoryStore.createFromTemplate(template.id), t('categories.category'))
 }
 
 function handleShowTemplates() {
@@ -576,13 +613,13 @@ function handleShowTemplates() {
 
 async function handleRefresh() {
   const results = await Promise.all([
-    crud.fetch(() => categoryStore.fetchCategories(), 'les catégories'),
-    crud.fetch(() => categoryStore.fetchTemplates(), 'les templates'),
-    crud.fetch(() => transactionStore.fetchTransactions(), 'les transactions'),
+    crud.fetch(() => categoryStore.fetchCategories(), t('categories.categories_plural')),
+    crud.fetch(() => categoryStore.fetchTemplates(), t('categories.templates')),
+    crud.fetch(() => transactionStore.fetchTransactions(), t('transactions.title')),
   ])
 
   if (results.some((r) => !r)) {
-    error.value = new Error("Erreur lors de l'actualisation")
+    error.value = new Error(t('errors.generic'))
   }
 }
 

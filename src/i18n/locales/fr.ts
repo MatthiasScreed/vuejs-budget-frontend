@@ -491,6 +491,7 @@ export default {
     joined: 'Vous participez maintenant au défi "{name}" !',
     error: 'Erreur lors de la participation au défi',
     refreshed: 'Défis actualisés !',
+    leaderboardComing: 'Classement du défi à venir...',
   },
 
   // ==========================================

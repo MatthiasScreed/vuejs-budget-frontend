@@ -16,6 +16,7 @@ import {
   ChartBarIcon,
   ArrowRightOnRectangleIcon,
 } from '@heroicons/vue/24/outline'
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 
 // ✅ Utiliser vue-i18n
 const { t } = useI18n()
@@ -221,6 +222,9 @@ onClickOutside(profileRef, () => {
           <FireIcon class="w-4 h-4" />
           <span class="text-sm font-semibold">{{ currentStreak }}</span>
         </div>
+
+        <!-- ✅ LANGUAGE SWITCHER -->
+        <LanguageSwitcher />
 
         <!-- Notifications -->
         <button

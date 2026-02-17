@@ -1,6 +1,6 @@
 <!-- components/LanguageSwitcher.vue -->
 <template>
-  <div class="relative">
+  <div class="relative" ref="menuRef">
     <button
       @click="toggleMenu"
       class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -55,7 +55,7 @@ const toggleMenu = () => {
 
 const switchLanguage = (code: string) => {
   locale.value = code
-  localStorage.setItem('user-locale', code)
+  localStorage.setItem('coinquest_locale', code) // ✅ IMPORTANT: utiliser 'coinquest_locale' et non 'user-locale'
   menuOpen.value = false
 }
 

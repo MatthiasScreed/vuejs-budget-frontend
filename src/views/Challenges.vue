@@ -4,8 +4,8 @@
     <div class="mb-8">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-3xl font-bold text-gray-900">🎯 Défis</h1>
-          <p class="text-gray-600 mt-2">Participez aux défis et grimpez dans les classements</p>
+          <h1 class="text-3xl font-bold text-gray-900">🎯 {{ t('challenges.title') }}</h1>
+          <p class="text-gray-600 mt-2">{{ t('challenges.subtitle') }}</p>
         </div>
 
         <button
@@ -13,7 +13,7 @@
           class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
           :disabled="loading"
         >
-          {{ loading ? '🔄 Chargement...' : '🔄 Actualiser' }}
+          {{ loading ? `🔄 ${t('challenges.refreshing')}` : `🔄 ${t('challenges.refresh')}` }}
         </button>
       </div>
     </div>
@@ -44,44 +44,46 @@
         <div class="bg-white rounded-xl border border-gray-200 p-4">
           <div class="text-center">
             <div class="text-3xl font-bold text-blue-600">{{ myStats.activeChallenges }}</div>
-            <div class="text-sm text-gray-600">Défis actifs</div>
+            <div class="text-sm text-gray-600">{{ t('challenges.activeChallenges') }}</div>
           </div>
         </div>
 
         <div class="bg-white rounded-xl border border-gray-200 p-4">
           <div class="text-center">
             <div class="text-3xl font-bold text-green-600">{{ myStats.completedChallenges }}</div>
-            <div class="text-sm text-gray-600">Complétés</div>
+            <div class="text-sm text-gray-600">{{ t('challenges.completed') }}</div>
           </div>
         </div>
 
         <div class="bg-white rounded-xl border border-gray-200 p-4">
           <div class="text-center">
             <div class="text-3xl font-bold text-purple-600">#{{ myStats.bestRank }}</div>
-            <div class="text-sm text-gray-600">Meilleur rang</div>
+            <div class="text-sm text-gray-600">{{ t('challenges.bestRank') }}</div>
           </div>
         </div>
 
         <div class="bg-white rounded-xl border border-gray-200 p-4">
           <div class="text-center">
             <div class="text-3xl font-bold text-yellow-600">{{ myStats.totalXP }}</div>
-            <div class="text-sm text-gray-600">XP gagnés</div>
+            <div class="text-sm text-gray-600">{{ t('challenges.totalXP') }}</div>
           </div>
         </div>
       </div>
 
       <!-- Mes défis en cours -->
       <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-6">🔥 Mes défis en cours</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-6">
+          🔥 {{ t('challenges.inProgress') }}
+        </h3>
 
         <div v-if="myChallenges.length === 0" class="text-center py-8">
           <div class="text-4xl mb-4">🎯</div>
-          <p class="text-gray-600 mb-4">Vous ne participez à aucun défi pour le moment</p>
+          <p class="text-gray-600 mb-4">{{ t('challenges.noChallenge') }}</p>
           <button
             @click="activeTab = 'available'"
             class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Découvrir les défis
+            {{ t('challenges.discover') }}
           </button>
         </div>
 
@@ -103,7 +105,7 @@
                       {{ getDifficultyLabel(challenge.difficulty) }}
                     </span>
                     <span class="text-gray-500">
-                      Se termine le {{ formatDate(challenge.end_date) }}
+                      {{ t('challenges.endsOn', { date: formatDate(challenge.end_date) }) }}
                     </span>
                   </div>
                 </div>
@@ -111,14 +113,14 @@
 
               <div class="text-right">
                 <div class="text-2xl font-bold text-blue-600">#{{ challenge.my_rank || '--' }}</div>
-                <div class="text-sm text-gray-600">Votre rang</div>
+                <div class="text-sm text-gray-600">{{ t('challenges.yourRank') }}</div>
               </div>
             </div>
 
             <!-- Progress bar -->
             <div class="mb-4">
               <div class="flex justify-between text-sm text-gray-600 mb-2">
-                <span>Progression</span>
+                <span>{{ t('challenges.progression') }}</span>
                 <span>{{ challenge.my_progress || 0 }}/{{ challenge.target_value }}</span>
               </div>
               <div class="w-full bg-gray-200 rounded-full h-3">
@@ -133,13 +135,13 @@
 
             <div class="flex items-center justify-between">
               <div class="text-sm text-green-600 font-medium">
-                +{{ challenge.xp_reward }} XP à gagner
+                +{{ challenge.xp_reward }} {{ t('gaming.xp') }} {{ t('challenges.toWin') }}
               </div>
               <button
                 @click="viewLeaderboard(challenge)"
                 class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
               >
-                🏆 Voir le classement
+                {{ t('challenges.viewLeaderboard') }}
               </button>
             </div>
           </div>
@@ -151,7 +153,7 @@
     <div v-if="activeTab === 'available'" class="space-y-6">
       <!-- Filtres -->
       <div class="bg-white rounded-xl border border-gray-200 p-4">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">🎯 Filtres</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">🎯 {{ t('challenges.filters') }}</h3>
 
         <div class="flex flex-wrap gap-3">
           <button
@@ -172,11 +174,13 @@
 
       <!-- Liste des défis disponibles -->
       <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-6">🌟 Défis disponibles</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-6">
+          🌟 {{ t('challenges.availableChallenges') }}
+        </h3>
 
         <div v-if="loading" class="text-center py-8">
           <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-          <p class="mt-4 text-gray-600">Chargement des défis...</p>
+          <p class="mt-4 text-gray-600">{{ t('common.loading') }}</p>
         </div>
 
         <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -196,7 +200,7 @@
                     {{ getDifficultyLabel(challenge.difficulty) }}
                   </span>
                   <span class="text-gray-500">
-                    {{ challenge.participants_count }} participants
+                    {{ challenge.participants_count }} {{ t('challenges.participants') }}
                   </span>
                   <span class="text-gray-500">
                     {{ getRemainingTime(challenge.end_date) }}
@@ -207,8 +211,10 @@
 
             <div class="bg-gray-50 rounded-lg p-3 mb-4">
               <div class="flex justify-between items-center text-sm">
-                <span class="text-gray-600">Récompenses :</span>
-                <span class="font-medium text-green-600">+{{ challenge.xp_reward }} XP</span>
+                <span class="text-gray-600">{{ t('challenges.rewards') }} :</span>
+                <span class="font-medium text-green-600"
+                  >+{{ challenge.xp_reward }} {{ t('gaming.xp') }}</span
+                >
               </div>
             </div>
 
@@ -217,14 +223,18 @@
               :disabled="joiningChallenge === challenge.id"
               class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
             >
-              {{ joiningChallenge === challenge.id ? '🔄 Participation...' : '🚀 Participer' }}
+              {{
+                joiningChallenge === challenge.id
+                  ? `🔄 ${t('challenges.participating')}`
+                  : `🚀 ${t('challenges.participate')}`
+              }}
             </button>
           </div>
         </div>
 
         <div v-if="!loading && filteredAvailableChallenges.length === 0" class="text-center py-8">
           <div class="text-4xl mb-4">🔍</div>
-          <p class="text-gray-600">Aucun défi disponible pour ces critères</p>
+          <p class="text-gray-600">{{ t('challenges.noChallengeFound') }}</p>
         </div>
       </div>
     </div>
@@ -232,16 +242,18 @@
     <!-- Classements -->
     <div v-if="activeTab === 'leaderboard'" class="space-y-6">
       <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-6">🏆 Classements globaux</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-6">
+          🏆 {{ t('challenges.globalLeaderboard') }}
+        </h3>
 
         <div class="mb-6">
           <select
             v-model="selectedPeriod"
             class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="week">Cette semaine</option>
-            <option value="month">Ce mois</option>
-            <option value="all">Tous temps</option>
+            <option value="week">{{ t('challenges.thisWeek') }}</option>
+            <option value="month">{{ t('challenges.thisMonth') }}</option>
+            <option value="all">{{ t('challenges.allTime') }}</option>
           </select>
         </div>
 
@@ -250,9 +262,15 @@
             <thead class="bg-gray-50">
               <tr>
                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">#</th>
-                <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">Joueur</th>
-                <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">Défis</th>
-                <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">XP</th>
+                <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">
+                  {{ t('challenges.player') }}
+                </th>
+                <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">
+                  {{ t('challenges.challengesCompleted') }}
+                </th>
+                <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">
+                  {{ t('gaming.xp') }}
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
@@ -282,7 +300,7 @@
                       v-if="player.is_current_user"
                       class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded"
                     >
-                      Vous
+                      {{ t('challenges.you') }}
                     </span>
                   </div>
                 </td>
@@ -319,7 +337,7 @@
                 ✕
               </button>
             </div>
-            <p class="text-gray-600 text-center py-8">Classement du défi à venir...</p>
+            <p class="text-gray-600 text-center py-8">{{ t('challenges.leaderboardComing') }}</p>
           </div>
         </div>
       </Transition>
@@ -329,7 +347,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useToast } from 'vue-toastification'
+
+// ==========================================
+// I18N
+// ==========================================
+
+const { t } = useI18n()
 
 // ==========================================
 // STATE
@@ -352,18 +377,18 @@ const leaderboard = ref<any[]>([])
 // OPTIONS
 // ==========================================
 
-const tabs = [
-  { value: 'active', label: 'Mes défis', icon: '🔥' },
-  { value: 'available', label: 'Disponibles', icon: '🌟' },
-  { value: 'leaderboard', label: 'Classements', icon: '🏆' },
-]
+const tabs = computed(() => [
+  { value: 'active', label: t('challenges.myChallenges'), icon: '🔥' },
+  { value: 'available', label: t('challenges.available'), icon: '🌟' },
+  { value: 'leaderboard', label: t('challenges.leaderboards'), icon: '🏆' },
+])
 
-const difficultyFilters = [
-  { value: 'all', label: 'Toutes', icon: '🎯' },
-  { value: 'easy', label: 'Facile', icon: '🟢' },
-  { value: 'medium', label: 'Moyen', icon: '🟡' },
-  { value: 'hard', label: 'Difficile', icon: '🔴' },
-]
+const difficultyFilters = computed(() => [
+  { value: 'all', label: t('challenges.all'), icon: '🎯' },
+  { value: 'easy', label: t('challenges.easy'), icon: '🟢' },
+  { value: 'medium', label: t('challenges.medium'), icon: '🟡' },
+  { value: 'hard', label: t('challenges.hard'), icon: '🔴' },
+])
 
 // ==========================================
 // COMPUTED
@@ -395,8 +420,12 @@ function getDifficultyClasses(difficulty: string): string {
 }
 
 function getDifficultyLabel(difficulty: string): string {
-  const labels: Record<string, string> = { easy: 'Facile', medium: 'Moyen', hard: 'Difficile' }
-  return labels[difficulty] || 'Facile'
+  const labels: Record<string, string> = {
+    easy: t('challenges.difficultyEasy'),
+    medium: t('challenges.difficultyMedium'),
+    hard: t('challenges.difficultyHard'),
+  }
+  return labels[difficulty] || t('challenges.difficultyEasy')
 }
 
 function formatDate(dateString: string): string {
@@ -414,19 +443,18 @@ function getRemainingTime(endDate: string): string {
   const diff = end.getTime() - now.getTime()
   const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
 
-  if (days <= 0) return 'Terminé'
-  if (days === 1) return '1 jour restant'
-  return `${days} jours restants`
+  if (days <= 0) return t('challenges.finished')
+  if (days === 1) return t('challenges.oneDay')
+  return t('challenges.remaining', { n: days })
 }
 
 async function joinChallenge(challenge: any): Promise<void> {
   joiningChallenge.value = challenge.id
 
   try {
-    // TODO: Appeler l'API
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    toast.success(`Vous participez maintenant au défi "${challenge.name}" !`)
+    toast.success(t('challenges.joined', { name: challenge.name }))
 
     myChallenges.value.push({
       ...challenge,
@@ -436,7 +464,7 @@ async function joinChallenge(challenge: any): Promise<void> {
 
     availableChallenges.value = availableChallenges.value.filter((c) => c.id !== challenge.id)
   } catch (error) {
-    toast.error('Erreur lors de la participation au défi')
+    toast.error(t('challenges.error'))
   } finally {
     joiningChallenge.value = null
   }
@@ -449,14 +477,13 @@ function viewLeaderboard(challenge: any): void {
 
 async function refreshChallenges(): Promise<void> {
   await loadData()
-  toast.success('Défis actualisés !')
+  toast.success(t('challenges.refreshed'))
 }
 
 async function loadData(): Promise<void> {
   loading.value = true
 
   try {
-    // TODO: Remplacer par de vraies données API
     await new Promise((resolve) => setTimeout(resolve, 800))
 
     myChallenges.value = [
@@ -511,7 +538,7 @@ async function loadData(): Promise<void> {
       { id: 3, name: 'Alex T.', challenges_completed: 10, xp_earned: 720, is_current_user: false },
     ]
   } catch (error) {
-    toast.error('Erreur lors du chargement des défis')
+    toast.error(t('challenges.error'))
   } finally {
     loading.value = false
   }

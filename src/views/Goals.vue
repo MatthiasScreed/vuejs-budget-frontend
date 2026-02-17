@@ -4,16 +4,18 @@
     <div class="page-header">
       <div class="header-content">
         <div class="header-text">
-          <h1 class="page-title">🎯 Mes Objectifs</h1>
-          <p class="page-subtitle">Gérez vos objectifs d'épargne et suivez votre progression</p>
+          <h1 class="page-title">🎯 {{ t('goals.title') }}</h1>
+          <p class="page-subtitle">{{ t('goals.subtitle') }}</p>
         </div>
         <div class="header-actions">
           <button @click="handleRefresh" :disabled="loading" class="btn btn-secondary">
             <span>{{ loading ? '⏳' : '🔄' }}</span>
-            {{ loading ? 'Chargement...' : 'Actualiser' }}
+            {{ loading ? t('goals.refreshing') : t('goals.refresh') }}
           </button>
-          <button @click="showTemplates = true" class="btn btn-outline">📋 Templates</button>
-          <button @click="openCreateModal" class="btn btn-primary">➕ Nouvel objectif</button>
+          <button @click="showTemplates = true" class="btn btn-outline">
+            📋 {{ t('goals.templates') }}
+          </button>
+          <button @click="openCreateModal" class="btn btn-primary">➕ {{ t('goals.new') }}</button>
         </div>
       </div>
     </div>
@@ -30,28 +32,28 @@
         <div class="stat-icon stat-icon-blue">🎯</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats?.active || 0 }}</div>
-          <div class="stat-label">Objectifs actifs</div>
+          <div class="stat-label">{{ t('goals.activeGoals') }}</div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-green">💰</div>
         <div class="stat-content">
           <div class="stat-value">{{ formatCurrency(stats?.totalSaved || 0) }}</div>
-          <div class="stat-label">Montant épargné</div>
+          <div class="stat-label">{{ t('goals.totalSaved') }}</div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-purple">📊</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats?.overallProgress || 0 }}%</div>
-          <div class="stat-label">Progression moyenne</div>
+          <div class="stat-label">{{ t('goals.averageProgress') }}</div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-orange">✅</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats?.completed || 0 }}</div>
-          <div class="stat-label">Objectifs atteints</div>
+          <div class="stat-label">{{ t('goals.goalsReached') }}</div>
         </div>
       </div>
     </div>
@@ -75,17 +77,19 @@
     <!-- Chargement -->
     <div v-if="loading && !goals.length" class="loading-state">
       <div class="loading-spinner"></div>
-      <p>Chargement des objectifs...</p>
+      <p>{{ t('common.loading') }}</p>
     </div>
 
     <!-- Liste vide -->
     <div v-else-if="!filteredGoals.length" class="empty-state">
       <div class="empty-icon">🎯</div>
       <h3 class="empty-title">
-        Aucun objectif {{ activeFilter !== 'all' ? 'dans cette catégorie' : '' }}
+        {{ t('goals.noGoals') }} {{ activeFilter !== 'all' ? t('goals.noGoalsInCategory') : '' }}
       </h3>
-      <p class="empty-text">Créez votre premier objectif financier pour commencer à épargner !</p>
-      <button @click="openCreateModal" class="btn btn-primary">➕ Créer un objectif</button>
+      <p class="empty-text">{{ t('goals.createFirstGoal') }}</p>
+      <button @click="openCreateModal" class="btn btn-primary">
+        ➕ {{ t('goals.createGoal') }}
+      </button>
     </div>
 
     <!-- Liste des objectifs -->
@@ -101,18 +105,22 @@
           <div class="goal-icon">{{ goal.icon || '🎯' }}</div>
           <div class="goal-info">
             <h3 class="goal-name">{{ goal.name }}</h3>
-            <p class="goal-description">{{ goal.description || 'Pas de description' }}</p>
+            <p class="goal-description">{{ goal.description || t('goals.noDescription') }}</p>
           </div>
           <div class="goal-menu">
             <button @click="toggleMenu(goal.id)" class="menu-btn">⋮</button>
             <div v-if="openMenuId === goal.id" class="menu-dropdown">
-              <button @click="openEditModal(goal)">✏️ Modifier</button>
-              <button @click="handleAddContribution(goal)">💰 Contribution</button>
-              <button v-if="goal.status === 'active'" @click="handlePause(goal)">⏸️ Pause</button>
-              <button v-if="goal.status === 'paused'" @click="handleResume(goal)">
-                ▶️ Reprendre
+              <button @click="openEditModal(goal)">✏️ {{ t('goals.modify') }}</button>
+              <button @click="handleAddContribution(goal)">💰 {{ t('goals.contribution') }}</button>
+              <button v-if="goal.status === 'active'" @click="handlePause(goal)">
+                ⏸️ {{ t('goals.pause') }}
               </button>
-              <button @click="confirmDelete(goal)" class="danger">🗑️ Supprimer</button>
+              <button v-if="goal.status === 'paused'" @click="handleResume(goal)">
+                ▶️ {{ t('goals.resume') }}
+              </button>
+              <button @click="confirmDelete(goal)" class="danger">
+                🗑️ {{ t('goals.delete') }}
+              </button>
             </div>
           </div>
         </div>
@@ -121,7 +129,9 @@
         <div class="goal-progress">
           <div class="progress-header">
             <span class="progress-amount">{{ formatCurrency(goal.current_amount) }}</span>
-            <span class="progress-target">sur {{ formatCurrency(goal.target_amount) }}</span>
+            <span class="progress-target"
+              >{{ t('goals.on') }} {{ formatCurrency(goal.target_amount) }}</span
+            >
           </div>
           <div class="progress-bar-container">
             <div
@@ -133,7 +143,7 @@
           <div class="progress-footer">
             <span class="progress-percent">{{ calculateProgress(goal) }}%</span>
             <span class="progress-remaining">
-              Reste: {{ formatCurrency(calculateRemaining(goal)) }}
+              {{ t('goals.remaining', { amount: formatCurrency(calculateRemaining(goal)) }) }}
             </span>
           </div>
         </div>
@@ -152,16 +162,20 @@
           </div>
           <div class="meta-item">
             <span class="meta-icon">💵</span>
-            <span class="meta-text">{{ formatCurrency(calculateMonthlyTarget(goal)) }}/mois</span>
+            <span class="meta-text"
+              >{{ formatCurrency(calculateMonthlyTarget(goal)) }}{{ t('goals.perMonth') }}</span
+            >
           </div>
         </div>
 
         <!-- Actions rapides -->
         <div class="goal-actions">
           <button @click="handleAddContribution(goal)" class="btn btn-sm btn-primary">
-            💰 Ajouter
+            💰 {{ t('goals.add') }}
           </button>
-          <button @click="openEditModal(goal)" class="btn btn-sm btn-secondary">✏️ Modifier</button>
+          <button @click="openEditModal(goal)" class="btn btn-sm btn-secondary">
+            ✏️ {{ t('goals.modify') }}
+          </button>
         </div>
 
         <!-- Badge de statut -->
@@ -190,7 +204,7 @@
       <div v-if="showTemplates" class="modal-overlay" @click.self="showTemplates = false">
         <div class="templates-modal">
           <div class="templates-header">
-            <h2>📋 Choisir un template</h2>
+            <h2>📋 {{ t('goals.chooseTemplate') }}</h2>
             <button @click="showTemplates = false" class="close-btn">✕</button>
           </div>
           <div class="templates-grid">
@@ -217,12 +231,12 @@
         @click.self="showContributionModal = false"
       >
         <div class="contribution-modal">
-          <h3>💰 Ajouter une contribution</h3>
+          <h3>💰 {{ t('goals.addContribution') }}</h3>
           <p>
-            Objectif: <strong>{{ contributionGoal?.name }}</strong>
+            {{ t('goals.goal') }}: <strong>{{ contributionGoal?.name }}</strong>
           </p>
           <div class="form-group">
-            <label>Montant (€)</label>
+            <label>{{ t('goals.amount') }}</label>
             <input
               v-model.number="contributionAmount"
               type="number"
@@ -234,14 +248,14 @@
           </div>
           <div class="modal-actions">
             <button @click="showContributionModal = false" class="btn btn-secondary">
-              Annuler
+              {{ t('goals.cancel') }}
             </button>
             <button
               @click="submitContribution"
               :disabled="!contributionAmount"
               class="btn btn-primary"
             >
-              ✅ Ajouter
+              ✅ {{ t('goals.add') }}
             </button>
           </div>
         </div>
@@ -253,15 +267,16 @@
       <div v-if="showDeleteConfirm" class="modal-overlay" @click.self="showDeleteConfirm = false">
         <div class="delete-modal">
           <div class="delete-icon">🗑️</div>
-          <h3>Supprimer cet objectif ?</h3>
+          <h3>{{ t('goals.deleteTitle') }}</h3>
           <p>
-            Cette action est irréversible. L'objectif "{{ deletingGoal?.name }}" sera définitivement
-            supprimé.
+            {{ t('goals.deleteText', { name: deletingGoal?.name }) }}
           </p>
           <div class="modal-actions">
-            <button @click="showDeleteConfirm = false" class="btn btn-secondary">Annuler</button>
+            <button @click="showDeleteConfirm = false" class="btn btn-secondary">
+              {{ t('goals.cancel') }}
+            </button>
             <button @click="handleDelete" :disabled="deleting" class="btn btn-danger">
-              {{ deleting ? 'Suppression...' : 'Supprimer' }}
+              {{ deleting ? t('goals.deleting') : t('common.delete') }}
             </button>
           </div>
         </div>
@@ -272,8 +287,15 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useGoalStore } from '@/stores/goalStore'
 import GoalForm from '@/components/goals/GoalForm.vue'
+
+// ==========================================
+// I18N
+// ==========================================
+
+const { t } = useI18n()
 
 // Store
 const goalStore = useGoalStore()
@@ -298,28 +320,68 @@ const error = computed(() => goalStore.error)
 const stats = computed(() => goalStore.stats)
 
 // Templates d'objectifs
-const goalTemplates = [
+const goalTemplates = computed(() => [
   {
     id: 'travel',
     icon: '✈️',
-    name: 'Voyage',
-    description: 'Économisez pour votre prochaine aventure',
+    name: t('goals.travel'),
+    description: t('goals.travelDesc'),
   },
-  { id: 'emergency', icon: '🛡️', name: "Fonds d'urgence", description: '3-6 mois de dépenses' },
-  { id: 'house', icon: '🏠', name: 'Immobilier', description: 'Apport pour un achat immobilier' },
-  { id: 'car', icon: '🚗', name: 'Voiture', description: 'Achat ou remplacement de véhicule' },
-  { id: 'education', icon: '🎓', name: 'Formation', description: 'Investir dans vos compétences' },
-  { id: 'wedding', icon: '💍', name: 'Mariage', description: 'Préparer le grand jour' },
-  { id: 'retirement', icon: '🏖️', name: 'Retraite', description: 'Préparer votre avenir' },
-  { id: 'tech', icon: '💻', name: 'High-Tech', description: 'Équipement informatique' },
-]
+  {
+    id: 'emergency',
+    icon: '🛡️',
+    name: t('goals.emergency'),
+    description: t('goals.emergencyDesc'),
+  },
+  {
+    id: 'house',
+    icon: '🏠',
+    name: t('goals.house'),
+    description: t('goals.houseDesc'),
+  },
+  {
+    id: 'car',
+    icon: '🚗',
+    name: t('goals.car'),
+    description: t('goals.carDesc'),
+  },
+  {
+    id: 'education',
+    icon: '🎓',
+    name: t('goals.education'),
+    description: t('goals.educationDesc'),
+  },
+  {
+    id: 'wedding',
+    icon: '💍',
+    name: t('goals.wedding'),
+    description: t('goals.weddingDesc'),
+  },
+  {
+    id: 'retirement',
+    icon: '🏖️',
+    name: t('goals.retirement'),
+    description: t('goals.retirementDesc'),
+  },
+  {
+    id: 'tech',
+    icon: '💻',
+    name: t('goals.tech'),
+    description: t('goals.techDesc'),
+  },
+])
 
 // Filtres
 const filterTabs = computed(() => [
-  { value: 'all', label: 'Tous', icon: '📋', count: goals.value.length },
-  { value: 'active', label: 'Actifs', icon: '🎯', count: goalStore.activeGoals.length },
-  { value: 'completed', label: 'Atteints', icon: '✅', count: goalStore.completedGoals.length },
-  { value: 'paused', label: 'En pause', icon: '⏸️', count: goalStore.pausedGoals.length },
+  { value: 'all', label: t('goals.all'), icon: '📋', count: goals.value.length },
+  { value: 'active', label: t('goals.active'), icon: '🎯', count: goalStore.activeGoals.length },
+  {
+    value: 'completed',
+    label: t('goals.completed'),
+    icon: '✅',
+    count: goalStore.completedGoals.length,
+  },
+  { value: 'paused', label: t('goals.paused'), icon: '⏸️', count: goalStore.pausedGoals.length },
 ])
 
 const filteredGoals = computed(() => {
@@ -355,12 +417,12 @@ function calculateMonthlyTarget(goal: any): number {
 
 function formatDaysRemaining(goal: any): string {
   const days = goalStore.calculateDaysRemaining(goal)
-  if (days < 0) return 'Dépassé'
-  if (days === 0) return "Aujourd'hui"
-  if (days === 1) return 'Demain'
-  if (days < 30) return `${days} jours`
-  if (days < 365) return `${Math.floor(days / 30)} mois`
-  return `${Math.floor(days / 365)} an(s)`
+  if (days < 0) return t('goals.exceeded')
+  if (days === 0) return t('goals.today')
+  if (days === 1) return t('goals.tomorrow')
+  if (days < 30) return t('goals.daysRemaining', { n: days })
+  if (days < 365) return t('goals.monthsRemaining', { n: Math.floor(days / 30) })
+  return t('goals.yearsRemaining', { n: Math.floor(days / 365) })
 }
 
 function getDaysClass(goal: any): string {
@@ -380,9 +442,9 @@ function getProgressClass(goal: any): string {
 
 function getStatusLabel(status: string): string {
   const labels: Record<string, string> = {
-    active: '🎯 Actif',
-    completed: '✅ Atteint',
-    paused: '⏸️ En pause',
+    active: `🎯 ${t('goals.statusActive')}`,
+    completed: `✅ ${t('goals.statusCompleted')}`,
+    paused: `⏸️ ${t('goals.statusPaused')}`,
   }
   return labels[status] || status
 }
@@ -448,7 +510,7 @@ async function handleSave(goalData: any) {
 
     if (success) {
       closeModal()
-      await goalStore.fetchGoals() // Rafraîchir la liste
+      await goalStore.fetchGoals()
     }
   } catch (err) {
     console.error('Erreur save:', err)
@@ -465,7 +527,6 @@ function handleAddContribution(goal: any) {
 async function submitContribution() {
   if (!contributionGoal.value || !contributionAmount.value) return
 
-  // ✅ Passer un objet { amount, description } au lieu d'un number
   const success = await goalStore.addContribution(contributionGoal.value.id, {
     amount: contributionAmount.value,
     description: `Contribution manuelle`,
