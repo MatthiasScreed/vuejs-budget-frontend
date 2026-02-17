@@ -1,6 +1,4 @@
 // src/i18n/locales/fr.ts
-// Traductions françaises (langue par défaut)
-
 export default {
   // ==========================================
   // NAVIGATION & LAYOUT
@@ -73,11 +71,12 @@ export default {
   },
 
   // ==========================================
-  // DASHBOARD
+  // DASHBOARD ✅ SECTION COMPLÈTE
   // ==========================================
   dashboard: {
     greeting: 'Bonjour {name}',
     greetingDefault: 'Bonjour',
+    defaultUser: 'Utilisateur',
     defaultSubtitle: 'Voici votre situation financière',
     loading: 'Chargement de vos données...',
     financialOverview: "Vue d'ensemble financière",
@@ -105,6 +104,87 @@ export default {
   },
 
   // ==========================================
+  // TRANSACTIONS
+  // ==========================================
+  transactions: {
+    title: 'Transactions',
+    subtitle: 'Gérez vos revenus et dépenses',
+    new: 'Nouvelle',
+    newTransaction: 'Nouvelle transaction',
+    editTransaction: 'Modifier la transaction',
+    sync: 'Synchroniser',
+    syncing: 'Synchronisation...',
+    recentTitle: 'Transactions récentes',
+
+    // Types
+    income: 'Revenu',
+    expense: 'Dépense',
+    incomeDesc: 'Argent qui entre',
+    expenseDesc: 'Argent qui sort',
+    typeLabel: 'Type de transaction',
+
+    // Champs
+    description: 'Description',
+    descriptionPlaceholder: 'ex: Courses Carrefour, Salaire janvier...',
+    amount: 'Montant',
+    amountPlaceholder: '0.00',
+    category: 'Catégorie',
+    categoryPlaceholder: 'Sélectionner une catégorie',
+    createCategory: 'Créer une nouvelle catégorie',
+    date: 'Date',
+    time: 'Heure',
+    location: 'Lieu',
+    locationPlaceholder: 'ex: Carrefour Villeneuve...',
+    notes: 'Notes',
+    notesPlaceholder: 'Informations complémentaires...',
+    notesOptional: 'Notes (optionnelles)',
+    tags: 'Tags',
+    addTag: 'Ajouter un tag',
+    suggestedTags: 'Tags suggérés',
+
+    // États
+    noTransactions: 'Aucune transaction',
+    noTransactionsDesc: 'Commencez par créer votre première transaction',
+    noFilterResults: 'Aucun résultat pour ces filtres',
+    createFirst: 'Créer ma première transaction',
+    loadingTransactions: 'Chargement des transactions...',
+    transactionCount: '{n} transaction | {n} transactions',
+
+    // Actions
+    deleteConfirmTitle: 'Confirmer la suppression',
+    deleteConfirmText: 'Supprimer "{name}" ?',
+    deleteIrreversible: 'Cette action est irréversible',
+    deleting: 'Suppression...',
+
+    // Succès / Erreurs
+    created: 'Transaction créée !',
+    updated: 'Transaction modifiée !',
+    deleted: 'Transaction supprimée',
+    errorSave: 'Erreur lors de la sauvegarde',
+    errorDelete: 'Erreur lors de la suppression',
+  },
+
+  // ==========================================
+  // CATÉGORIES
+  // ==========================================
+  categories: {
+    title: 'Catégories',
+    food: 'Alimentation',
+    transport: 'Transport',
+    entertainment: 'Loisirs',
+    housing: 'Logement',
+    health: 'Santé',
+    education: 'Éducation',
+    shopping: 'Shopping',
+    salary: 'Salaire',
+    savings: 'Épargne',
+    other: 'Autres',
+    restaurants: 'Restaurants',
+    refunds: 'Remboursements',
+    otherExpenses: 'Autres dépenses',
+  },
+
+  // ==========================================
   // GAMING
   // ==========================================
   gaming: {
@@ -122,6 +202,36 @@ export default {
     days: 'jours',
     dailyTransactions: 'Transactions quotidiennes',
     gamingImpact: 'Impact Gaming',
+  },
+
+  // ==========================================
+  // OBJECTIFS FINANCIERS
+  // ==========================================
+  goals: {
+    title: 'Objectifs financiers',
+    newGoal: 'Nouvel objectif',
+    targetAmount: 'Montant cible',
+    currentAmount: 'Montant actuel',
+    deadline: 'Échéance',
+    progress: 'Progression',
+    completed: 'Atteint !',
+    remaining: 'Restant',
+    viewAll: 'Voir tout',
+    activeGoals: 'Objectifs actifs',
+  },
+
+  // ==========================================
+  // BUDGET
+  // ==========================================
+  budget: {
+    title: 'Budget',
+    monthlyBudget: 'Budget mensuel',
+    spent: 'Dépensé',
+    remaining: 'Restant',
+    budgetUsed: '{n}% du budget utilisé',
+    overBudget: 'Budget dépassé',
+    budgetImpact: 'Impact sur le budget',
+    spentThisMonth: 'Dépensé ce mois',
   },
 
   // ==========================================
@@ -164,207 +274,6 @@ export default {
   },
 
   // ==========================================
-  // OBJECTIFS FINANCIERS
-  // ==========================================
-  goals: {
-    title: 'Objectifs financiers',
-    newGoal: 'Nouvel objectif',
-    targetAmount: 'Montant cible',
-    currentAmount: 'Montant actuel',
-    deadline: 'Échéance',
-    progress: 'Progression',
-    completed: 'Atteint !',
-    remaining: 'Restant',
-    viewAll: 'Voir tout',
-    activeGoals: 'Objectifs actifs',
-  },
-
-  // ==========================================
-  // ERREURS GLOBALES
-  // ==========================================
-  errors: {
-    generic: 'Une erreur est survenue',
-    network: 'Erreur de connexion',
-    unauthorized: 'Non autorisé',
-    notFound: 'Non trouvé',
-    loadingError: 'Erreur de chargement',
-    loadingErrorDesc: 'Une erreur est survenue lors du chargement de CoinQuest.',
-    tryAgain: 'Réessayer',
-    reload: 'Recharger la page',
-    persistContact: 'Si le problème persiste, contacte le support',
-  },
-
-  // ==========================================
-  // DEBUG (dev only)
-  // ==========================================
-  debug: {
-    info: 'Debug Info',
-    route: 'Route',
-    apiStatusVisible: 'API Status visible',
-    paddingTop: 'Padding-top',
-    userLevel: 'User level',
-    sidebarOpen: 'Sidebar open',
-    isMobile: 'Is mobile',
-  },
-
-  // ==========================================
-  // TRANSACTIONS
-  // ==========================================
-  transactions: {
-    title: 'Transactions',
-    subtitle: 'Gérez vos revenus et dépenses',
-    new: 'Nouvelle',
-    newTransaction: 'Nouvelle transaction',
-    editTransaction: 'Modifier la transaction',
-    sync: 'Synchroniser',
-    syncing: 'Synchronisation...',
-    recentTitle: 'Transactions récentes',
-
-    // Types
-    income: 'Revenu',
-    expense: 'Dépense',
-    incomeDesc: 'Argent qui entre',
-    expenseDesc: 'Argent qui sort',
-    typeLabel: 'Type de transaction',
-
-    // Champs
-    description: 'Description',
-    descriptionPlaceholder: 'ex: Courses Carrefour, Salaire janvier...',
-    amount: 'Montant',
-    amountPlaceholder: '0.00',
-    category: 'Catégorie',
-    categoryPlaceholder: 'Sélectionner une catégorie',
-    createCategory: 'Créer une nouvelle catégorie',
-    date: 'Date',
-    time: 'Heure',
-    location: 'Lieu',
-    locationPlaceholder: 'ex: Carrefour Villeneuve...',
-    notes: 'Notes',
-    notesPlaceholder: 'Informations complémentaires...',
-    notesOptional: 'Notes (optionnelles)',
-    tags: 'Tags',
-    addTag: 'Ajouter un tag',
-    suggestedTags: 'Tags suggérés',
-
-    // Récurrence
-    recurring: 'Transaction récurrente',
-    recurringDesc: 'Se répète automatiquement',
-    frequency: 'Fréquence',
-    frequencyWeekly: 'Hebdomadaire',
-    frequencyMonthly: 'Mensuelle',
-    frequencyQuarterly: 'Trimestrielle',
-    frequencyYearly: 'Annuelle',
-    endDate: 'Date de fin',
-
-    // Options avancées
-    advancedOptions: 'Options avancées',
-    additionalInfo: 'Informations complémentaires',
-
-    // Filtres
-    filters: 'Filtres',
-    filterType: 'Type',
-    filterCategory: 'Catégorie',
-    filterAllTypes: 'Tous les types',
-    filterAllCategories: 'Toutes',
-    filterDateFrom: 'Date début',
-    filterDateTo: 'Date fin',
-    filterSearch: 'Rechercher une description...',
-
-    // Périodes
-    periodToday: "Aujourd'hui",
-    periodWeek: 'Cette semaine',
-    periodMonth: 'Ce mois',
-    periodYear: 'Cette année',
-    periodAll: 'Toutes les dates',
-
-    // États
-    noTransactions: 'Aucune transaction',
-    noTransactionsDesc: 'Commencez par créer votre première transaction',
-    noFilterResults: 'Aucun résultat pour ces filtres',
-    createFirst: 'Créer ma première transaction',
-    loadingTransactions: 'Chargement des transactions...',
-    transactionCount: '{n} transaction | {n} transactions',
-
-    // Pending
-    pendingTitle: 'À catégoriser',
-    pendingCount: '{n} transaction | {n} transactions',
-    autoCategorize: 'Auto',
-    chooseCat: 'Choisir...',
-
-    // Actions
-    deleteConfirmTitle: 'Confirmer la suppression',
-    deleteConfirmText: 'Supprimer "{name}" ?',
-    deleteIrreversible: 'Cette action est irréversible',
-    deleting: 'Suppression...',
-
-    // Succès / Erreurs
-    created: 'Transaction créée !',
-    updated: 'Transaction modifiée !',
-    deleted: 'Transaction supprimée',
-    errorSave: 'Erreur lors de la sauvegarde',
-    errorDelete: 'Erreur lors de la suppression',
-
-    // Stats
-    incomeThisMonth: 'Revenus ce mois',
-    expensesThisMonth: 'Dépenses ce mois',
-    balance: 'Balance',
-    positive: 'Positif',
-    negative: 'Négatif',
-    neutral: 'Nul',
-
-    // Aperçu
-    preview: 'Aperçu',
-    noDescription: 'Sans description',
-    uncategorized: 'Non catégorisée',
-
-    // Dates raccourcis
-    today: "Aujourd'hui",
-    yesterday: 'Hier',
-    twoDaysAgo: 'Il y a 2 jours',
-    startOfMonth: 'Début du mois',
-
-    // Caractères
-    characters: '{n}/{max} caractères',
-
-    // Quick actions
-    quickActions: 'Actions rapides',
-  },
-
-  // ==========================================
-  // CATÉGORIES
-  // ==========================================
-  categories: {
-    title: 'Catégories',
-    food: 'Alimentation',
-    transport: 'Transport',
-    entertainment: 'Loisirs',
-    housing: 'Logement',
-    health: 'Santé',
-    education: 'Éducation',
-    shopping: 'Shopping',
-    salary: 'Salaire',
-    savings: 'Épargne',
-    other: 'Autres',
-    restaurants: 'Restaurants',
-    refunds: 'Remboursements',
-    otherExpenses: 'Autres dépenses',
-  },
-
-  // ==========================================
-  // BUDGET
-  // ==========================================
-  budget: {
-    title: 'Budget',
-    monthlyBudget: 'Budget mensuel',
-    spent: 'Dépensé',
-    remaining: 'Restant',
-    budgetUsed: '{n}% du budget utilisé',
-    overBudget: 'Budget dépassé',
-    budgetImpact: 'Impact sur le budget',
-    spentThisMonth: 'Dépensé ce mois',
-  },
-
-  // ==========================================
   // STATISTIQUES
   // ==========================================
   stats: {
@@ -401,6 +310,21 @@ export default {
   },
 
   // ==========================================
+  // ERREURS GLOBALES
+  // ==========================================
+  errors: {
+    generic: 'Une erreur est survenue',
+    network: 'Erreur de connexion',
+    unauthorized: 'Non autorisé',
+    notFound: 'Non trouvé',
+    loadingError: 'Erreur de chargement',
+    loadingErrorDesc: 'Une erreur est survenue lors du chargement de CoinQuest.',
+    tryAgain: 'Réessayer',
+    reload: 'Recharger la page',
+    persistContact: 'Si le problème persiste, contacte le support',
+  },
+
+  // ==========================================
   // VALIDATION
   // ==========================================
   validation: {
@@ -429,14 +353,15 @@ export default {
   },
 
   // ==========================================
-  // TEMPLATES RAPIDES
+  // DEBUG (dev only)
   // ==========================================
-  quickTemplates: {
-    coffee: 'Café',
-    lunch: 'Déjeuner',
-    gas: 'Essence',
-    salary: 'Salaire',
-    grocery: 'Courses',
-    cinema: 'Cinéma',
+  debug: {
+    info: 'Debug Info',
+    route: 'Route',
+    apiStatusVisible: 'API Status visible',
+    paddingTop: 'Padding-top',
+    userLevel: 'User level',
+    sidebarOpen: 'Sidebar open',
+    isMobile: 'Is mobile',
   },
 }
