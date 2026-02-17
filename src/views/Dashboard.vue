@@ -4,7 +4,9 @@
     <div class="dashboard-header">
       <div>
         <h1 class="dashboard-title">{{ t('dashboard.greeting', { name: userName }) }} 👋</h1>
-        <p class="dashboard-subtitle">{{ encouragementMessage }}</p>
+        <p class="dashboard-subtitle">
+          {{ encouragementMessage }}
+        </p>
       </div>
 
       <div class="header-right">
@@ -59,6 +61,9 @@
           :insights="insights"
         />
 
+        <!-- ✅ INSIGHTS PANEL : Recommandations IA -->
+        <InsightsPanel />
+
         <RecentTransactions @transaction-created="handleTransactionCreated" />
       </main>
 
@@ -112,6 +117,9 @@ import ProgressBar from '@/components/gaming/ProgressBar.vue'
 import FeedbackToast from '@/components/gaming/FeedbackToast.vue'
 import EncouragementCard from '@/components/gaming/EncouragementCard.vue'
 import MilestoneCelebration from '@/components/gaming/MilestoneCelebration.vue'
+
+// ✅ Components - Insights
+import InsightsPanel from '@/components/insights/InsightsPanel.vue'
 
 // ==========================================
 // I18N & STORES
