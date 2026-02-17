@@ -7,10 +7,10 @@ export default {
     dashboard: 'Dashboard',
     transactions: 'Transactions',
     budget: 'Budget',
-    goals: 'Goals',
+    goals: 'Goals', // ✅ Déjà présent
     gamingCenter: 'Gaming Center',
-    achievements: 'Achievements',
-    challenges: 'Challenges',
+    achievements: 'Achievements', // ✅ Déjà présent
+    challenges: 'Challenges', // ✅ Déjà présent
     analytics: 'Analytics',
     connections: 'Connections',
     profile: 'Profile',
@@ -76,9 +76,10 @@ export default {
   dashboard: {
     greeting: 'Hello {name}',
     greetingDefault: 'Hello',
+    defaultUser: 'User',
     defaultSubtitle: 'Here is your financial overview',
     loading: 'Loading your data...',
-    financialOverview: 'Financial Overview',
+    financialOverview: 'Financial Overview', // ✅ AJOUTER CETTE LIGNE
     savingsCapacity: 'Savings Capacity',
     savingsRate: 'Savings Rate',
     activeGoals: 'Active Goals',
@@ -100,6 +101,7 @@ export default {
     welcomeMessage: 'Track your finances daily',
     nextSteps: 'Next Steps',
     allGoalsReached: 'All your goals are reached!',
+    savingsRateSubtitle: '{rate} of your income',
   },
 
   // ==========================================
@@ -133,6 +135,12 @@ export default {
     quickTransaction: 'Quick transaction',
     dailyChallenge: 'Daily challenge',
     badgeNew: 'NEW',
+
+    // ✅ AJOUTER CES LIGNES
+    dailyProgress: 'Daily Progress',
+    achievements: 'Achievements',
+    streak: 'Streak',
+    rank: 'Rank',
   },
 
   // ==========================================
@@ -160,23 +168,6 @@ export default {
     env: 'Env',
     clearCache: 'Clear Cache',
   },
-
-  // ==========================================
-  // FINANCIAL GOALS
-  // ==========================================
-  goals: {
-    title: 'Financial Goals',
-    newGoal: 'New Goal',
-    targetAmount: 'Target Amount',
-    currentAmount: 'Current Amount',
-    deadline: 'Deadline',
-    progress: 'Progress',
-    completed: 'Completed!',
-    remaining: 'Remaining',
-    viewAll: 'View All',
-    activeGoals: 'Active Goals',
-  },
-
   // ==========================================
   // ERRORS
   // ==========================================

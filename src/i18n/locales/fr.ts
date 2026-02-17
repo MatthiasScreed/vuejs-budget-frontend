@@ -101,6 +101,7 @@ export default {
     welcomeMessage: 'Suivez vos finances au quotidien',
     nextSteps: 'Prochaines étapes',
     allGoalsReached: 'Tous vos objectifs sont atteints !',
+    savingsRateSubtitle: '{rate} de votre revenu',
   },
 
   // ==========================================
@@ -164,25 +165,6 @@ export default {
     errorDelete: 'Erreur lors de la suppression',
   },
 
-  // ==========================================
-  // CATÉGORIES
-  // ==========================================
-  categories: {
-    title: 'Catégories',
-    food: 'Alimentation',
-    transport: 'Transport',
-    entertainment: 'Loisirs',
-    housing: 'Logement',
-    health: 'Santé',
-    education: 'Éducation',
-    shopping: 'Shopping',
-    salary: 'Salaire',
-    savings: 'Épargne',
-    other: 'Autres',
-    restaurants: 'Restaurants',
-    refunds: 'Remboursements',
-    otherExpenses: 'Autres dépenses',
-  },
 
   // ==========================================
   // GAMING

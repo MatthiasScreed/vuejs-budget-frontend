@@ -2,14 +2,14 @@
 
 <template>
   <div class="financial-metrics">
-    <h2 class="metrics-title">Vue d'ensemble</h2>
+    <h2 class="metrics-title">{{ t('dashboard.financialOverview') }}</h2>
 
     <div class="metrics-grid">
       <!-- Capacité d'épargne (PRIMAIRE) -->
       <MetricCard
-        title="Capacité d'épargne"
+        :title="t('dashboard.savingsCapacity')"
         :value="formatCurrency(savingsCapacity)"
-        :subtitle="`${formatPercentage(savingsRate)} de votre revenu`"
+        :subtitle="t('dashboard.savingsRateSubtitle', { rate: formatPercentage(savingsRate) })"
         icon="💰"
         :trend="savingsCapacity > 0 ? 'up' : 'down'"
         :trend-value="12.5"
@@ -19,7 +19,7 @@
 
       <!-- Revenus -->
       <MetricCard
-        title="Revenus mensuels"
+        :title="t('dashboard.monthlyIncome')"
         :value="formatCurrency(monthlyIncome)"
         icon="📈"
         variant="default"
@@ -27,7 +27,7 @@
 
       <!-- Dépenses -->
       <MetricCard
-        title="Dépenses mensuelles"
+        :title="t('dashboard.monthlyExpenses')"
         :value="formatCurrency(monthlyExpenses)"
         icon="📊"
         variant="default"
@@ -37,7 +37,11 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n' // ✅ AJOUTER CETTE LIGNE
 import MetricCard from './MetricCard.vue'
+
+// ✅ AJOUTER CETTE LIGNE
+const { t } = useI18n()
 
 /**
  * Props du composant
