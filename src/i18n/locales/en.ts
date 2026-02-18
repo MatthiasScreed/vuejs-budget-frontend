@@ -788,6 +788,297 @@ const en = {
       },
     },
   },
+  goalsProjectsTutorial: {
+    welcome: {
+      title: 'Welcome to Goal Management!',
+      content: `
+      <p>CoinQuest offers you <strong>two complementary systems</strong> to manage your finances:</p>
+      <ul>
+        <li><strong>Goals</strong>: For simple savings objectives</li>
+        <li><strong>Projects</strong>: For complex projects with multiple steps</li>
+      </ul>
+      <p>Let's discover how to use them effectively!</p>
+    `,
+    },
+    goals: {
+      title: 'Goals - Simple Savings Objectives',
+      content: `
+      <p><strong>Goals</strong> are perfect for straightforward financial objectives:</p>
+      <ul>
+        <li>A target amount to reach</li>
+        <li>An optional deadline</li>
+        <li>Automatic progress tracking</li>
+        <li>Earn XP when you contribute!</li>
+      </ul>
+      <p>Ideal for: monthly savings, vacations, new phone, emergency fund...</p>
+    `,
+      ex1Title: 'Summer vacation',
+      ex1Desc: 'Save €1,500 by July',
+      ex1Detail1: 'Target amount: €1,500',
+      ex1Detail2: 'Deadline: July 31, 2026',
+      ex1Detail3: 'Regular contributions: €250/month',
+      ex2Title: 'New smartphone',
+      ex2Desc: 'Set aside €800 for an iPhone',
+      ex2Detail1: 'Target amount: €800',
+      ex2Detail2: 'No deadline',
+      ex2Detail3: 'Free contributions based on your means',
+      ex3Title: 'Emergency fund',
+      ex3Desc: 'Build a safety reserve',
+      ex3Detail1: 'Target amount: €3,000',
+      ex3Detail2: 'Long-term goal (12 months)',
+      ex3Detail3: 'Automatic contributions: €250/month',
+      tip1: 'Create multiple goals simultaneously for different objectives',
+      tip2: 'Add contributions whenever you save',
+      tip3: 'Earn XP with every contribution!',
+    },
+    projects: {
+      title: 'Projects - Complex Structured Plans',
+      content: `
+      <p><strong>Projects</strong> are designed for large-scale plans with multiple phases:</p>
+      <ul>
+        <li>Pre-configured templates (travel, home, car...)</li>
+        <li>Multiple expense categories</li>
+        <li>Milestones to track progress</li>
+        <li>States: active, paused, completed, cancelled</li>
+      </ul>
+      <p>Ideal for: big trips, real estate, weddings, renovations...</p>
+    `,
+      ex1Title: 'Trip to Japan',
+      ex1Desc: 'Complete project with multiple categories',
+      ex1Detail1: 'Total budget: €4,000',
+      ex1Detail2: 'Categories: Flights, Accommodation, Local transport, Activities',
+      ex1Detail3: 'Milestones: Book flights, Book hotels, Buy JR Pass',
+      ex1Detail4: 'Duration: 6 months of preparation',
+      ex2Title: 'Buy an apartment',
+      ex2Desc: 'Multi-year real estate project',
+      ex2Detail1: 'Total budget: €50,000 (down payment)',
+      ex2Detail2: 'Categories: Down payment savings, Notary fees, Agency fees, Renovations',
+      ex2Detail3: 'Milestones: €10k, €25k, €40k, €50k',
+      ex2Detail4: 'Duration: 24 months',
+      ex3Title: 'Buy a car',
+      ex3Desc: 'Finance a new vehicle',
+      ex3Detail1: 'Total budget: €15,000',
+      ex3Detail2: 'Categories: Down payment, Insurance, Registration',
+      ex3Detail3: 'Milestones: Save down payment, Get financing',
+      ex3Detail4: 'Duration: 8 months',
+      tip1: 'Use templates to get started quickly',
+      tip2: 'Adjust categories to your specific needs',
+      tip3: 'Mark milestones as completed to track your progress',
+    },
+    when: {
+      title: 'When to use what?',
+      content: `
+      <h3>Use a <strong>Goal</strong> if:</h3>
+      <ul>
+        <li>You have a simple, direct savings objective</li>
+        <li>A single target amount is enough</li>
+        <li>You want something quick to create</li>
+        <li>No need to split into sub-categories</li>
+      </ul>
+      <h3>Use a <strong>Project</strong> if:</h3>
+      <ul>
+        <li>Your objective requires multiple expense categories</li>
+        <li>You want to track steps/milestones</li>
+        <li>It's a medium or long-term project</li>
+        <li>You need a detailed overview</li>
+      </ul>
+      <p class="mt-4"><strong>💡 Tip:</strong> You can combine both! For example, have a "Wedding" Project
+      with multiple categories, and a separate "Honeymoon" Goal for the vacation.</p>
+    `,
+    },
+    // NEW: Financial coach
+    coach: {
+      title: 'Your Financial Coach',
+      content: `
+      <p>CoinQuest automatically analyzes your habits and gives you
+      <strong>personalized recommendations</strong> to optimize your budget.</p>
+      <p>The coach learns from your transactions and adapts to your financial profile.</p>
+    `,
+      examplesTitle: 'What the coach detects',
+      ex1Title: 'Forgotten subscriptions',
+      ex1Desc: 'Spots recurring expenses you could reduce or cancel',
+      ex2Title: 'Goal acceleration',
+      ex2Desc: 'Suggestions to reach your goals faster',
+      ex3Title: 'Spending alerts',
+      ex3Desc: 'Warns you when a category exceeds its usual budget',
+      ex4Title: 'Savings opportunities',
+      ex4Desc: 'Identifies amounts you could set aside each month',
+      tip1: 'Check your insights regularly to earn +15 XP per action!',
+      tip2: 'The more you use the app, the more accurate the coach becomes.',
+    },
+    gaming: {
+      title: 'Gamification & Rewards',
+      content: `
+      <p>Whether you use Goals or Projects, <strong>you always earn XP</strong>:</p>
+      <ul>
+        <li>🎯 <strong>+50 XP</strong>: Create a new goal or project</li>
+        <li>💰 <strong>+20 XP</strong>: Add a contribution</li>
+        <li>✅ <strong>+100 XP</strong>: Complete a milestone (project)</li>
+        <li>🏆 <strong>+200 XP</strong>: Reach your final goal!</li>
+      </ul>
+      <p class="mt-4">The more consistent you are, the more XP you earn and achievements you unlock!</p>
+    `,
+      tip1: 'Check your goals regularly to stay motivated',
+      tip2: 'Celebrate every milestone reached',
+      tip3: 'Share your successes with the community for bonus XP',
+    },
+    ready: {
+      title: 'Ready to Start!',
+      content: `
+      <p>You now have everything you need to manage your financial goals effectively:</p>
+      <ul>
+        <li>✅ You know the difference between Goals and Projects</li>
+        <li>✅ You know when to use each one</li>
+        <li>✅ Your financial coach analyzes your habits</li>
+        <li>✅ You can earn XP by saving</li>
+      </ul>
+      <h3>Where to start?</h3>
+      <p>1. <strong>Simple objective?</strong> Create a Goal from the "Goals" tab</p>
+      <p>2. <strong>Complex project?</strong> Explore Project templates</p>
+      <p>3. <strong>Need advice?</strong> Check your Financial Coach</p>
+      <p class="mt-4 text-center font-semibold text-purple-600">
+        Happy budgeting and have fun! 🎉
+      </p>
+    `,
+    },
+  },
+
+  // Goals-only tutorial
+  goalsTutorial: {
+    intro: {
+      title: 'Your Savings Goals',
+      content: `
+      <p><strong>Goals</strong> let you define and track your savings objectives easily.</p>
+      <p>Create a goal in seconds and track your progress in real time!</p>
+    `,
+    },
+    create: {
+      title: 'Create a Goal',
+      content: `
+      <p>To create a goal:</p>
+      <ul>
+        <li>Click "New Goal"</li>
+        <li>Give it a clear name (e.g. "Vacation 2026")</li>
+        <li>Set the target amount</li>
+        <li>Add a deadline (optional)</li>
+        <li>Choose a category (optional)</li>
+      </ul>
+    `,
+      ex1Title: 'iPhone 16',
+      ex1Desc: '€1,200 - No deadline',
+      ex2Title: 'NYC Vacation',
+      ex2Desc: '€3,000 - Before December 2026',
+    },
+    contributions: {
+      title: 'Add Contributions',
+      content: `
+      <p>Every time you save, add a contribution:</p>
+      <ul>
+        <li>Click on an existing goal</li>
+        <li>Press "Add a contribution"</li>
+        <li>Enter the amount</li>
+        <li>Earn XP automatically! 🎮</li>
+      </ul>
+    `,
+      tip1: 'Even small regular contributions add up',
+      tip2: 'The more often you contribute, the more XP you earn',
+      tip3: 'Set reminders so you never forget',
+    },
+    achieve: {
+      title: 'Reach Your Goals',
+      content: `
+      <p>When you reach 100% of your goal:</p>
+      <ul>
+        <li>🎉 Unlock a special achievement</li>
+        <li>💪 Earn 200 bonus XP</li>
+        <li>📊 Your success stats increase</li>
+        <li>🔥 Keep your streak alive</li>
+      </ul>
+      <p class="mt-4">Then mark your goal as completed and start a new one!</p>
+    `,
+    },
+  },
+
+  // Projects-only tutorial
+  projectsTutorial: {
+    intro: {
+      title: 'Your Structured Projects',
+      content: `
+      <p><strong>Projects</strong> help you manage complex plans with multiple phases and categories.</p>
+      <p>Perfect for big goals that need detailed planning!</p>
+    `,
+    },
+    templates: {
+      title: 'Project Templates',
+      content: '<p>Get started quickly with our pre-configured templates:</p>',
+      ex1Title: 'Travel',
+      ex1Desc: 'Transport, accommodation, activities, dining',
+      ex1Detail1: 'Suggested budget: €2,000 - €5,000',
+      ex1Detail2: '4 pre-defined categories',
+      ex2Title: 'Real Estate',
+      ex2Desc: 'Down payment, notary, agency, renovations',
+      ex2Detail1: 'Suggested budget: €30,000 - €100,000',
+      ex2Detail2: '5 pre-defined categories',
+      ex3Title: 'Vehicle',
+      ex3Desc: 'Purchase, insurance, registration',
+      ex3Detail1: 'Suggested budget: €10,000 - €30,000',
+      ex3Detail2: '3 pre-defined categories',
+      ex4Title: 'Wedding',
+      ex4Desc: 'Venue, catering, decoration, outfits, honeymoon',
+      ex4Detail1: 'Suggested budget: €15,000 - €40,000',
+      ex4Detail2: '8 pre-defined categories',
+      tip1: 'Templates include recommended budgets',
+      tip2: 'You can customize all categories',
+      tip3: 'Add or remove categories to fit your needs',
+    },
+    milestones: {
+      title: 'Milestones',
+      content: `
+      <p>Milestones help you break your project into stages:</p>
+      <ul>
+        <li>Set intermediate objectives</li>
+        <li>Track your progress step by step</li>
+        <li>Celebrate each milestone reached (+100 XP)</li>
+        <li>Stay motivated throughout the project</li>
+      </ul>
+    `,
+      exTitle: 'Japan Trip - Milestones',
+      exDesc: 'Example milestones for a trip',
+      exDetail1: '✅ Milestone 1: Save €1,000 (25%)',
+      exDetail2: '⏳ Milestone 2: Book flights (50%)',
+      exDetail3: '⏳ Milestone 3: Book hotels (75%)',
+      exDetail4: '⏳ Milestone 4: Full activities budget (100%)',
+    },
+    states: {
+      title: 'State Management',
+      content: `
+      <p>Easily manage the state of your projects:</p>
+      <ul>
+        <li>🟢 <strong>Active</strong>: Ongoing project</li>
+        <li>⏸️ <strong>Paused</strong>: Temporarily suspended</li>
+        <li>✅ <strong>Completed</strong>: Goal achieved!</li>
+        <li>❌ <strong>Cancelled</strong>: Project abandoned</li>
+      </ul>
+      <p class="mt-4">Change state at any time as your priorities evolve.</p>
+    `,
+      tip1: 'Pause non-priority projects',
+      tip2: 'Review your completed projects history',
+      tip3: 'Analyze why certain projects were cancelled',
+    },
+    tracking: {
+      title: 'Tracking & Analysis',
+      content: `
+      <p>Visualize your progress in detail:</p>
+      <ul>
+        <li>📈 Progress charts by category</li>
+        <li>💰 Budget breakdown</li>
+        <li>⏱️ Time remaining until target date</li>
+        <li>🎯 Overall completion percentage</li>
+      </ul>
+      <p class="mt-4">Make informed decisions with detailed statistics.</p>
+    `,
+    },
+  },
 }
 
 export default en

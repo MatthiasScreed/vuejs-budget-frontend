@@ -1,4 +1,5 @@
-import { ref } from 'vue'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 interface TutorialExample {
   icon: string
@@ -20,387 +21,301 @@ interface TutorialStep {
  * Tutoriel pour Goals vs Projects
  */
 export function useGoalsProjectsTutorial() {
-  const steps: TutorialStep[] = [
+  const { t } = useI18n()
+
+  const steps = computed<TutorialStep[]>(() => [
     {
       icon: '🎯',
-      title: 'Bienvenue dans la Gestion de vos Objectifs !',
-      content: `
-        <p>CoinQuest vous propose <strong>deux systèmes complémentaires</strong> pour gérer vos finances :</p>
-        <ul>
-          <li><strong>Goals (Objectifs)</strong> : Pour vos objectifs d'épargne simples</li>
-          <li><strong>Projects (Projets)</strong> : Pour vos projets complexes avec plusieurs étapes</li>
-        </ul>
-        <p>Découvrons ensemble comment les utiliser efficacement !</p>
-      `
+      title: t('goalsProjectsTutorial.welcome.title'),
+      content: t('goalsProjectsTutorial.welcome.content'),
     },
     {
       icon: '💰',
-      title: 'Goals - Objectifs d\'Épargne Simples',
-      content: `
-        <p>Les <strong>Goals</strong> sont parfaits pour des objectifs financiers directs :</p>
-        <ul>
-          <li>Un montant cible à atteindre</li>
-          <li>Une date limite (optionnelle)</li>
-          <li>Suivi automatique de votre progression</li>
-          <li>Gain d'XP quand vous contribuez !</li>
-        </ul>
-        <p>Idéal pour : épargne mensuelle, vacances, nouveau téléphone, fonds d'urgence...</p>
-      `,
+      title: t('goalsProjectsTutorial.goals.title'),
+      content: t('goalsProjectsTutorial.goals.content'),
       examples: [
         {
           icon: '🏖️',
-          title: 'Vacances d\'été',
-          description: 'Épargner 1 500€ d\'ici juillet',
+          title: t('goalsProjectsTutorial.goals.ex1Title'),
+          description: t('goalsProjectsTutorial.goals.ex1Desc'),
           details: [
-            'Montant cible : 1 500€',
-            'Date limite : 31 juillet 2026',
-            'Contributions régulières : 250€/mois'
-          ]
+            t('goalsProjectsTutorial.goals.ex1Detail1'),
+            t('goalsProjectsTutorial.goals.ex1Detail2'),
+            t('goalsProjectsTutorial.goals.ex1Detail3'),
+          ],
         },
         {
           icon: '📱',
-          title: 'Nouveau smartphone',
-          description: 'Mettre de côté 800€ pour un iPhone',
+          title: t('goalsProjectsTutorial.goals.ex2Title'),
+          description: t('goalsProjectsTutorial.goals.ex2Desc'),
           details: [
-            'Montant cible : 800€',
-            'Sans date limite',
-            'Versements libres selon vos moyens'
-          ]
+            t('goalsProjectsTutorial.goals.ex2Detail1'),
+            t('goalsProjectsTutorial.goals.ex2Detail2'),
+            t('goalsProjectsTutorial.goals.ex2Detail3'),
+          ],
         },
         {
           icon: '🛡️',
-          title: 'Fonds d\'urgence',
-          description: 'Constituer une réserve de sécurité',
+          title: t('goalsProjectsTutorial.goals.ex3Title'),
+          description: t('goalsProjectsTutorial.goals.ex3Desc'),
           details: [
-            'Montant cible : 3 000€',
-            'Objectif long terme (12 mois)',
-            'Contributions automatiques : 250€/mois'
-          ]
-        }
+            t('goalsProjectsTutorial.goals.ex3Detail1'),
+            t('goalsProjectsTutorial.goals.ex3Detail2'),
+            t('goalsProjectsTutorial.goals.ex3Detail3'),
+          ],
+        },
       ],
       tips: [
-        'Créez plusieurs goals simultanément pour différents objectifs',
-        'Ajoutez des contributions dès que vous économisez',
-        'Gagnez de l\'XP à chaque contribution !'
-      ]
+        t('goalsProjectsTutorial.goals.tip1'),
+        t('goalsProjectsTutorial.goals.tip2'),
+        t('goalsProjectsTutorial.goals.tip3'),
+      ],
     },
     {
-      icon: '🏗️',
-      title: 'Projects - Projets Complexes Structurés',
-      content: `
-        <p>Les <strong>Projects</strong> sont conçus pour des projets d'envergure avec plusieurs phases :</p>
-        <ul>
-          <li>Templates pré-configurés (voyage, maison, voiture...)</li>
-          <li>Plusieurs catégories de dépenses</li>
-          <li>Milestones (jalons) pour suivre l'avancement</li>
-          <li>États : en cours, en pause, terminé, annulé</li>
-        </ul>
-        <p>Idéal pour : grand voyage, achat immobilier, mariage, rénovations...</p>
-      `,
+      icon: '🗝️',
+      title: t('goalsProjectsTutorial.projects.title'),
+      content: t('goalsProjectsTutorial.projects.content'),
       examples: [
         {
           icon: '🗾',
-          title: 'Voyage au Japon',
-          description: 'Projet complet avec plusieurs catégories',
+          title: t('goalsProjectsTutorial.projects.ex1Title'),
+          description: t('goalsProjectsTutorial.projects.ex1Desc'),
           details: [
-            'Budget total : 4 000€',
-            'Catégories : Billets d\'avion, Hébergement, Transport local, Activités',
-            'Milestones : Réserver vols, Réserver hôtels, Acheter JR Pass',
-            'Durée : 6 mois de préparation'
-          ]
+            t('goalsProjectsTutorial.projects.ex1Detail1'),
+            t('goalsProjectsTutorial.projects.ex1Detail2'),
+            t('goalsProjectsTutorial.projects.ex1Detail3'),
+            t('goalsProjectsTutorial.projects.ex1Detail4'),
+          ],
         },
         {
           icon: '🏠',
-          title: 'Achat appartement',
-          description: 'Projet immobilier sur plusieurs années',
+          title: t('goalsProjectsTutorial.projects.ex2Title'),
+          description: t('goalsProjectsTutorial.projects.ex2Desc'),
           details: [
-            'Budget total : 50 000€ (apport)',
-            'Catégories : Épargne apport, Frais notaire, Frais agence, Travaux',
-            'Milestones : 10k€, 25k€, 40k€, 50k€',
-            'Durée : 24 mois'
-          ]
+            t('goalsProjectsTutorial.projects.ex2Detail1'),
+            t('goalsProjectsTutorial.projects.ex2Detail2'),
+            t('goalsProjectsTutorial.projects.ex2Detail3'),
+            t('goalsProjectsTutorial.projects.ex2Detail4'),
+          ],
         },
         {
           icon: '🚗',
-          title: 'Achat voiture',
-          description: 'Financer un véhicule neuf',
+          title: t('goalsProjectsTutorial.projects.ex3Title'),
+          description: t('goalsProjectsTutorial.projects.ex3Desc'),
           details: [
-            'Budget total : 15 000€',
-            'Catégories : Apport initial, Assurance, Immatriculation',
-            'Milestones : Épargner apport, Obtenir financement',
-            'Durée : 8 mois'
-          ]
-        }
+            t('goalsProjectsTutorial.projects.ex3Detail1'),
+            t('goalsProjectsTutorial.projects.ex3Detail2'),
+            t('goalsProjectsTutorial.projects.ex3Detail3'),
+            t('goalsProjectsTutorial.projects.ex3Detail4'),
+          ],
+        },
       ],
       tips: [
-        'Utilisez les templates pour démarrer rapidement',
-        'Ajustez les catégories selon vos besoins spécifiques',
-        'Marquez les milestones comme complétés pour suivre votre progression'
-      ]
+        t('goalsProjectsTutorial.projects.tip1'),
+        t('goalsProjectsTutorial.projects.tip2'),
+        t('goalsProjectsTutorial.projects.tip3'),
+      ],
     },
     {
       icon: '🤔',
-      title: 'Quand utiliser quoi ?',
-      content: `
-        <h3>Utilisez un <strong>Goal</strong> si :</h3>
-        <ul>
-          <li>Vous avez un objectif d'épargne simple et direct</li>
-          <li>Un seul montant cible suffit</li>
-          <li>Vous voulez quelque chose de rapide à créer</li>
-          <li>Pas besoin de diviser en sous-catégories</li>
-        </ul>
-
-        <h3>Utilisez un <strong>Project</strong> si :</h3>
-        <ul>
-          <li>Votre objectif nécessite plusieurs catégories de dépenses</li>
-          <li>Vous voulez suivre des étapes/milestones</li>
-          <li>C'est un projet à moyen ou long terme</li>
-          <li>Vous avez besoin d'une vue d'ensemble détaillée</li>
-        </ul>
-
-        <p class="mt-4"><strong>💡 Astuce :</strong> Vous pouvez combiner les deux ! Par exemple, avoir un Project "Mariage"
-        avec plusieurs catégories, et un Goal "Lune de miel" séparé pour les vacances.</p>
-      `
+      title: t('goalsProjectsTutorial.when.title'),
+      content: t('goalsProjectsTutorial.when.content'),
+    },
+    // ==========================================
+    // NOUVELLE ÉTAPE : Coach Financier
+    // ==========================================
+    {
+      icon: '🤖',
+      title: t('goalsProjectsTutorial.coach.title'),
+      content: t('goalsProjectsTutorial.coach.content'),
+      examplesTitle: t('goalsProjectsTutorial.coach.examplesTitle'),
+      examples: [
+        {
+          icon: '💡',
+          title: t('goalsProjectsTutorial.coach.ex1Title'),
+          description: t('goalsProjectsTutorial.coach.ex1Desc'),
+        },
+        {
+          icon: '🎯',
+          title: t('goalsProjectsTutorial.coach.ex2Title'),
+          description: t('goalsProjectsTutorial.coach.ex2Desc'),
+        },
+        {
+          icon: '⚠️',
+          title: t('goalsProjectsTutorial.coach.ex3Title'),
+          description: t('goalsProjectsTutorial.coach.ex3Desc'),
+        },
+        {
+          icon: '📈',
+          title: t('goalsProjectsTutorial.coach.ex4Title'),
+          description: t('goalsProjectsTutorial.coach.ex4Desc'),
+        },
+      ],
+      tips: [t('goalsProjectsTutorial.coach.tip1'), t('goalsProjectsTutorial.coach.tip2')],
     },
     {
       icon: '🎮',
-      title: 'Gamification et Récompenses',
-      content: `
-        <p>Que vous utilisiez Goals ou Projects, <strong>vous gagnez toujours de l'XP</strong> :</p>
-        <ul>
-          <li>🎯 <strong>+50 XP</strong> : Créer un nouveau goal ou project</li>
-          <li>💰 <strong>+20 XP</strong> : Ajouter une contribution</li>
-          <li>✅ <strong>+100 XP</strong> : Compléter un milestone (project)</li>
-          <li>🏆 <strong>+200 XP</strong> : Atteindre votre objectif final !</li>
-        </ul>
-
-        <p class="mt-4">Plus vous êtes régulier dans vos efforts, plus vous gagnez d'XP et débloquez des achievements !</p>
-      `,
+      title: t('goalsProjectsTutorial.gaming.title'),
+      content: t('goalsProjectsTutorial.gaming.content'),
       tips: [
-        'Consultez régulièrement vos objectifs pour rester motivé',
-        'Célébrez chaque milestone atteint',
-        'Partagez vos succès avec la communauté pour gagner bonus XP'
-      ]
+        t('goalsProjectsTutorial.gaming.tip1'),
+        t('goalsProjectsTutorial.gaming.tip2'),
+        t('goalsProjectsTutorial.gaming.tip3'),
+      ],
     },
     {
       icon: '🚀',
-      title: 'Prêt à Commencer !',
-      content: `
-        <p>Vous avez maintenant toutes les clés pour gérer efficacement vos objectifs financiers :</p>
-        <ul>
-          <li>✅ Vous savez faire la différence entre Goals et Projects</li>
-          <li>✅ Vous connaissez les cas d'usage de chacun</li>
-          <li>✅ Vous pouvez gagner de l'XP en épargnant</li>
-        </ul>
+      title: t('goalsProjectsTutorial.ready.title'),
+      content: t('goalsProjectsTutorial.ready.content'),
+    },
+  ])
 
-        <h3>Par où commencer ?</h3>
-        <p>1. <strong>Objectif simple ?</strong> Créez un Goal depuis l'onglet "Objectifs"</p>
-        <p>2. <strong>Projet complexe ?</strong> Explorez les templates de Projects</p>
-        <p>3. <strong>Besoin d'inspiration ?</strong> Regardez les projets populaires</p>
-
-        <p class="mt-4 text-center font-semibold text-purple-600">
-          Bonne gestion et amusez-vous bien ! 🎉
-        </p>
-      `
-    }
-  ]
-
-  return {
-    steps
-  }
+  return { steps }
 }
 
 /**
  * Tutoriel spécifique Goals uniquement
  */
 export function useGoalsTutorial() {
-  const steps: TutorialStep[] = [
+  const { t } = useI18n()
+
+  const steps = computed<TutorialStep[]>(() => [
     {
       icon: '🎯',
-      title: 'Vos Objectifs d\'Épargne',
-      content: `
-        <p>Les <strong>Goals</strong> vous permettent de définir et suivre vos objectifs d'épargne facilement.</p>
-        <p>Créez un objectif en quelques secondes et suivez votre progression en temps réel !</p>
-      `
+      title: t('goalsTutorial.intro.title'),
+      content: t('goalsTutorial.intro.content'),
     },
     {
       icon: '➕',
-      title: 'Créer un Objectif',
-      content: `
-        <p>Pour créer un goal :</p>
-        <ul>
-          <li>Cliquez sur "Nouvel Objectif"</li>
-          <li>Donnez-lui un nom clair (ex: "Vacances 2026")</li>
-          <li>Définissez le montant cible</li>
-          <li>Ajoutez une date limite (optionnel)</li>
-          <li>Choisissez une catégorie (optionnel)</li>
-        </ul>
-      `,
+      title: t('goalsTutorial.create.title'),
+      content: t('goalsTutorial.create.content'),
       examples: [
         {
           icon: '📱',
-          title: 'iPhone 16',
-          description: '1 200€ - Sans date limite'
+          title: t('goalsTutorial.create.ex1Title'),
+          description: t('goalsTutorial.create.ex1Desc'),
         },
         {
           icon: '✈️',
-          title: 'Vacances NYC',
-          description: '3 000€ - Avant décembre 2026'
-        }
-      ]
+          title: t('goalsTutorial.create.ex2Title'),
+          description: t('goalsTutorial.create.ex2Desc'),
+        },
+      ],
     },
     {
       icon: '💵',
-      title: 'Ajouter des Contributions',
-      content: `
-        <p>Chaque fois que vous économisez, ajoutez une contribution :</p>
-        <ul>
-          <li>Cliquez sur un goal existant</li>
-          <li>Appuyez sur "Ajouter une contribution"</li>
-          <li>Entrez le montant</li>
-          <li>Gagnez de l'XP automatiquement ! 🎮</li>
-        </ul>
-      `,
+      title: t('goalsTutorial.contributions.title'),
+      content: t('goalsTutorial.contributions.content'),
       tips: [
-        'Ajoutez même de petites contributions régulières',
-        'Plus vous contribuez souvent, plus vous gagnez d\'XP',
-        'Configurez des rappels pour ne pas oublier'
-      ]
+        t('goalsTutorial.contributions.tip1'),
+        t('goalsTutorial.contributions.tip2'),
+        t('goalsTutorial.contributions.tip3'),
+      ],
     },
     {
       icon: '🏆',
-      title: 'Atteindre vos Objectifs',
-      content: `
-        <p>Quand vous atteignez 100% de votre goal :</p>
-        <ul>
-          <li>🎉 Débloquez un achievement spécial</li>
-          <li>💪 Gagnez 200 XP bonus</li>
-          <li>📊 Votre statistique de réussite augmente</li>
-          <li>🔥 Maintenez votre streak actif</li>
-        </ul>
-        <p class="mt-4">Marquez ensuite votre goal comme terminé et commencez-en un nouveau !</p>
-      `
-    }
-  ]
+      title: t('goalsTutorial.achieve.title'),
+      content: t('goalsTutorial.achieve.content'),
+    },
+  ])
 
-  return {
-    steps
-  }
+  return { steps }
 }
 
 /**
  * Tutoriel spécifique Projects uniquement
  */
 export function useProjectsTutorial() {
-  const steps: TutorialStep[] = [
+  const { t } = useI18n()
+
+  const steps = computed<TutorialStep[]>(() => [
     {
-      icon: '🏗️',
-      title: 'Vos Projets Structurés',
-      content: `
-        <p>Les <strong>Projects</strong> vous aident à gérer des projets complexes avec plusieurs phases et catégories.</p>
-        <p>Parfait pour les grands objectifs nécessitant une planification détaillée !</p>
-      `
+      icon: '🗝️',
+      title: t('projectsTutorial.intro.title'),
+      content: t('projectsTutorial.intro.content'),
     },
     {
       icon: '📋',
-      title: 'Templates de Projets',
-      content: `
-        <p>Démarrez rapidement avec nos templates pré-configurés :</p>
-      `,
+      title: t('projectsTutorial.templates.title'),
+      content: t('projectsTutorial.templates.content'),
       examples: [
         {
           icon: '✈️',
-          title: 'Voyage',
-          description: 'Transport, hébergement, activités, restauration',
-          details: ['Budget suggéré : 2 000€ - 5 000€', '4 catégories pré-définies']
+          title: t('projectsTutorial.templates.ex1Title'),
+          description: t('projectsTutorial.templates.ex1Desc'),
+          details: [
+            t('projectsTutorial.templates.ex1Detail1'),
+            t('projectsTutorial.templates.ex1Detail2'),
+          ],
         },
         {
           icon: '🏠',
-          title: 'Immobilier',
-          description: 'Apport, notaire, agence, travaux',
-          details: ['Budget suggéré : 30 000€ - 100 000€', '5 catégories pré-définies']
+          title: t('projectsTutorial.templates.ex2Title'),
+          description: t('projectsTutorial.templates.ex2Desc'),
+          details: [
+            t('projectsTutorial.templates.ex2Detail1'),
+            t('projectsTutorial.templates.ex2Detail2'),
+          ],
         },
         {
           icon: '🚗',
-          title: 'Véhicule',
-          description: 'Achat, assurance, immatriculation',
-          details: ['Budget suggéré : 10 000€ - 30 000€', '3 catégories pré-définies']
+          title: t('projectsTutorial.templates.ex3Title'),
+          description: t('projectsTutorial.templates.ex3Desc'),
+          details: [
+            t('projectsTutorial.templates.ex3Detail1'),
+            t('projectsTutorial.templates.ex3Detail2'),
+          ],
         },
         {
           icon: '💍',
-          title: 'Mariage',
-          description: 'Lieu, traiteur, décoration, tenues, voyage de noces',
-          details: ['Budget suggéré : 15 000€ - 40 000€', '8 catégories pré-définies']
-        }
+          title: t('projectsTutorial.templates.ex4Title'),
+          description: t('projectsTutorial.templates.ex4Desc'),
+          details: [
+            t('projectsTutorial.templates.ex4Detail1'),
+            t('projectsTutorial.templates.ex4Detail2'),
+          ],
+        },
       ],
       tips: [
-        'Les templates incluent des budgets recommandés',
-        'Vous pouvez personnaliser toutes les catégories',
-        'Ajoutez ou supprimez des catégories selon vos besoins'
-      ]
+        t('projectsTutorial.templates.tip1'),
+        t('projectsTutorial.templates.tip2'),
+        t('projectsTutorial.templates.tip3'),
+      ],
     },
     {
       icon: '🎯',
-      title: 'Milestones (Jalons)',
-      content: `
-        <p>Les milestones vous aident à découper votre projet en étapes :</p>
-        <ul>
-          <li>Définissez des objectifs intermédiaires</li>
-          <li>Suivez votre progression étape par étape</li>
-          <li>Célébrez chaque jalon atteint (+100 XP)</li>
-          <li>Restez motivé tout au long du projet</li>
-        </ul>
-      `,
+      title: t('projectsTutorial.milestones.title'),
+      content: t('projectsTutorial.milestones.content'),
       examples: [
         {
           icon: '🗾',
-          title: 'Projet Voyage Japon - Milestones',
-          description: 'Exemple de jalons pour un voyage',
+          title: t('projectsTutorial.milestones.exTitle'),
+          description: t('projectsTutorial.milestones.exDesc'),
           details: [
-            '✅ Milestone 1 : Économiser 1 000€ (25%)',
-            '⏳ Milestone 2 : Réserver les vols (50%)',
-            '⏳ Milestone 3 : Réserver les hôtels (75%)',
-            '⏳ Milestone 4 : Budget activités complet (100%)'
-          ]
-        }
-      ]
+            t('projectsTutorial.milestones.exDetail1'),
+            t('projectsTutorial.milestones.exDetail2'),
+            t('projectsTutorial.milestones.exDetail3'),
+            t('projectsTutorial.milestones.exDetail4'),
+          ],
+        },
+      ],
     },
     {
       icon: '⚡',
-      title: 'Gestion des États',
-      content: `
-        <p>Gérez facilement l'état de vos projets :</p>
-        <ul>
-          <li>🟢 <strong>Actif</strong> : Projet en cours</li>
-          <li>⏸️ <strong>En pause</strong> : Temporairement suspendu</li>
-          <li>✅ <strong>Terminé</strong> : Objectif atteint !</li>
-          <li>❌ <strong>Annulé</strong> : Projet abandonné</li>
-        </ul>
-        <p class="mt-4">Changez d'état à tout moment selon l'évolution de vos priorités.</p>
-      `,
+      title: t('projectsTutorial.states.title'),
+      content: t('projectsTutorial.states.content'),
       tips: [
-        'Mettez en pause les projets non prioritaires',
-        'Consultez l\'historique de vos projets terminés',
-        'Analysez pourquoi certains projets ont été annulés'
-      ]
+        t('projectsTutorial.states.tip1'),
+        t('projectsTutorial.states.tip2'),
+        t('projectsTutorial.states.tip3'),
+      ],
     },
     {
       icon: '📊',
-      title: 'Suivi et Analyse',
-      content: `
-        <p>Visualisez votre progression en détail :</p>
-        <ul>
-          <li>📈 Graphiques de progression par catégorie</li>
-          <li>💰 Répartition du budget dépensé</li>
-          <li>⏱️ Temps restant jusqu'à la date cible</li>
-          <li>🎯 Pourcentage d'avancement global</li>
-        </ul>
-        <p class="mt-4">Prenez des décisions éclairées grâce aux statistiques détaillées.</p>
-      `
-    }
-  ]
+      title: t('projectsTutorial.tracking.title'),
+      content: t('projectsTutorial.tracking.content'),
+    },
+  ])
 
-  return {
-    steps
-  }
+  return { steps }
 }
