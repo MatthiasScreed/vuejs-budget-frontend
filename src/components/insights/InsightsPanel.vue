@@ -12,8 +12,12 @@
           <LightBulbIcon class="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 class="text-lg font-semibold text-gray-900">Insights Financiers</h2>
-          <p class="text-sm text-gray-500">Recommandations personnalisées</p>
+          <h2 class="text-lg font-semibold text-gray-900">
+            {{ t('insights.title') }}
+          </h2>
+          <p class="text-sm text-gray-500">
+            {{ t('insights.subtitle') }}
+          </p>
         </div>
         <!-- Badge non-lus -->
         <span
@@ -31,7 +35,7 @@
           @click="handleMarkAllRead"
           class="text-sm text-gray-500 hover:text-blue-600 transition-colors"
         >
-          Tout marquer lu
+          {{ t('insights.markAllRead') }}
         </button>
 
         <!-- Générer -->
@@ -40,8 +44,11 @@
           :disabled="generating"
           class="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50"
         >
-          <ArrowPathIcon class="w-4 h-4" :class="{ 'animate-spin': generating }" />
-          <span>{{ generating ? 'Analyse...' : 'Analyser' }}</span>
+          <ArrowPathIcon
+            class="w-4 h-4"
+            :class="{ 'animate-spin': generating }"
+          />
+          <span>{{ generating ? t('insights.analyzing') : t('insights.analyze') }}</span>
         </button>
       </div>
     </div>
@@ -59,12 +66,16 @@
             <CurrencyEuroIcon class="w-4 h-4 text-white" />
           </div>
           <div>
-            <p class="text-sm font-medium text-green-800">Économies potentielles détectées</p>
-            <p class="text-xs text-green-600">Basé sur {{ insights.length }} insight(s) actif(s)</p>
+            <p class="text-sm font-medium text-green-800">
+              {{ t('insights.savingsDetected') }}
+            </p>
+            <p class="text-xs text-green-600">
+              {{ t('insights.basedOnInsights', { count: insights.length }) }}
+            </p>
           </div>
         </div>
         <span class="text-xl font-bold text-green-700">
-          {{ formatCurrency(totalPotentialSaving) }}/an
+          {{ formatCurrency(totalPotentialSaving) }}{{ t('insights.perYear') }}
         </span>
       </div>
     </div>
@@ -84,7 +95,7 @@
             : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
         "
       >
-        {{ filter.icon }} {{ filter.label }}
+        {{ filter.icon }} {{ t(`insights.filters.${filter.key}`) }}
         <span v-if="getTypeCount(filter.value)" class="ml-1 text-xs opacity-70">
           ({{ getTypeCount(filter.value) }})
         </span>
@@ -121,16 +132,18 @@
       <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
         <SparklesIcon class="w-8 h-8 text-gray-400" />
       </div>
-      <h3 class="text-base font-medium text-gray-900 mb-1">Aucun insight pour le moment</h3>
+      <h3 class="text-base font-medium text-gray-900 mb-1">
+        {{ t('insights.empty.title') }}
+      </h3>
       <p class="text-sm text-gray-500 mb-4">
-        Cliquez sur "Analyser" pour générer des recommandations basées sur vos transactions.
+        {{ t('insights.empty.description') }}
       </p>
       <button
         @click="handleGenerate"
         :disabled="generating"
         class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
       >
-        Lancer l'analyse
+        {{ t('insights.empty.cta') }}
       </button>
     </div>
 
@@ -194,7 +207,7 @@
             >
               <CurrencyEuroIcon class="w-3.5 h-3.5 text-green-600" />
               <span class="text-xs font-medium text-green-700">
-                {{ formatCurrency(insight.potential_saving) }}/an d'économie
+                {{ formatCurrency(insight.potential_saving) }}{{ t('insights.savingPerYear') }}
               </span>
             </div>
 
@@ -209,7 +222,9 @@
                 class="flex items-center space-x-1.5 text-xs text-blue-600"
               >
                 <ChartBarIcon class="w-3.5 h-3.5" />
-                <span> {{ impact.goal_name }} : {{ impact.months_saved }} mois gagnés </span>
+                <span>
+                  {{ impact.goal_name }} : {{ t('insights.monthsSaved', { count: impact.months_saved }) }}
+                </span>
               </div>
             </div>
 
@@ -231,7 +246,7 @@
                 class="flex items-center space-x-1 px-2 py-1 bg-purple-50 text-purple-600 text-xs font-medium rounded-lg"
               >
                 <CheckCircleIcon class="w-3.5 h-3.5" />
-                <span>Action effectuée · +15 XP</span>
+                <span>{{ t('insights.actionDone', { xp: 15 }) }}</span>
               </span>
 
               <!-- Rejeter -->
@@ -240,12 +255,12 @@
                 @click.stop="handleDismiss(insight.id)"
                 class="px-2 py-1.5 text-xs text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
               >
-                Ignorer
+                {{ t('insights.dismiss') }}
               </button>
 
               <!-- Date -->
               <span class="ml-auto text-xs text-gray-400">
-                {{ formatDate(insight.created_at) }}
+                {{ formatRelativeDate(insight.created_at) }}
               </span>
             </div>
           </div>
@@ -289,7 +304,7 @@
       >
         <SparklesIcon class="w-5 h-5 text-yellow-300" />
         <span class="text-sm font-medium">+{{ lastXpEarned }} XP</span>
-        <span class="text-xs text-purple-200">Insight appliqué !</span>
+        <span class="text-xs text-purple-200">{{ t('insights.xpToast') }}</span>
       </div>
     </Transition>
   </div>
@@ -298,6 +313,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useInsights } from '@/composables/useInsights'
 import {
   LightBulbIcon,
@@ -310,9 +326,10 @@ import {
 } from '@heroicons/vue/24/outline'
 
 // ==========================================
-// ROUTER + COMPOSABLE
+// I18N + ROUTER + COMPOSABLE
 // ==========================================
 
+const { t, locale } = useI18n()
 const router = useRouter()
 
 const {
@@ -344,16 +361,16 @@ const showXpToast = ref(false)
 const lastXpEarned = ref(0)
 
 // ==========================================
-// FILTRES
+// FILTRES (avec clés i18n)
 // ==========================================
 
 const typeFilters = [
-  { value: undefined, label: 'Tous', icon: '📋' },
-  { value: 'cost_reduction', label: 'Coûts', icon: '💳' },
-  { value: 'savings_opportunity', label: 'Épargne', icon: '💰' },
-  { value: 'unusual_spending', label: 'Alertes', icon: '⚠️' },
-  { value: 'goal_acceleration', label: 'Objectifs', icon: '🎯' },
-  { value: 'behavioral_pattern', label: 'Habitudes', icon: '📊' },
+  { value: undefined, key: 'all', icon: '📋' },
+  { value: 'cost_reduction', key: 'costs', icon: '💳' },
+  { value: 'savings_opportunity', key: 'savings', icon: '💰' },
+  { value: 'unusual_spending', key: 'alerts', icon: '⚠️' },
+  { value: 'goal_acceleration', key: 'goals', icon: '🎯' },
+  { value: 'behavioral_pattern', key: 'habits', icon: '📊' },
 ]
 
 // ==========================================
@@ -372,31 +389,19 @@ function getTypeCount(type: string | undefined): number | undefined {
 // HANDLERS
 // ==========================================
 
-/**
- * Filtrer par type
- */
 async function handleFilterType(type: string | undefined): Promise<void> {
   activeFilter.value = type
   await filterByType(type)
 }
 
-/**
- * Générer de nouveaux insights
- */
 async function handleGenerate(): Promise<void> {
   await generate()
 }
 
-/**
- * Marquer tout comme lu
- */
 async function handleMarkAllRead(): Promise<void> {
   await markAllAsRead()
 }
 
-/**
- * Marquer un insight comme lu au clic
- */
 async function handleRead(insight: any): Promise<void> {
   if (!insight.is_read) {
     await markAsRead(insight.id)
@@ -405,13 +410,10 @@ async function handleRead(insight: any): Promise<void> {
 
 /**
  * Exécuter l'action sur un insight
- * 1. POST markAsActed → récupérer XP
- * 2. Toast XP pendant 1.5s
- * 3. Redirection vers action_data.url
+ * École 42: Fonction claire, un rôle
  */
 async function handleAction(insight: any): Promise<void> {
   const result = await handleInsightAction(insight.id)
-
   const redirectUrl = insight.action_data?.url ?? insight.action_url ?? null
 
   if (result?.gaming?.xp_earned) {
@@ -427,12 +429,8 @@ async function handleAction(insight: any): Promise<void> {
   }
 }
 
-/**
- * Naviguer vers une URL interne si valide
- */
 function navigateIfUrl(url: string | null): void {
   if (!url) return
-
   if (url.startsWith('http')) {
     window.open(url, '_blank')
   } else {
@@ -440,20 +438,14 @@ function navigateIfUrl(url: string | null): void {
   }
 }
 
-/**
- * Rejeter un insight
- */
 async function handleDismiss(id: number): Promise<void> {
   await dismiss(id)
 }
 
 // ==========================================
-// HELPERS UI
+// HELPERS UI (i18n-aware)
 // ==========================================
 
-/**
- * Classe de fond selon la priorité
- */
 function getPriorityBgClass(priority: number): string {
   const classes: Record<number, string> = {
     1: 'bg-red-100',
@@ -463,9 +455,6 @@ function getPriorityBgClass(priority: number): string {
   return classes[priority] ?? 'bg-gray-100'
 }
 
-/**
- * Classe du label de priorité
- */
 function getPriorityLabelClass(priority: number): string {
   const classes: Record<number, string> = {
     1: 'bg-red-100 text-red-700',
@@ -476,20 +465,17 @@ function getPriorityLabelClass(priority: number): string {
 }
 
 /**
- * Label de priorité
+ * Label de priorité via i18n
  */
 function getPriorityLabel(priority: number): string {
-  const labels: Record<number, string> = {
-    1: 'Urgent',
-    2: 'Important',
-    3: 'Info',
+  const keys: Record<number, string> = {
+    1: 'insights.priority.urgent',
+    2: 'insights.priority.important',
+    3: 'insights.priority.info',
   }
-  return labels[priority] ?? 'Info'
+  return t(keys[priority] ?? 'insights.priority.info')
 }
 
-/**
- * Icône par défaut selon le type
- */
 function getDefaultIcon(type: string): string {
   const icons: Record<string, string> = {
     cost_reduction: '💳',
@@ -502,10 +488,11 @@ function getDefaultIcon(type: string): string {
 }
 
 /**
- * Formater un montant en euros
+ * Formater un montant (locale-aware)
  */
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('fr-FR', {
+  const loc = locale.value === 'en' ? 'en-US' : 'fr-FR'
+  return new Intl.NumberFormat(loc, {
     style: 'currency',
     currency: 'EUR',
     maximumFractionDigits: 0,
@@ -513,20 +500,21 @@ function formatCurrency(amount: number): string {
 }
 
 /**
- * Formater une date relative
+ * Formater une date relative (locale-aware)
  */
-function formatDate(dateStr: string): string {
+function formatRelativeDate(dateStr: string): string {
   const date = new Date(dateStr)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
   const diffH = Math.floor(diffMs / 3600000)
   const diffD = Math.floor(diffMs / 86400000)
 
-  if (diffH < 1) return "À l'instant"
-  if (diffH < 24) return `Il y a ${diffH}h`
-  if (diffD < 7) return `Il y a ${diffD}j`
+  if (diffH < 1) return t('time.justNow')
+  if (diffH < 24) return t('time.hoursAgo', { n: diffH })
+  if (diffD < 7) return t('time.daysAgo', { n: diffD })
 
-  return date.toLocaleDateString('fr-FR', {
+  const loc = locale.value === 'en' ? 'en-US' : 'fr-FR'
+  return date.toLocaleDateString(loc, {
     day: '2-digit',
     month: 'short',
   })

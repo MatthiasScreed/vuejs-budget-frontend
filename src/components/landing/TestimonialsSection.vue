@@ -1,10 +1,9 @@
 <!-- src/components/landing/TestimonialsSection.vue -->
-
 <template>
   <section class="testimonials-section">
     <div class="container">
-      <h2 class="section-title">Ils ont repris le contrôle</h2>
-      <p class="section-subtitle">Des résultats réels de vrais utilisateurs</p>
+      <h2 class="section-title">{{ t('landing.testimonialsTitle') }}</h2>
+      <p class="section-subtitle">{{ t('landing.testimonialsSubtitle') }}</p>
 
       <div class="testimonials-grid">
         <div
@@ -13,7 +12,6 @@
           class="testimonial-card"
         >
           <div class="testimonial-header">
-            <!-- Avatar dynamique avec fallback -->
             <DynamicAvatar
               :src="testimonial.avatar"
               :name="testimonial.name"
@@ -21,14 +19,9 @@
               :backgroundColor="testimonial.color"
               class="testimonial-avatar"
             />
-
             <div class="testimonial-author">
-              <h4 class="author-name">
-                {{ testimonial.name }}
-              </h4>
-              <p class="author-role">
-                {{ testimonial.role }}
-              </p>
+              <h4 class="author-name">{{ testimonial.name }}</h4>
+              <p class="author-role">{{ testimonial.role }}</p>
             </div>
           </div>
 
@@ -37,11 +30,11 @@
           <div class="testimonial-stats">
             <div class="stat">
               <span class="stat-value">{{ testimonial.savings }}</span>
-              <span class="stat-label">économisés</span>
+              <span class="stat-label">{{ t('landing.saved') }}</span>
             </div>
             <div class="stat">
               <span class="stat-value">{{ testimonial.duration }}</span>
-              <span class="stat-label">d'utilisation</span>
+              <span class="stat-label">{{ t('landing.usage') }}</span>
             </div>
           </div>
         </div>
@@ -51,61 +44,64 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import DynamicAvatar from '@/components/common/DynamicAvatar.vue'
 import { TESTIMONIAL_AVATARS } from '@/config/avatars.config'
 import type { Testimonial } from '@/types/landing.types'
 
+const { t } = useI18n()
+
 /**
- * Données des témoignages
- * École 42: Données séparées de la logique
+ * Témoignages traduits via i18n
+ * École 42: Computed réactif à la locale
  */
-const testimonials = ref<Testimonial[]>([
+const testimonials = computed<Testimonial[]>(() => [
   {
     id: '1',
     name: 'Marie Dubois',
-    role: 'Professeure',
-    avatar: '', // Sera rempli par computed
-    quote:
+    role: t('testimonials.marieRole', 'Professeure'),
+    avatar: '',
+    quote: t(
+      'testimonials.marieQuote',
       "J'ai économisé 400€ en 2 mois juste en visualisant mes dépenses. Je n'avais aucune idée que je dépensais autant en restaurants !",
+    ),
     savings: '400€',
-    duration: '2 mois',
+    duration: t('testimonials.marieDuration', '2 mois'),
   },
   {
     id: '2',
     name: 'Thomas Martin',
-    role: 'Développeur',
+    role: t('testimonials.thomasRole', 'Développeur'),
     avatar: '',
-    quote:
+    quote: t(
+      'testimonials.thomasQuote',
       "L'import automatique des transactions me fait gagner un temps fou. Plus besoin de tout saisir à la main comme avec Excel.",
+    ),
     savings: '850€',
-    duration: '6 mois',
+    duration: t('testimonials.thomasDuration', '6 mois'),
   },
   {
     id: '3',
     name: 'Sophie Leroy',
-    role: 'Entrepreneure',
+    role: t('testimonials.sophieRole', 'Entrepreneure'),
     avatar: '',
-    quote:
+    quote: t(
+      'testimonials.sophieQuote',
       "Grâce aux objectifs intelligents, j'ai pu mettre de côté 15 000€ pour l'apport de mon appartement en 18 mois. C'était mon rêve !",
+    ),
     savings: '15 000€',
-    duration: '18 mois',
+    duration: t('testimonials.sophieDuration', '18 mois'),
   },
 ])
 
-/**
- * Ajoute les avatars aux témoignages
- * Priorité: local > UI Avatars > DiceBear
- */
 const testimonialsWithAvatars = computed(() => {
+  const keys: ('marie' | 'thomas' | 'sophie')[] = ['marie', 'thomas', 'sophie']
   return testimonials.value.map((testimonial, index) => {
-    const keys: ('marie' | 'thomas' | 'sophie')[] = ['marie', 'thomas', 'sophie']
     const key = keys[index]
     const avatarConfig = TESTIMONIAL_AVATARS[key]
-
     return {
       ...testimonial,
-      // Essaie d'abord l'avatar local, sinon UI Avatars
       avatar: avatarConfig.uiAvatar,
       color: avatarConfig.color,
     }
@@ -118,12 +114,10 @@ const testimonialsWithAvatars = computed(() => {
   padding: 6rem 2rem;
   background: linear-gradient(135deg, #f0f4ff 0%, #fef5ff 100%);
 }
-
 .container {
   max-width: 1200px;
   margin: 0 auto;
 }
-
 .section-title {
   font-size: 2.5rem;
   font-weight: 800;
@@ -131,20 +125,17 @@ const testimonialsWithAvatars = computed(() => {
   margin-bottom: 1rem;
   color: #1a202c;
 }
-
 .section-subtitle {
   font-size: 1.25rem;
   text-align: center;
   color: #718096;
   margin-bottom: 4rem;
 }
-
 .testimonials-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 2rem;
 }
-
 .testimonial-card {
   background: white;
   border-radius: 16px;
@@ -152,19 +143,16 @@ const testimonialsWithAvatars = computed(() => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
 }
-
 .testimonial-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
 }
-
 .testimonial-header {
   display: flex;
   align-items: center;
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
-
 .testimonial-avatar {
   width: 60px;
   height: 60px;
@@ -172,18 +160,15 @@ const testimonialsWithAvatars = computed(() => {
   object-fit: cover;
   border: 3px solid #667eea;
 }
-
 .author-name {
   font-weight: 700;
   color: #1a202c;
   margin-bottom: 0.25rem;
 }
-
 .author-role {
   font-size: 0.875rem;
   color: #718096;
 }
-
 .testimonial-quote {
   font-size: 1rem;
   line-height: 1.6;
@@ -193,25 +178,21 @@ const testimonialsWithAvatars = computed(() => {
   border-left: 4px solid #667eea;
   padding-left: 1rem;
 }
-
 .testimonial-stats {
   display: flex;
   gap: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid #e2e8f0;
 }
-
 .stat {
   display: flex;
   flex-direction: column;
 }
-
 .stat-value {
   font-size: 1.5rem;
   font-weight: 700;
   color: #667eea;
 }
-
 .stat-label {
   font-size: 0.75rem;
   color: #718096;
@@ -219,7 +200,6 @@ const testimonialsWithAvatars = computed(() => {
   letter-spacing: 0.05em;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .testimonials-grid {
     grid-template-columns: 1fr;

@@ -9,20 +9,19 @@
       <header class="relative z-10 pt-8">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div class="flex items-center justify-center mb-8">
-            <div class="bg-gaming-gradient w-16 h-16 rounded-xl flex items-center justify-center mr-4 shadow-gaming">
-              <img
-                src="@/assets/images/logo/logo.svg"
-                alt="CoinQuest Logo"
-                class="w-8 h-8"
-              />
+            <div
+              class="bg-gaming-gradient w-16 h-16 rounded-xl flex items-center justify-center mr-4 shadow-gaming"
+            >
+              <img src="@/assets/images/logo/logo.svg" alt="CoinQuest Logo" class="w-8 h-8" />
             </div>
             <h1 class="text-4xl md:text-5xl font-bold text-gray-900">
-              Bienvenue sur <span class="text-transparent bg-clip-text bg-gaming-gradient">CoinQuest</span>
+              {{ t('homeView.welcomeTitle') }}
+              <span class="text-transparent bg-clip-text bg-gaming-gradient">CoinQuest</span>
             </h1>
           </div>
 
           <p class="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-            Transforme ta gestion financière en aventure épique. Gagne de l'XP, débloque des achievements et atteins tes objectifs avec style !
+            {{ t('homeView.welcomeSubtitle') }}
           </p>
         </div>
       </header>
@@ -37,18 +36,19 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import CoinQuestWelcome from '@/components/CoinQuestWelcome.vue'
 
-// Titre de la page
-document.title = 'CoinQuest - Bienvenue'
+const { t } = useI18n()
+
+document.title = t('homeView.pageTitle')
 
 onMounted(() => {
-  console.log('🎮 Page d\'accueil CoinQuest chargée')
+  console.log('🎮 CoinQuest home loaded')
 })
 </script>
 
 <style scoped>
-/* Particules d'arrière-plan animées */
 .particles-bg::before {
   content: '';
   position: absolute;
@@ -65,7 +65,8 @@ onMounted(() => {
 }
 
 @keyframes particlesFloat {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(0, 0) rotate(0deg);
     opacity: 0.6;
   }
@@ -79,7 +80,6 @@ onMounted(() => {
   }
 }
 
-/* Animation fade-in pour le contenu */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -95,12 +95,10 @@ main {
   animation: fadeInUp 0.8s ease-out;
 }
 
-/* Responsive design */
 @media (max-width: 768px) {
   h1 {
     font-size: 2.5rem;
   }
-
   .particles-bg::before {
     animation-duration: 15s;
   }

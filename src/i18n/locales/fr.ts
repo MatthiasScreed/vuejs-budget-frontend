@@ -1,5 +1,7 @@
 // src/i18n/locales/fr.ts
-export default {
+// ✅ Fichier complet corrigé — Tutorial mergé + Landing + Insights
+
+const fr = {
   // ==========================================
   // NAVIGATION & LAYOUT
   // ==========================================
@@ -71,7 +73,7 @@ export default {
   },
 
   // ==========================================
-  // DASHBOARD ✅ SECTION COMPLÈTE
+  // DASHBOARD
   // ==========================================
   dashboard: {
     greeting: 'Bonjour {name}',
@@ -86,17 +88,11 @@ export default {
     spendingByCategory: 'Dépenses par catégorie',
     aiProjections: 'Projections IA',
     recentActivity: 'Activité récente',
-
-    // Cards
     monthlyIncome: 'Revenus mensuels',
     monthlyExpenses: 'Dépenses mensuelles',
-
-    // Actions
     newGoal: 'Nouvel objectif',
     newBank: 'Banque',
     analyze: 'Analyse',
-
-    // Messages
     welcome: 'Bienvenue !',
     welcomeMessage: 'Suivez vos finances au quotidien',
     nextSteps: 'Prochaines étapes',
@@ -116,15 +112,11 @@ export default {
     sync: 'Synchroniser',
     syncing: 'Synchronisation...',
     recentTitle: 'Transactions récentes',
-
-    // Types
     income: 'Revenu',
     expense: 'Dépense',
     incomeDesc: 'Argent qui entre',
     expenseDesc: 'Argent qui sort',
     typeLabel: 'Type de transaction',
-
-    // Champs
     description: 'Description',
     descriptionPlaceholder: 'ex: Courses Carrefour, Salaire janvier...',
     amount: 'Montant',
@@ -142,29 +134,22 @@ export default {
     tags: 'Tags',
     addTag: 'Ajouter un tag',
     suggestedTags: 'Tags suggérés',
-
-    // États
     noTransactions: 'Aucune transaction',
     noTransactionsDesc: 'Commencez par créer votre première transaction',
     noFilterResults: 'Aucun résultat pour ces filtres',
     createFirst: 'Créer ma première transaction',
     loadingTransactions: 'Chargement des transactions...',
     transactionCount: '{n} transaction | {n} transactions',
-
-    // Actions
     deleteConfirmTitle: 'Confirmer la suppression',
     deleteConfirmText: 'Supprimer "{name}" ?',
     deleteIrreversible: 'Cette action est irréversible',
     deleting: 'Suppression...',
-
-    // Succès / Erreurs
     created: 'Transaction créée !',
     updated: 'Transaction modifiée !',
     deleted: 'Transaction supprimée',
     errorSave: 'Erreur lors de la sauvegarde',
     errorDelete: 'Erreur lors de la suppression',
   },
-
 
   // ==========================================
   // GAMING
@@ -187,22 +172,6 @@ export default {
   },
 
   // ==========================================
-  // OBJECTIFS FINANCIERS
-  // ==========================================
-  goals: {
-    title: 'Objectifs financiers',
-    newGoal: 'Nouvel objectif',
-    targetAmount: 'Montant cible',
-    currentAmount: 'Montant actuel',
-    deadline: 'Échéance',
-    progress: 'Progression',
-    completed: 'Atteint !',
-    remaining: 'Restant',
-    viewAll: 'Voir tout',
-    activeGoals: 'Objectifs actifs',
-  },
-
-  // ==========================================
   // BUDGET
   // ==========================================
   budget: {
@@ -217,7 +186,7 @@ export default {
   },
 
   // ==========================================
-  // SIDEBAR
+  // SIDEBAR — ✅ Clés manquantes ajoutées
   // ==========================================
   sidebar: {
     sectionFinances: 'Finances',
@@ -227,6 +196,10 @@ export default {
     quickTransaction: 'Transaction rapide',
     dailyChallenge: 'Défi du jour',
     badgeNew: 'NEW',
+    dailyProgress: 'Progrès du jour',
+    achievements: 'Succès',
+    streak: 'Série',
+    rank: 'Rang',
   },
 
   // ==========================================
@@ -324,9 +297,11 @@ export default {
   },
 
   // ==========================================
-  // TEMPS RELATIF
+  // TEMPS RELATIF — ✅ Clés manquantes ajoutées
   // ==========================================
   time: {
+    justNow: "À l'instant",
+    hoursAgo: 'Il y a {n}h',
     today: "Aujourd'hui",
     yesterday: 'Hier',
     daysAgo: 'Il y a {n} jours',
@@ -348,58 +323,40 @@ export default {
   },
 
   // ==========================================
-  // CATÉGORIES (page complète)
+  // CATÉGORIES
   // ==========================================
   categories: {
     title: 'Catégories',
     subtitle: 'Organisez vos dépenses',
     new: 'Nouvelle',
-
-    // Stats
     activeCategories: 'Catégories actives',
     spentThisMonth: 'Dépenses ce mois',
     mostSpent: 'Plus dépensée',
     budgetUsed: 'Budget utilisé',
     none: 'Aucune',
-
-    // Actions
     income: 'Revenu',
     expense: 'Dépense',
     templates: 'Templates',
     refresh: 'Actualiser',
-
-    // Liste
     yourCategories: 'Vos catégories',
     category: 'catégorie',
     categories_plural: 'catégories',
-
-    // Types
     revenues: 'Revenus',
     expenses: 'Dépenses',
     budget: 'Budget',
     budgetPerMonth: 'Budget: {amount}/mois',
-
-    // Progress
     spent: 'Dépensé',
-
-    // Actions
     modify: 'Modifier',
     delete: 'Supprimer',
-
-    // Modal
     newCategory: 'Nouvelle catégorie',
     editCategory: 'Modifier',
     confirmDelete: 'Confirmer la suppression',
     irreversible: 'Cette action est irréversible',
     deleteQuestion: 'Supprimer "{name}" ?',
     type: 'Type',
-
-    // Empty state
     noCategory: 'Aucune catégorie',
     startCreating: 'Commencez par créer votre première catégorie',
     createFirst: 'Créer ma première catégorie',
-
-    // Templates
     templatesTitle: 'Templates de catégories',
     viewMore: 'Voir {n} templates de plus',
     viewLess: 'Voir moins',
@@ -413,19 +370,13 @@ export default {
     subtitle: 'Participez aux défis et grimpez dans les classements',
     refresh: 'Actualiser',
     refreshing: 'Chargement...',
-
-    // Tabs
     myChallenges: 'Mes défis',
     available: 'Disponibles',
     leaderboards: 'Classements',
-
-    // Stats
     activeChallenges: 'Défis actifs',
     completed: 'Complétés',
     bestRank: 'Meilleur rang',
     totalXP: 'XP gagnés',
-
-    // My challenges
     inProgress: 'Mes défis en cours',
     noChallenge: 'Vous ne participez à aucun défi pour le moment',
     discover: 'Découvrir les défis',
@@ -433,8 +384,6 @@ export default {
     progression: 'Progression',
     toWin: 'à gagner',
     viewLeaderboard: 'Voir le classement',
-
-    // Available
     filters: 'Filtres',
     all: 'Toutes',
     easy: 'Facile',
@@ -445,22 +394,14 @@ export default {
     rewards: 'Récompenses',
     participate: 'Participer',
     participating: 'Participation...',
-
-    // Difficulty
     difficultyEasy: 'Facile',
     difficultyMedium: 'Moyen',
     difficultyHard: 'Difficile',
-
-    // Time
     endsOn: 'Se termine le {date}',
     remaining: '{n} jours restants',
     oneDay: '1 jour restant',
     finished: 'Terminé',
-
-    // Empty
     noChallengeFound: 'Aucun défi disponible pour ces critères',
-
-    // Leaderboard
     globalLeaderboard: 'Classements globaux',
     thisWeek: 'Cette semaine',
     thisMonth: 'Ce mois',
@@ -468,8 +409,6 @@ export default {
     player: 'Joueur',
     challengesCompleted: 'Défis',
     you: 'Vous',
-
-    // Toast
     joined: 'Vous participez maintenant au défi "{name}" !',
     error: 'Erreur lors de la participation au défi',
     refreshed: 'Défis actualisés !',
@@ -482,8 +421,6 @@ export default {
   gamingCenter: {
     title: 'Progression',
     subtitle: 'Suivez votre évolution et débloquez des récompenses',
-
-    // Stats
     tier: 'Niveau',
     achievements: 'Succès',
     streak: 'Série',
@@ -492,22 +429,14 @@ export default {
     days: 'jours',
     record: 'Record: {n} jours',
     completed: 'complétés',
-
-    // Quick links
     allAchievements: 'Tous les succès',
     unlocked: '{n}/{total} débloqués',
     activeChallenges: 'Défis actifs',
     inProgress: '{n} en cours',
     ranking: 'Classement',
     rankPosition: '#{rank} sur {total}',
-
-    // Recent achievements
     recentAchievements: 'Succès récents',
-
-    // Leaderboard
     leaderboard: 'Classement',
-
-    // Loading
     loading: 'Chargement...',
   },
 
@@ -521,47 +450,33 @@ export default {
     refresh: 'Actualiser',
     refreshing: 'Chargement...',
     templates: 'Templates',
-
-    // Stats
     activeGoals: 'Objectifs actifs',
     totalSaved: 'Montant épargné',
     averageProgress: 'Progression moyenne',
     goalsReached: 'Objectifs atteints',
-
-    // Filters
     all: 'Tous',
     active: 'Actifs',
     completed: 'Atteints',
     paused: 'En pause',
-
-    // Goal card
     noDescription: 'Pas de description',
     on: 'sur',
     remaining: 'Reste: {amount}',
     perMonth: '/mois',
     add: 'Ajouter',
     modify: 'Modifier',
-
-    // Status
     statusActive: 'Actif',
     statusCompleted: 'Atteint',
     statusPaused: 'En pause',
-
-    // Menu
     contribution: 'Contribution',
     pause: 'Pause',
     resume: 'Reprendre',
     delete: 'Supprimer',
-
-    // Time
     exceeded: 'Dépassé',
     today: "Aujourd'hui",
     tomorrow: 'Demain',
     daysRemaining: '{n} jours',
     monthsRemaining: '{n} mois',
     yearsRemaining: '{n} an(s)',
-
-    // Modal
     newGoal: 'Nouvel objectif',
     editGoal: 'Modifier',
     chooseTemplate: 'Choisir un template',
@@ -569,19 +484,13 @@ export default {
     goal: 'Objectif',
     amount: 'Montant (€)',
     cancel: 'Annuler',
-
-    // Delete
     deleteTitle: 'Supprimer cet objectif ?',
     deleteText: 'Cette action est irréversible. L\'objectif "{name}" sera définitivement supprimé.',
     deleting: 'Suppression...',
-
-    // Empty
     noGoals: 'Aucun objectif',
     noGoalsInCategory: 'dans cette catégorie',
     createFirstGoal: 'Créez votre premier objectif financier pour commencer à épargner !',
     createGoal: 'Créer un objectif',
-
-    // Templates
     travel: 'Voyage',
     travelDesc: 'Économisez pour votre prochaine aventure',
     emergency: "Fonds d'urgence",
@@ -599,4 +508,264 @@ export default {
     tech: 'High-Tech',
     techDesc: 'Équipement informatique',
   },
+
+  // ==========================================
+  // INSIGHTS — ✅ Complet
+  // ==========================================
+  insights: {
+    title: 'Insights Financiers',
+    subtitle: 'Recommandations personnalisées',
+    markAllRead: 'Tout marquer lu',
+    analyzing: 'Analyse...',
+    analyze: 'Analyser',
+    savingsDetected: 'Économies potentielles détectées',
+    basedOnInsights: 'Basé sur {count} insight(s) actif(s)',
+    perYear: '/an',
+    savingPerYear: "/an d'économie",
+    monthsSaved: '{count} mois gagné(s)',
+    actionDone: 'Action effectuée · +{xp} XP',
+    dismiss: 'Ignorer',
+    xpToast: 'Insight appliqué !',
+    filters: {
+      all: 'Tous',
+      costs: 'Coûts',
+      savings: 'Épargne',
+      alerts: 'Alertes',
+      goals: 'Objectifs',
+      habits: 'Habitudes',
+    },
+    priority: {
+      urgent: 'Urgent',
+      important: 'Important',
+      info: 'Info',
+    },
+    empty: {
+      title: 'Aucun insight pour le moment',
+      description:
+        'Cliquez sur "Analyser" pour générer des recommandations basées sur vos transactions.',
+      cta: "Lancer l'analyse",
+    },
+  },
+
+  // ==========================================
+  // LANDING PAGE — Home.vue + sous-composants
+  // ==========================================
+  landing: {
+    // Navigation
+    login: 'Connexion',
+    register: 'Inscription',
+
+    // Badge
+    badge: '💰 Budget + 🎮 Motivation = 🚀 Résultats',
+
+    // Hero
+    heroTitle1: "L'app qui rend la",
+    heroTitle2: "gestion d'argent",
+    heroTitle3: 'fun et motivante',
+    heroSubtitle: 'Tu économises pour un projet ?',
+    heroDesc:
+      "CoinQuest connecte ta banque, calcule automatiquement ta capacité d'épargne et te récompense à chaque étape.",
+    heroDescBold: 'Simple. Automatique. Motivant.',
+
+    // 3 Bénéfices
+    bankTitle: 'Connexion bancaire sécurisée',
+    bankDesc: 'Tes transactions importées automatiquement depuis 300+ banques européennes',
+    goalsTitle: 'Objectifs intelligents',
+    goalsDesc: "L'app calcule combien mettre de côté chaque mois pour tes projets",
+    progressTitle: 'Progression motivante',
+    progressDesc: 'Gagne des points et badges à chaque bonne décision financière',
+
+    // CTA
+    ctaPrimary: '🎮 Commencer gratuitement',
+    ctaSecondary: '👀 Voir comment ça marche',
+
+    // Social Proof
+    storeRating: '4.8★ sur les stores',
+    activeUsers: '1 247 utilisateurs actifs',
+    totalSaved: '€2.4M épargnés collectivement',
+
+    // Comment ça marche
+    howTitle: 'Comment ça marche ?',
+    howSubtitle: '3 étapes simples pour reprendre le contrôle de ton budget',
+    step1Title: 'Connecte ta banque',
+    step1Desc:
+      "En 2 minutes, connexion sécurisée à ton compte. Tes transactions s'importent automatiquement.",
+    step2Title: 'Définis tes objectifs',
+    step2Desc: "Voyage, voiture, appart... L'app calcule combien économiser par mois.",
+    step3Title: 'Progresse et gagne',
+    step3Desc: 'Chaque bonne décision te rapporte des points. Suis ta progression en temps réel.',
+
+    // Footer trust
+    trustBridge: 'Connexion sécurisée Bridge',
+    trustReadOnly: 'Lecture seule (aucun virement)',
+    trustCompliance: 'Conforme RGPD & PSD2',
+    copyright: '© {year} CoinQuest. Tous droits réservés.',
+    trustDesc:
+      'CoinQuest utilise Bridge, le même système que ta banque pour connecter ton compte en toute sécurité',
+
+    // HeroSection (LandingPage)
+    heroSavings: 'Économisez {amount} en moyenne par mois',
+    heroTagline: 'Sans effort. Sans tableur Excel. 100% automatique.',
+    calcTitle: "💰 Calculez votre potentiel d'économies",
+    signupCta: 'Commencer gratuitement',
+    signupSubtext: '✓ Sans carte bancaire • ✓ 30 jours gratuits',
+    trustPsd2: 'Sécurisé PSD2',
+    trustInstant: 'Import instantané',
+    trustFrance: 'Données en France',
+
+    // BenefitsSection
+    benefitsTitle: 'Pourquoi CoinQuest fonctionne ?',
+    benefitsSubtitle: 'Des résultats concrets, pas des promesses',
+
+    // HowItWorksSection
+    howCtaNote: 'Essai gratuit de 30 jours • Aucune carte requise',
+    howCtaBtn: 'Commencer maintenant',
+
+    // TestimonialsSection
+    testimonialsTitle: 'Ils ont repris le contrôle',
+    testimonialsSubtitle: 'Des résultats réels de vrais utilisateurs',
+    saved: 'économisés',
+    usage: "d'utilisation",
+
+    // CTASection
+    ctaTitle: 'Prêt à économiser {amount}/mois ?',
+    ctaSubtitle: "Rejoignez les centaines d'utilisateurs qui ont repris le contrôle",
+    ctaBtn: 'Commencer gratuitement',
+    ctaFeatures: '✓ Sans carte bancaire ✓ 30 jours gratuits ✓ Annulation à tout moment',
+
+    // SavingsCalculator
+    calcIncome: 'Votre revenu mensuel net',
+    calcExpenses: 'Vos dépenses mensuelles fixes',
+    calcCapacity: "Capacité d'épargne",
+    calcPerMonth: 'par mois',
+    calcYearly: 'potentiel annuel',
+    calcPercent: 'de votre revenu',
+    calcExcellent: "Excellent ! Vous avez une très bonne capacité d'épargne.",
+    calcGood: 'Bien ! Vous pouvez constituer une épargne solide.',
+    calcHelp: 'CoinQuest vous aidera à optimiser vos dépenses.',
+    calcError: 'Vos dépenses ne peuvent pas dépasser votre revenu',
+  },
+
+  benefits: {
+    goalsTitle: 'Objectifs intelligents',
+    goalsDesc: 'Créez des objectifs réalistes et suivez votre progression en temps réel.',
+    goalsEx: 'Exemple : 15 000€ pour un voyage en 18 mois',
+    autoTitle: 'Catégorisation automatique',
+    autoDesc: "75% de vos transactions sont classées automatiquement grâce à l'IA.",
+    autoEx: 'Gain de temps : 2h/mois économisées',
+    insightsTitle: 'Analyse détaillée',
+    insightsDesc: 'Visualisez où part votre argent avec des graphiques clairs.',
+    insightsEx: "Identifiez 3-5 postes d'optimisation",
+    projectionsTitle: 'Prévisions IA',
+    projectionsDesc: 'Anticipez vos finances futures basées sur vos habitudes.',
+    projectionsEx: 'Prédictions à 3, 6 et 12 mois',
+    securityTitle: 'Sécurité bancaire',
+    securityDesc: 'Connexion sécurisée PSD2 via Bridge. Vos données restent en France.',
+    securityEx: 'Certifié ACPR et agrégateur officiel',
+    mobileTitle: 'Application mobile',
+    mobileDesc: 'Suivez vos finances partout, sur tous vos appareils.',
+    mobileEx: 'iOS, Android et Web',
+  },
+
+  testimonials: {
+    marieRole: 'Professeure',
+    marieQuote: "J'ai économisé 400€ en 2 mois juste en visualisant mes dépenses. Je n'avais aucune idée que je dépensais autant en restaurants !",
+    marieDuration: '2 mois',
+    thomasRole: 'Développeur',
+    thomasQuote: "L'import automatique des transactions me fait gagner un temps fou. Plus besoin de tout saisir à la main comme avec Excel.",
+    thomasDuration: '6 mois',
+    sophieRole: 'Entrepreneure',
+    sophieQuote: "Grâce aux objectifs intelligents, j'ai pu mettre de côté 15 000€ pour l'apport de mon appartement en 18 mois. C'était mon rêve !",
+    sophieDuration: '18 mois',
+  },
+
+  // ==========================================
+  // HOME VIEW (accueil connecté)
+  // ==========================================
+  homeView: {
+    welcomeTitle: 'Bienvenue sur',
+    welcomeSubtitle:
+      "Transforme ta gestion financière en aventure épique. Gagne de l'XP, débloque des achievements et atteins tes objectifs avec style !",
+    pageTitle: 'CoinQuest - Bienvenue',
+  },
+
+  // ==========================================
+  // TUTORIAL — ✅ Mergé directement
+  // ==========================================
+  tutorial: {
+    welcome: {
+      title: 'Bienvenue sur CoinQuest !',
+      content:
+        '<p>CoinQuest transforme ta gestion financière en <strong>aventure motivante</strong>. ' +
+        'Connecte ta banque, définis tes objectifs et gagne des points à chaque bonne décision.</p>' +
+        '<p>Ce tutoriel te guide en 5 étapes pour bien démarrer.</p>',
+      tip1: "L'inscription est 100% gratuite, sans carte bancaire",
+      tip2: 'Tu peux revoir ce tutoriel à tout moment depuis les paramètres',
+    },
+    bank: {
+      title: 'Connecte ta banque',
+      content:
+        '<p>CoinQuest utilise <strong>Bridge</strong>, un agrégateur certifié PSD2, pour ' +
+        'importer tes transactions automatiquement. Compatible avec 300+ banques européennes.</p>' +
+        '<p>La connexion est <strong>en lecture seule</strong> : aucun virement possible.</p>',
+      ex1Title: 'Connexion sécurisée',
+      ex1Desc: 'Tes identifiants ne sont jamais stockés par CoinQuest',
+      ex2Title: 'Import automatique',
+      ex2Desc: 'Tes transactions sont synchronisées chaque jour',
+      tip1: 'La première synchronisation peut prendre quelques minutes',
+    },
+    goals: {
+      title: 'Définis tes objectifs',
+      content:
+        "<p>Crée des objectifs d'épargne et laisse CoinQuest calculer " +
+        '<strong>combien mettre de côté chaque mois</strong> pour les atteindre.</p>' +
+        "<p>L'app répartit intelligemment ta capacité d'épargne entre tes projets.</p>",
+      examplesTitle: 'Exemples de projets',
+      ex1Title: 'Voyage',
+      ex1Desc: '3 000€ pour un road trip en Islande',
+      ex1Detail1: 'Durée estimée : 10 mois',
+      ex1Detail2: 'Épargne mensuelle : 300€',
+      ex2Title: 'Apport immobilier',
+      ex2Desc: '15 000€ en 18 mois pour acheter un appartement',
+      ex3Title: 'Nouvelle voiture',
+      ex3Desc: '8 000€ en 12 mois',
+      tip1: 'Commence par un objectif réaliste pour prendre confiance',
+      tip2: "L'app ajuste les montants automatiquement si tes revenus changent",
+    },
+    coach: {
+      title: 'Ton coach financier',
+      content:
+        '<p>Le <strong>Coach Insights</strong> analyse automatiquement tes habitudes et te propose ' +
+        'des recommandations personnalisées pour optimiser ton budget.</p>' +
+        '<p>Chaque insight appliqué te rapporte <strong>+15 points</strong> !</p>',
+      examplesTitle: 'Ce que le coach détecte',
+      ex1Title: 'Abonnements oubliés',
+      ex1Desc: 'Détection de dépenses récurrentes que tu pourrais réduire',
+      ex1Detail1: 'Exemple : streaming en double à 13,99€/mois',
+      ex1Detail2: 'Économie potentielle : 168€/an',
+      ex2Title: 'Accélération des objectifs',
+      ex2Desc: 'Des suggestions pour atteindre tes objectifs plus rapidement',
+      ex3Title: 'Dépenses inhabituelles',
+      ex3Desc: 'Alertes quand une catégorie dépasse la moyenne',
+      tip1: 'Consulte tes insights régulièrement pour maximiser tes points',
+      tip2: 'Tu peux ignorer un insight sans pénalité',
+    },
+    gaming: {
+      title: 'Progresse et gagne',
+      content:
+        '<p>Chaque bonne décision financière te rapporte des <strong>points</strong>. ' +
+        'Monte en palier, débloque des badges et maintiens tes séries !</p>' +
+        '<p>Le gaming est là pour te <strong>motiver</strong>, pas pour te distraire.</p>',
+      examplesTitle: 'Comment gagner des points',
+      ex1Title: 'Badges',
+      ex1Desc: 'Débloque des succès en atteignant des étapes clés',
+      ex2Title: 'Séries',
+      ex2Desc: 'Maintiens une série quotidienne pour des bonus croissants',
+      ex3Title: 'Paliers',
+      ex3Desc: 'Monte en palier pour débloquer de nouvelles fonctionnalités',
+      tip1: 'Les points reflètent de vraies bonnes habitudes financières',
+    },
+  },
 }
+
+export default fr
