@@ -4,20 +4,29 @@
     <!-- HEADER -->
     <div class="flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center">
+        <div
+          class="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center"
+        >
           <LightBulbIcon class="w-5 h-5 text-white" />
         </div>
         <div>
           <h2 class="text-lg font-semibold text-gray-900">{{ t('insights.title') }}</h2>
           <p class="text-sm text-gray-500">{{ t('insights.subtitle') }}</p>
         </div>
-        <span v-if="hasUnread" class="px-2.5 py-0.5 text-xs font-semibold bg-red-100 text-red-600 rounded-full">
+        <span
+          v-if="hasUnread"
+          class="px-2.5 py-0.5 text-xs font-semibold bg-red-100 text-red-600 rounded-full"
+        >
           {{ badgeText }}
         </span>
       </div>
 
       <div class="flex items-center space-x-2">
-        <button v-if="hasUnread" @click="handleMarkAllRead" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">
+        <button
+          v-if="hasUnread"
+          @click="handleMarkAllRead"
+          class="text-sm text-gray-500 hover:text-blue-600 transition-colors"
+        >
           {{ t('insights.markAllRead') }}
         </button>
         <button
@@ -32,7 +41,10 @@
     </div>
 
     <!-- RÉSUMÉ ÉCONOMIES -->
-    <div v-if="totalPotentialSaving > 0" class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
+    <div
+      v-if="totalPotentialSaving > 0"
+      class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4"
+    >
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
@@ -40,10 +52,14 @@
           </div>
           <div>
             <p class="text-sm font-medium text-green-800">{{ t('insights.savingsDetected') }}</p>
-            <p class="text-xs text-green-600">{{ t('insights.basedOnInsights', { count: insights.length }) }}</p>
+            <p class="text-xs text-green-600">
+              {{ t('insights.basedOnInsights', { count: insights.length }) }}
+            </p>
           </div>
         </div>
-        <span class="text-xl font-bold text-green-700">{{ formatCurrency(totalPotentialSaving) }}{{ t('insights.perYear') }}</span>
+        <span class="text-xl font-bold text-green-700"
+          >{{ formatCurrency(totalPotentialSaving) }}{{ t('insights.perYear') }}</span
+        >
       </div>
     </div>
 
@@ -54,16 +70,26 @@
         :key="String(filter.value)"
         @click="handleFilterType(filter.value)"
         class="px-3 py-1.5 text-xs font-medium rounded-full border transition-all duration-200"
-        :class="activeFilter === filter.value ? 'bg-blue-100 border-blue-300 text-blue-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'"
+        :class="
+          activeFilter === filter.value
+            ? 'bg-blue-100 border-blue-300 text-blue-700'
+            : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+        "
       >
         {{ filter.icon }} {{ t(`insights.filters.${filter.key}`) }}
-        <span v-if="getTypeCount(filter.value)" class="ml-1 text-xs opacity-70">({{ getTypeCount(filter.value) }})</span>
+        <span v-if="getTypeCount(filter.value)" class="ml-1 text-xs opacity-70"
+          >({{ getTypeCount(filter.value) }})</span
+        >
       </button>
     </div>
 
     <!-- LOADING -->
     <div v-if="loading" class="space-y-4">
-      <div v-for="n in 3" :key="n" class="bg-white border border-gray-200 rounded-xl p-5 animate-pulse">
+      <div
+        v-for="n in 3"
+        :key="n"
+        class="bg-white border border-gray-200 rounded-xl p-5 animate-pulse"
+      >
         <div class="flex items-start space-x-4">
           <div class="w-10 h-10 bg-gray-200 rounded-lg"></div>
           <div class="flex-1 space-y-2">
@@ -76,7 +102,10 @@
     </div>
 
     <!-- ÉTAT VIDE -->
-    <div v-else-if="insights.length === 0" class="bg-white border border-gray-200 rounded-xl p-8 text-center">
+    <div
+      v-else-if="insights.length === 0"
+      class="bg-white border border-gray-200 rounded-xl p-8 text-center"
+    >
       <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
         <SparklesIcon class="w-8 h-8 text-gray-400" />
       </div>
@@ -104,19 +133,31 @@
         @click="handleRead(insight)"
       >
         <div class="flex items-start space-x-4">
-          <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-lg" :class="getPriorityBgClass(insight.priority)">
+          <div
+            class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-lg"
+            :class="getPriorityBgClass(insight.priority)"
+          >
             {{ insight.icon || getDefaultIcon(insight.type) }}
           </div>
 
           <div class="flex-1 min-w-0">
             <div class="flex items-start justify-between">
               <div class="flex items-center space-x-2">
-                <h4 class="text-sm font-medium text-gray-900" :class="{ 'font-semibold': !insight.is_read }">
+                <h4
+                  class="text-sm font-medium text-gray-900"
+                  :class="{ 'font-semibold': !insight.is_read }"
+                >
                   {{ insight.title }}
                 </h4>
-                <span v-if="!insight.is_read" class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>
+                <span
+                  v-if="!insight.is_read"
+                  class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"
+                ></span>
               </div>
-              <span class="flex-shrink-0 ml-2 px-2 py-0.5 text-xs font-medium rounded-full" :class="getPriorityLabelClass(insight.priority)">
+              <span
+                class="flex-shrink-0 ml-2 px-2 py-0.5 text-xs font-medium rounded-full"
+                :class="getPriorityLabelClass(insight.priority)"
+              >
                 {{ getPriorityLabel(insight.priority) }}
               </span>
             </div>
@@ -124,16 +165,32 @@
             <p class="mt-1 text-sm text-gray-600 leading-relaxed">{{ insight.description }}</p>
 
             <!-- Économie potentielle -->
-            <div v-if="insight.potential_saving" class="mt-2 inline-flex items-center space-x-1 px-2 py-1 bg-green-50 border border-green-200 rounded-lg">
+            <div
+              v-if="insight.potential_saving"
+              class="mt-2 inline-flex items-center space-x-1 px-2 py-1 bg-green-50 border border-green-200 rounded-lg"
+            >
               <CurrencyEuroIcon class="w-3.5 h-3.5 text-green-600" />
-              <span class="text-xs font-medium text-green-700">{{ formatCurrency(insight.potential_saving) }}{{ t('insights.savingPerYear') }}</span>
+              <span class="text-xs font-medium text-green-700"
+                >{{ formatCurrency(insight.potential_saving)
+                }}{{ t('insights.savingPerYear') }}</span
+              >
             </div>
 
             <!-- Impact objectifs -->
-            <div v-if="insight.goal_impact && insight.goal_impact.length > 0" class="mt-2 space-y-1">
-              <div v-for="(impact, idx) in insight.goal_impact.slice(0, 2)" :key="idx" class="flex items-center space-x-1.5 text-xs text-blue-600">
+            <div
+              v-if="insight.goal_impact && insight.goal_impact.length > 0"
+              class="mt-2 space-y-1"
+            >
+              <div
+                v-for="(impact, idx) in insight.goal_impact.slice(0, 2)"
+                :key="idx"
+                class="flex items-center space-x-1.5 text-xs text-blue-600"
+              >
                 <ChartBarIcon class="w-3.5 h-3.5" />
-                <span>{{ impact.goal_name }} : {{ t('insights.monthsSaved', { count: impact.months_saved }) }}</span>
+                <span
+                  >{{ impact.goal_name }} :
+                  {{ t('insights.monthsSaved', { count: impact.months_saved }) }}</span
+                >
               </div>
             </div>
 
@@ -146,13 +203,19 @@
                 :disabled="actionLoading === insight.id"
                 class="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
-                <span v-if="actionLoading === insight.id" class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                <span
+                  v-if="actionLoading === insight.id"
+                  class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"
+                ></span>
                 <BoltIcon v-else class="w-3.5 h-3.5" />
                 <span>{{ insight.action_label }}</span>
               </button>
 
               <!-- Badge action effectuée -->
-              <span v-if="insight.acted_at" class="flex items-center space-x-1 px-2 py-1 bg-purple-50 text-purple-600 text-xs font-medium rounded-lg">
+              <span
+                v-if="insight.acted_at"
+                class="flex items-center space-x-1 px-2 py-1 bg-purple-50 text-purple-600 text-xs font-medium rounded-lg"
+              >
                 <CheckCircleIcon class="w-3.5 h-3.5" />
                 <span>{{ t('insights.actionDone', { xp: 15 }) }}</span>
               </span>
@@ -166,7 +229,9 @@
                 {{ t('insights.dismiss') }}
               </button>
 
-              <span class="ml-auto text-xs text-gray-400">{{ formatRelativeDate(insight.created_at) }}</span>
+              <span class="ml-auto text-xs text-gray-400">{{
+                formatRelativeDate(insight.created_at)
+              }}</span>
             </div>
           </div>
         </div>
@@ -180,7 +245,11 @@
         :key="page"
         @click="goToPage(page)"
         class="w-8 h-8 text-sm font-medium rounded-lg transition-colors"
-        :class="currentPage === page ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'"
+        :class="
+          currentPage === page
+            ? 'bg-blue-600 text-white'
+            : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+        "
       >
         {{ page }}
       </button>
@@ -285,33 +354,81 @@ async function handleRead(insight: any): Promise<void> {
 }
 
 /**
- * ✅ Clic sur "Agir" — ouvre la modale si action structurée,
- * sinon exécute directement (navigation ou création auto).
+ * ✅ CORRIGÉ : on crée l'objectif D'ABORD, puis on marque comme agi
+ * Ainsi "Action effectuée" = objectif vraiment créé en BDD
  */
 async function handleAction(insight: any): Promise<void> {
   const actionData = insight.action_data ?? {}
+  const redirectUrl = actionData.url ?? insight.action_url ?? null
 
-  // CAS 1 : action structurée avec modale (create_goal, add_contribution, update_goal)
-  const modalType = resolveModalType(actionData)
-  if (modalType) {
-    activeInsight.value = insight
-    activeAction.value  = buildModalAction(modalType, actionData)
-    showActionModal.value = true
-    return
-  }
-
-  // CAS 2 : création auto directe (sans confirmation) — comportement legacy
+  // 1️⃣ Si create_goal : créer l'objectif EN PREMIER
   if (actionData.create_goal) {
-    actionLoading.value = insight.id
-    try {
-      const result = await handleInsightAction(insight.id)
-      showXpReward(result?.gaming?.xp_earned)
-      router.push('/app/goals')
-    } finally {
-      actionLoading.value = null
-    }
-    return
+    const created = await createGoalFromInsight(actionData.create_goal, redirectUrl)
+    if (!created) return // ← on n'agit pas si la création a échoué
   }
+
+  // 2️⃣ Marquer comme agi (XP) seulement si tout s'est bien passé
+  const result = await handleInsightAction(insight.id)
+
+  // 3️⃣ Toast XP
+  if (result?.gaming?.xp_earned) {
+    lastXpEarned.value = result.gaming.xp_earned
+    showXpToast.value = true
+    setTimeout(() => { showXpToast.value = false }, 2500)
+  }
+
+  // 4️⃣ Navigation si pas de create_goal (sinon déjà redirigé)
+  if (!actionData.create_goal) {
+    if (result?.gaming?.xp_earned) {
+      setTimeout(() => navigateIfUrl(redirectUrl), 1500)
+    } else {
+      navigateIfUrl(redirectUrl)
+    }
+  }
+}
+
+/**
+ * ✅ CORRIGÉ : retourne boolean pour que handleAction sache si ça a marché
+ */
+async function createGoalFromInsight(
+  template: Record<string, any>,
+  redirectUrl: string | null,
+): Promise<boolean> {
+  creatingGoal.value = true
+
+  try {
+    const goalData = {
+      name: template.name ?? "Objectif d'épargne",
+      description: template.description ?? 'Objectif créé par le Coach IA',
+      target_amount: template.target_amount ?? 1000,
+      current_amount: 0,
+      target_date: template.target_date ?? getDefaultTargetDate(),
+      icon: template.icon ?? '💰',
+      priority: template.priority ?? 'medium',
+    }
+
+    console.log('🎯 [Coach IA] Création objectif:', goalData)
+
+    const success = await goalStore.createGoal(goalData)
+
+    if (success) {
+      console.log('✅ [Coach IA] Objectif créé en BDD')
+      await goalStore.fetchGoals()
+      router.push('/app/goals')
+      return true
+    } else {
+      console.error('❌ [Coach IA] Échec:', goalStore.error)
+      // Afficher l'erreur à l'utilisateur (remplace par ton système de toast)
+      alert(`Impossible de créer l'objectif : ${goalStore.error ?? 'Erreur inconnue'}`)
+      return false
+    }
+  } catch (err: any) {
+    console.error('❌ [Coach IA] Exception:', err)
+    return false
+  } finally {
+    creatingGoal.value = false
+  }
+}
 
   // CAS 3 : navigation simple
   actionLoading.value = insight.id
@@ -437,9 +554,21 @@ function formatRelativeDate(dateStr: string): string {
 </script>
 
 <style scoped>
-.insight-list-enter-active { transition: all 0.3s ease-out }
-.insight-list-leave-active { transition: all 0.2s ease-in }
-.insight-list-enter-from   { opacity: 0; transform: translateX(-20px) }
-.insight-list-leave-to     { opacity: 0; transform: translateX(20px) }
-.insight-list-move         { transition: transform 0.3s ease }
+.insight-list-enter-active {
+  transition: all 0.3s ease-out;
+}
+.insight-list-leave-active {
+  transition: all 0.2s ease-in;
+}
+.insight-list-enter-from {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+.insight-list-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
+.insight-list-move {
+  transition: transform 0.3s ease;
+}
 </style>
