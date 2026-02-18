@@ -288,16 +288,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router' // ✅ AJOUT
 import { useGoalStore } from '@/stores/goalStore'
 import GoalForm from '@/components/goals/GoalForm.vue'
 
-// ==========================================
-// I18N
-// ==========================================
-
 const { t } = useI18n()
-
-// Store
+const route = useRoute() // ✅ AJOUT
 const goalStore = useGoalStore()
 
 // State
@@ -321,54 +317,29 @@ const stats = computed(() => goalStore.stats)
 
 // Templates d'objectifs
 const goalTemplates = computed(() => [
-  {
-    id: 'travel',
-    icon: '✈️',
-    name: t('goals.travel'),
-    description: t('goals.travelDesc'),
-  },
+  { id: 'travel', icon: '✈️', name: t('goals.travel'), description: t('goals.travelDesc') },
   {
     id: 'emergency',
     icon: '🛡️',
     name: t('goals.emergency'),
     description: t('goals.emergencyDesc'),
   },
-  {
-    id: 'house',
-    icon: '🏠',
-    name: t('goals.house'),
-    description: t('goals.houseDesc'),
-  },
-  {
-    id: 'car',
-    icon: '🚗',
-    name: t('goals.car'),
-    description: t('goals.carDesc'),
-  },
+  { id: 'house', icon: '🏠', name: t('goals.house'), description: t('goals.houseDesc') },
+  { id: 'car', icon: '🚗', name: t('goals.car'), description: t('goals.carDesc') },
   {
     id: 'education',
     icon: '🎓',
     name: t('goals.education'),
     description: t('goals.educationDesc'),
   },
-  {
-    id: 'wedding',
-    icon: '💍',
-    name: t('goals.wedding'),
-    description: t('goals.weddingDesc'),
-  },
+  { id: 'wedding', icon: '💍', name: t('goals.wedding'), description: t('goals.weddingDesc') },
   {
     id: 'retirement',
     icon: '🏖️',
     name: t('goals.retirement'),
     description: t('goals.retirementDesc'),
   },
-  {
-    id: 'tech',
-    icon: '💻',
-    name: t('goals.tech'),
-    description: t('goals.techDesc'),
-  },
+  { id: 'tech', icon: '💻', name: t('goals.tech'), description: t('goals.techDesc') },
 ])
 
 // Filtres
@@ -389,7 +360,10 @@ const filteredGoals = computed(() => {
   return goals.value.filter((g) => g.status === activeFilter.value)
 })
 
-// Methods
+// ==========================================
+// METHODS
+// ==========================================
+
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount || 0)
 }
@@ -406,11 +380,9 @@ function formatDate(dateString: string): string {
 function calculateProgress(goal: any): number {
   return goalStore.calculateProgress(goal)
 }
-
 function calculateRemaining(goal: any): number {
   return goalStore.calculateRemaining(goal)
 }
-
 function calculateMonthlyTarget(goal: any): number {
   return goalStore.calculateMonthlyTarget(goal)
 }
@@ -433,10 +405,10 @@ function getDaysClass(goal: any): string {
 }
 
 function getProgressClass(goal: any): string {
-  const progress = calculateProgress(goal)
-  if (progress >= 100) return 'progress-complete'
-  if (progress >= 75) return 'progress-good'
-  if (progress >= 50) return 'progress-medium'
+  const p = calculateProgress(goal)
+  if (p >= 100) return 'progress-complete'
+  if (p >= 75) return 'progress-good'
+  if (p >= 50) return 'progress-medium'
   return 'progress-low'
 }
 
@@ -459,7 +431,10 @@ function closeMenuOnClickOutside(e: MouseEvent) {
   }
 }
 
-// Actions
+// ==========================================
+// ACTIONS
+// ==========================================
+
 async function handleRefresh() {
   try {
     await goalStore.fetchGoals()
@@ -505,12 +480,13 @@ async function handleSave(goalData: any) {
     if (editingGoal.value?.id) {
       success = await goalStore.updateGoal(editingGoal.value.id, goalData)
     } else {
+      // ✅ Crée l'objectif en BDD via l'API
       success = await goalStore.createGoal(goalData)
     }
 
     if (success) {
       closeModal()
-      await goalStore.fetchGoals()
+      await goalStore.fetchGoals() // ✅ Recharge depuis la BDD
     }
   } catch (err) {
     console.error('Erreur save:', err)
@@ -529,7 +505,7 @@ async function submitContribution() {
 
   const success = await goalStore.addContribution(contributionGoal.value.id, {
     amount: contributionAmount.value,
-    description: `Contribution manuelle`,
+    description: 'Contribution manuelle',
   })
 
   if (success) {
@@ -557,9 +533,7 @@ function confirmDelete(goal: any) {
 
 async function handleDelete() {
   if (!deletingGoal.value) return
-
   const success = await goalStore.deleteGoal(deletingGoal.value.id)
-
   if (success) {
     showDeleteConfirm.value = false
     deletingGoal.value = null
@@ -570,11 +544,21 @@ function clearErrors() {
   goalStore.clearErrors()
 }
 
-// Lifecycle
+// ==========================================
+// LIFECYCLE
+// ==========================================
+
 onMounted(async () => {
   console.log('🎯 Goals.vue mounted')
   document.addEventListener('click', closeMenuOnClickOutside)
+
+  // ✅ Charger les goals depuis la BDD
   await goalStore.fetchGoals()
+
+  // ✅ Si le Coach IA a redirigé avec ?action=create, ouvrir le modal automatiquement
+  if (route.query.action === 'create') {
+    openCreateModal()
+  }
 })
 
 onUnmounted(() => {
