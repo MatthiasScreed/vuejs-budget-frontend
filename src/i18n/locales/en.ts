@@ -1079,6 +1079,177 @@ const en = {
     `,
     },
   },
+  // ==========================================
+  // PROFILE
+  // ==========================================
+  profile: {
+    title: 'Profile',
+    subtitle: 'Manage your profile and view your statistics',
+    edit: 'Edit',
+    save: 'Save',
+    tabs: {
+      profile: 'Profile',
+      gaming: 'Gaming',
+      history: 'History',
+      security: 'Security',
+    },
+    info: {
+      title: 'Personal information',
+      name: 'Name',
+      email: 'Email',
+      memberSince: 'Member since',
+      lastLogin: 'Last login',
+      changeAvatar: 'Change avatar',
+      xpToNext: '{xp} XP to level {level}',
+    },
+    preferences: {
+      title: 'Preferences',
+      currency: 'Currency',
+      language: 'Language',
+      gamingOptions: 'Gaming Options',
+      achievementNotifs: 'Achievement notifications',
+      leaderboardVisible: 'Visible in leaderboards',
+      challengeInvites: 'Challenge invitations',
+    },
+    gamingStats: {
+      currentLevel: 'Current level',
+      totalXP: 'Total XP',
+      achievementsUnlocked: 'Achievements unlocked',
+      currentStreak: 'Current streak',
+      detailedProgress: 'Detailed progress',
+      xpPerMonth: 'XP earned per month',
+      xpSources: 'XP sources breakdown',
+      recentActivity: 'Recent activity',
+      ranking: 'Your ranking',
+      globalRank: 'Global ranking',
+      monthlyRank: 'This month',
+      weeklyRank: 'This week',
+    },
+    history: {
+      title: 'Activity history',
+      filters: 'Filters',
+      activityType: 'Activity type',
+      all: 'All',
+      xpGains: 'XP Gains',
+      achievements: 'Achievements',
+      challenges: 'Challenges',
+      levels: 'Levels',
+      dateFrom: 'Start date',
+      dateTo: 'End date',
+      loadMore: 'Load more history',
+    },
+    security: {
+      title: 'Security',
+      changePassword: 'Change password',
+      currentPassword: 'Current password',
+      newPassword: 'New password',
+      confirmPassword: 'Confirm new password',
+      changeBtn: 'Change password',
+      activeSessions: 'Active sessions',
+      revoke: 'Revoke',
+      currentSession: 'Current session',
+      passwordChanged: 'Password updated successfully',
+      passwordError: 'Error changing password',
+      sessionRevoked: 'Session revoked',
+      sessionRevokeError: 'Error revoking session',
+    },
+  },
+
+  // ==========================================
+  // ACHIEVEMENTS
+  // ==========================================
+  achievements: {
+    title: 'Achievements',
+    subtitle: 'Unlock achievements and earn XP',
+    checkBtn: 'Check achievements',
+    checking: 'Checking...',
+    stats: {
+      unlocked: 'Unlocked',
+      completed: 'Completed',
+      legendary: 'Legendary',
+      totalXP: 'Total XP',
+    },
+    filters: {
+      title: 'Filters',
+      all: 'All',
+      unlocked: 'Unlocked',
+      locked: 'In progress',
+      common: 'Common',
+      rare: 'Rare',
+      epic: 'Epic',
+      legendary: 'Legendary',
+    },
+    recentUnlocks: 'Recently unlocked',
+    loading: 'Loading achievements...',
+    progression: 'Progress',
+    xpReward: '+{xp} XP',
+    unlockedLabel: 'Unlocked',
+    noResults: 'No achievements found',
+    noResultsHint: 'Try changing filters or start using the app!',
+    emptyState: {
+      title: 'Your first achievements await!',
+      description: 'Start using the app to unlock your first achievements',
+      cta: 'Create a transaction',
+    },
+    checkSuccess: '{count} new achievement(s) unlocked!',
+    checkNone: 'No new achievements for now',
+    checkError: 'Error checking achievements',
+    loadError: 'Unable to load achievements',
+    rarity: {
+      common: 'Common',
+      rare: 'Rare',
+      epic: 'Epic',
+      legendary: 'Legendary',
+    },
+  },
+
+  // ==========================================
+  // TOASTS / FEEDBACK MESSAGES
+  // ==========================================
+  toasts: {
+    transactionCreated: 'Transaction created successfully!',
+    transactionUpdated: 'Transaction updated',
+    transactionDeleted: 'Transaction deleted',
+    goalCreated: 'Goal created successfully!',
+    goalUpdated: 'Goal updated',
+    goalCompleted: 'Congratulations! Goal reached!',
+    categoryCreated: 'Category created',
+    achievementUnlocked: 'New achievement unlocked!',
+    levelUp: 'Next level reached!',
+    challengeCompleted: 'Challenge completed successfully!',
+    streakMilestone: 'New streak record!',
+    bankConnected: 'Bank account connected',
+    syncCompleted: 'Sync completed',
+    settingsSaved: 'Settings saved',
+    passwordChanged: 'Password changed',
+    profileUpdated: 'Profile updated',
+    error: {
+      generic: 'An error occurred',
+      network: 'Connection error',
+      unauthorized: 'Unauthorized',
+      notFound: 'Not found',
+    },
+  },
+
+  // ==========================================
+  // CURRENCIES
+  // ==========================================
+  currencies: {
+    EUR: 'Euro (€)',
+    USD: 'Dollar ($)',
+    GBP: 'Pound (£)',
+    CHF: 'Swiss Franc (CHF)',
+    CAD: 'Canadian Dollar (C$)',
+  },
+
+  // ==========================================
+  // LANGUAGES
+  // ==========================================
+  languages: {
+    fr: 'Français',
+    en: 'English',
+    es: 'Español',
+  },
 }
 
 export default en

@@ -1110,6 +1110,177 @@ const fr = {
     `,
     },
   },
+  // ==========================================
+  // PROFILE
+  // ==========================================
+  profile: {
+    title: 'Profil',
+    subtitle: 'Gérez votre profil et consultez vos statistiques',
+    edit: 'Modifier',
+    save: 'Sauvegarder',
+    tabs: {
+      profile: 'Profil',
+      gaming: 'Gaming',
+      history: 'Historique',
+      security: 'Sécurité',
+    },
+    info: {
+      title: 'Informations personnelles',
+      name: 'Nom',
+      email: 'Email',
+      memberSince: 'Membre depuis',
+      lastLogin: 'Dernière connexion',
+      changeAvatar: "Changer l'avatar",
+      xpToNext: '{xp} XP pour le niveau {level}',
+    },
+    preferences: {
+      title: 'Préférences',
+      currency: 'Monnaie',
+      language: 'Langue',
+      gamingOptions: 'Options Gaming',
+      achievementNotifs: 'Notifications de succès',
+      leaderboardVisible: 'Visible dans les classements',
+      challengeInvites: 'Invitations aux défis',
+    },
+    gamingStats: {
+      currentLevel: 'Niveau actuel',
+      totalXP: 'XP Total',
+      achievementsUnlocked: 'Succès débloqués',
+      currentStreak: 'Série actuelle',
+      detailedProgress: 'Progression détaillée',
+      xpPerMonth: 'XP gagnés par mois',
+      xpSources: 'Répartition des sources XP',
+      recentActivity: 'Activité récente',
+      ranking: 'Votre classement',
+      globalRank: 'Classement global',
+      monthlyRank: 'Ce mois-ci',
+      weeklyRank: 'Cette semaine',
+    },
+    history: {
+      title: 'Historique des activités',
+      filters: 'Filtres',
+      activityType: "Type d'activité",
+      all: 'Toutes',
+      xpGains: 'Gains XP',
+      achievements: 'Succès',
+      challenges: 'Défis',
+      levels: 'Niveaux',
+      dateFrom: 'Date début',
+      dateTo: 'Date fin',
+      loadMore: "Charger plus d'historique",
+    },
+    security: {
+      title: 'Sécurité',
+      changePassword: 'Changer le mot de passe',
+      currentPassword: 'Mot de passe actuel',
+      newPassword: 'Nouveau mot de passe',
+      confirmPassword: 'Confirmer le nouveau mot de passe',
+      changeBtn: 'Changer le mot de passe',
+      activeSessions: 'Sessions actives',
+      revoke: 'Révoquer',
+      currentSession: 'Session actuelle',
+      passwordChanged: 'Mot de passe mis à jour avec succès',
+      passwordError: 'Erreur lors du changement de mot de passe',
+      sessionRevoked: 'Session révoquée',
+      sessionRevokeError: 'Erreur lors de la révocation de la session',
+    },
+  },
+
+  // ==========================================
+  // ACHIEVEMENTS
+  // ==========================================
+  achievements: {
+    title: 'Succès',
+    subtitle: "Débloquez des achievements et gagnez de l'XP",
+    checkBtn: 'Vérifier les succès',
+    checking: 'Vérification...',
+    stats: {
+      unlocked: 'Débloqués',
+      completed: 'Complétés',
+      legendary: 'Légendaires',
+      totalXP: 'XP Total',
+    },
+    filters: {
+      title: 'Filtres',
+      all: 'Tous',
+      unlocked: 'Débloqués',
+      locked: 'En cours',
+      common: 'Commun',
+      rare: 'Rare',
+      epic: 'Épique',
+      legendary: 'Légendaire',
+    },
+    recentUnlocks: 'Derniers débloqués',
+    loading: 'Chargement des succès...',
+    progression: 'Progression',
+    xpReward: '+{xp} XP',
+    unlockedLabel: 'Débloqué',
+    noResults: 'Aucun succès trouvé',
+    noResultsHint: "Essayez de changer les filtres ou commencez à utiliser l'application !",
+    emptyState: {
+      title: 'Vos premiers succès vous attendent !',
+      description: "Commencez à utiliser l'application pour débloquer vos premiers achievements",
+      cta: 'Créer une transaction',
+    },
+    checkSuccess: '{count} nouveau(x) succès débloqué(s) !',
+    checkNone: 'Aucun nouveau succès pour le moment',
+    checkError: 'Erreur lors de la vérification',
+    loadError: 'Impossible de charger les succès',
+    rarity: {
+      common: 'Commun',
+      rare: 'Rare',
+      epic: 'Épique',
+      legendary: 'Légendaire',
+    },
+  },
+
+  // ==========================================
+  // TOASTS / MESSAGES FEEDBACK
+  // ==========================================
+  toasts: {
+    transactionCreated: 'Transaction créée avec succès !',
+    transactionUpdated: 'Transaction mise à jour',
+    transactionDeleted: 'Transaction supprimée',
+    goalCreated: 'Objectif créé avec succès !',
+    goalUpdated: 'Objectif mis à jour',
+    goalCompleted: 'Félicitations ! Objectif atteint !',
+    categoryCreated: 'Catégorie créée',
+    achievementUnlocked: 'Nouveau succès débloqué !',
+    levelUp: 'Niveau suivant atteint !',
+    challengeCompleted: 'Défi relevé avec succès !',
+    streakMilestone: 'Nouveau record de régularité !',
+    bankConnected: 'Compte bancaire connecté',
+    syncCompleted: 'Synchronisation terminée',
+    settingsSaved: 'Paramètres sauvegardés',
+    passwordChanged: 'Mot de passe modifié',
+    profileUpdated: 'Profil mis à jour',
+    error: {
+      generic: 'Une erreur est survenue',
+      network: 'Erreur de connexion',
+      unauthorized: 'Non autorisé',
+      notFound: 'Non trouvé',
+    },
+  },
+
+  // ==========================================
+  // CURRENCIES (pour les selects)
+  // ==========================================
+  currencies: {
+    EUR: 'Euro (€)',
+    USD: 'Dollar ($)',
+    GBP: 'Livre (£)',
+    CHF: 'Franc suisse (CHF)',
+    CAD: 'Dollar canadien (C$)',
+  },
+
+  // ==========================================
+  // LANGUAGES (pour les selects)
+  // ==========================================
+  languages: {
+    fr: 'Français',
+    en: 'English',
+    es: 'Español',
+  },
 }
 
 export default fr

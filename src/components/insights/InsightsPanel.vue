@@ -44,10 +44,7 @@
           :disabled="generating"
           class="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50"
         >
-          <ArrowPathIcon
-            class="w-4 h-4"
-            :class="{ 'animate-spin': generating }"
-          />
+          <ArrowPathIcon class="w-4 h-4" :class="{ 'animate-spin': generating }" />
           <span>{{ generating ? t('insights.analyzing') : t('insights.analyze') }}</span>
         </button>
       </div>
@@ -223,7 +220,8 @@
               >
                 <ChartBarIcon class="w-3.5 h-3.5" />
                 <span>
-                  {{ impact.goal_name }} : {{ t('insights.monthsSaved', { count: impact.months_saved }) }}
+                  {{ impact.goal_name }} :
+                  {{ t('insights.monthsSaved', { count: impact.months_saved }) }}
                 </span>
               </div>
             </div>
@@ -429,12 +427,20 @@ async function handleAction(insight: any): Promise<void> {
   }
 }
 
+const ACTION_ROUTES: Record<string, string> = {
+  '/goals/create': '/app/goals',
+  '/goals': '/app/goals',
+  '/transactions': '/app/transactions',
+  '/categories': '/app/categories',
+}
+
 function navigateIfUrl(url: string | null): void {
   if (!url) return
   if (url.startsWith('http')) {
     window.open(url, '_blank')
   } else {
-    router.push(url)
+    const correctedUrl = ACTION_ROUTES[url] ?? url
+    router.push(correctedUrl)
   }
 }
 

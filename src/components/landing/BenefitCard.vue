@@ -23,6 +23,9 @@
 
 <script setup lang="ts">
 import type { Benefit } from '@/types/landing.types'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 /**
  * Props du composant
