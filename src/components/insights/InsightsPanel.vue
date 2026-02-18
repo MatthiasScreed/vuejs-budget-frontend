@@ -1,44 +1,25 @@
 <!-- src/components/insights/InsightsPanel.vue -->
 <template>
   <div class="space-y-6">
-    <!-- ==========================================
-         HEADER : Titre + Actions + Badge
-         ========================================== -->
+    <!-- HEADER -->
     <div class="flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div
-          class="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center"
-        >
+        <div class="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center">
           <LightBulbIcon class="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 class="text-lg font-semibold text-gray-900">
-            {{ t('insights.title') }}
-          </h2>
-          <p class="text-sm text-gray-500">
-            {{ t('insights.subtitle') }}
-          </p>
+          <h2 class="text-lg font-semibold text-gray-900">{{ t('insights.title') }}</h2>
+          <p class="text-sm text-gray-500">{{ t('insights.subtitle') }}</p>
         </div>
-        <!-- Badge non-lus -->
-        <span
-          v-if="hasUnread"
-          class="px-2.5 py-0.5 text-xs font-semibold bg-red-100 text-red-600 rounded-full"
-        >
+        <span v-if="hasUnread" class="px-2.5 py-0.5 text-xs font-semibold bg-red-100 text-red-600 rounded-full">
           {{ badgeText }}
         </span>
       </div>
 
       <div class="flex items-center space-x-2">
-        <!-- Marquer tout comme lu -->
-        <button
-          v-if="hasUnread"
-          @click="handleMarkAllRead"
-          class="text-sm text-gray-500 hover:text-blue-600 transition-colors"
-        >
+        <button v-if="hasUnread" @click="handleMarkAllRead" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">
           {{ t('insights.markAllRead') }}
         </button>
-
-        <!-- Générer -->
         <button
           @click="handleGenerate"
           :disabled="generating"
@@ -50,64 +31,39 @@
       </div>
     </div>
 
-    <!-- ==========================================
-         RÉSUMÉ ÉCONOMIES POTENTIELLES
-         ========================================== -->
-    <div
-      v-if="totalPotentialSaving > 0"
-      class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4"
-    >
+    <!-- RÉSUMÉ ÉCONOMIES -->
+    <div v-if="totalPotentialSaving > 0" class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
             <CurrencyEuroIcon class="w-4 h-4 text-white" />
           </div>
           <div>
-            <p class="text-sm font-medium text-green-800">
-              {{ t('insights.savingsDetected') }}
-            </p>
-            <p class="text-xs text-green-600">
-              {{ t('insights.basedOnInsights', { count: insights.length }) }}
-            </p>
+            <p class="text-sm font-medium text-green-800">{{ t('insights.savingsDetected') }}</p>
+            <p class="text-xs text-green-600">{{ t('insights.basedOnInsights', { count: insights.length }) }}</p>
           </div>
         </div>
-        <span class="text-xl font-bold text-green-700">
-          {{ formatCurrency(totalPotentialSaving) }}{{ t('insights.perYear') }}
-        </span>
+        <span class="text-xl font-bold text-green-700">{{ formatCurrency(totalPotentialSaving) }}{{ t('insights.perYear') }}</span>
       </div>
     </div>
 
-    <!-- ==========================================
-         FILTRES PAR TYPE
-         ========================================== -->
+    <!-- FILTRES -->
     <div class="flex flex-wrap gap-2">
       <button
         v-for="filter in typeFilters"
-        :key="filter.value"
+        :key="String(filter.value)"
         @click="handleFilterType(filter.value)"
         class="px-3 py-1.5 text-xs font-medium rounded-full border transition-all duration-200"
-        :class="
-          activeFilter === filter.value
-            ? 'bg-blue-100 border-blue-300 text-blue-700'
-            : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-        "
+        :class="activeFilter === filter.value ? 'bg-blue-100 border-blue-300 text-blue-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'"
       >
         {{ filter.icon }} {{ t(`insights.filters.${filter.key}`) }}
-        <span v-if="getTypeCount(filter.value)" class="ml-1 text-xs opacity-70">
-          ({{ getTypeCount(filter.value) }})
-        </span>
+        <span v-if="getTypeCount(filter.value)" class="ml-1 text-xs opacity-70">({{ getTypeCount(filter.value) }})</span>
       </button>
     </div>
 
-    <!-- ==========================================
-         LOADING STATE
-         ========================================== -->
+    <!-- LOADING -->
     <div v-if="loading" class="space-y-4">
-      <div
-        v-for="n in 3"
-        :key="n"
-        class="bg-white border border-gray-200 rounded-xl p-5 animate-pulse"
-      >
+      <div v-for="n in 3" :key="n" class="bg-white border border-gray-200 rounded-xl p-5 animate-pulse">
         <div class="flex items-start space-x-4">
           <div class="w-10 h-10 bg-gray-200 rounded-lg"></div>
           <div class="flex-1 space-y-2">
@@ -119,22 +75,13 @@
       </div>
     </div>
 
-    <!-- ==========================================
-         ÉTAT VIDE
-         ========================================== -->
-    <div
-      v-else-if="insights.length === 0"
-      class="bg-white border border-gray-200 rounded-xl p-8 text-center"
-    >
+    <!-- ÉTAT VIDE -->
+    <div v-else-if="insights.length === 0" class="bg-white border border-gray-200 rounded-xl p-8 text-center">
       <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
         <SparklesIcon class="w-8 h-8 text-gray-400" />
       </div>
-      <h3 class="text-base font-medium text-gray-900 mb-1">
-        {{ t('insights.empty.title') }}
-      </h3>
-      <p class="text-sm text-gray-500 mb-4">
-        {{ t('insights.empty.description') }}
-      </p>
+      <h3 class="text-base font-medium text-gray-900 mb-1">{{ t('insights.empty.title') }}</h3>
+      <p class="text-sm text-gray-500 mb-4">{{ t('insights.empty.description') }}</p>
       <button
         @click="handleGenerate"
         :disabled="generating"
@@ -144,14 +91,12 @@
       </button>
     </div>
 
-    <!-- ==========================================
-         LISTE DES INSIGHTS
-         ========================================== -->
+    <!-- LISTE DES INSIGHTS -->
     <TransitionGroup v-else name="insight-list" tag="div" class="space-y-3">
       <div
         v-for="insight in insights"
         :key="insight.id"
-        class="group bg-white border rounded-xl p-5 transition-all duration-200 hover:shadow-md"
+        class="group bg-white border rounded-xl p-5 transition-all duration-200 hover:shadow-md cursor-pointer"
         :class="[
           !insight.is_read ? 'border-blue-200 bg-blue-50/30' : 'border-gray-200',
           insight.acted_at ? 'opacity-70' : '',
@@ -159,70 +104,36 @@
         @click="handleRead(insight)"
       >
         <div class="flex items-start space-x-4">
-          <!-- Icône insight -->
-          <div
-            class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-lg"
-            :class="getPriorityBgClass(insight.priority)"
-          >
+          <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-lg" :class="getPriorityBgClass(insight.priority)">
             {{ insight.icon || getDefaultIcon(insight.type) }}
           </div>
 
-          <!-- Contenu -->
           <div class="flex-1 min-w-0">
             <div class="flex items-start justify-between">
               <div class="flex items-center space-x-2">
-                <h4
-                  class="text-sm font-medium text-gray-900"
-                  :class="{ 'font-semibold': !insight.is_read }"
-                >
+                <h4 class="text-sm font-medium text-gray-900" :class="{ 'font-semibold': !insight.is_read }">
                   {{ insight.title }}
                 </h4>
-                <!-- Dot non-lu -->
-                <span
-                  v-if="!insight.is_read"
-                  class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"
-                ></span>
+                <span v-if="!insight.is_read" class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>
               </div>
-
-              <!-- Priority badge -->
-              <span
-                class="flex-shrink-0 ml-2 px-2 py-0.5 text-xs font-medium rounded-full"
-                :class="getPriorityLabelClass(insight.priority)"
-              >
+              <span class="flex-shrink-0 ml-2 px-2 py-0.5 text-xs font-medium rounded-full" :class="getPriorityLabelClass(insight.priority)">
                 {{ getPriorityLabel(insight.priority) }}
               </span>
             </div>
 
-            <p class="mt-1 text-sm text-gray-600 leading-relaxed">
-              {{ insight.description }}
-            </p>
+            <p class="mt-1 text-sm text-gray-600 leading-relaxed">{{ insight.description }}</p>
 
             <!-- Économie potentielle -->
-            <div
-              v-if="insight.potential_saving"
-              class="mt-2 inline-flex items-center space-x-1 px-2 py-1 bg-green-50 border border-green-200 rounded-lg"
-            >
+            <div v-if="insight.potential_saving" class="mt-2 inline-flex items-center space-x-1 px-2 py-1 bg-green-50 border border-green-200 rounded-lg">
               <CurrencyEuroIcon class="w-3.5 h-3.5 text-green-600" />
-              <span class="text-xs font-medium text-green-700">
-                {{ formatCurrency(insight.potential_saving) }}{{ t('insights.savingPerYear') }}
-              </span>
+              <span class="text-xs font-medium text-green-700">{{ formatCurrency(insight.potential_saving) }}{{ t('insights.savingPerYear') }}</span>
             </div>
 
             <!-- Impact objectifs -->
-            <div
-              v-if="insight.goal_impact && insight.goal_impact.length > 0"
-              class="mt-2 space-y-1"
-            >
-              <div
-                v-for="(impact, idx) in insight.goal_impact.slice(0, 2)"
-                :key="idx"
-                class="flex items-center space-x-1.5 text-xs text-blue-600"
-              >
+            <div v-if="insight.goal_impact && insight.goal_impact.length > 0" class="mt-2 space-y-1">
+              <div v-for="(impact, idx) in insight.goal_impact.slice(0, 2)" :key="idx" class="flex items-center space-x-1.5 text-xs text-blue-600">
                 <ChartBarIcon class="w-3.5 h-3.5" />
-                <span>
-                  {{ impact.goal_name }} :
-                  {{ t('insights.monthsSaved', { count: impact.months_saved }) }}
-                </span>
+                <span>{{ impact.goal_name }} : {{ t('insights.monthsSaved', { count: impact.months_saved }) }}</span>
               </div>
             </div>
 
@@ -232,17 +143,16 @@
               <button
                 v-if="insight.action_label && !insight.acted_at"
                 @click.stop="handleAction(insight)"
-                class="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                :disabled="actionLoading === insight.id"
+                class="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
-                <BoltIcon class="w-3.5 h-3.5" />
+                <span v-if="actionLoading === insight.id" class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                <BoltIcon v-else class="w-3.5 h-3.5" />
                 <span>{{ insight.action_label }}</span>
               </button>
 
-              <!-- Badge XP si action effectuée -->
-              <span
-                v-if="insight.acted_at"
-                class="flex items-center space-x-1 px-2 py-1 bg-purple-50 text-purple-600 text-xs font-medium rounded-lg"
-              >
+              <!-- Badge action effectuée -->
+              <span v-if="insight.acted_at" class="flex items-center space-x-1 px-2 py-1 bg-purple-50 text-purple-600 text-xs font-medium rounded-lg">
                 <CheckCircleIcon class="w-3.5 h-3.5" />
                 <span>{{ t('insights.actionDone', { xp: 15 }) }}</span>
               </span>
@@ -256,38 +166,27 @@
                 {{ t('insights.dismiss') }}
               </button>
 
-              <!-- Date -->
-              <span class="ml-auto text-xs text-gray-400">
-                {{ formatRelativeDate(insight.created_at) }}
-              </span>
+              <span class="ml-auto text-xs text-gray-400">{{ formatRelativeDate(insight.created_at) }}</span>
             </div>
           </div>
         </div>
       </div>
     </TransitionGroup>
 
-    <!-- ==========================================
-         PAGINATION
-         ========================================== -->
+    <!-- PAGINATION -->
     <div v-if="lastPage > 1" class="flex items-center justify-center space-x-2 pt-2">
       <button
         v-for="page in lastPage"
         :key="page"
         @click="goToPage(page)"
         class="w-8 h-8 text-sm font-medium rounded-lg transition-colors"
-        :class="
-          currentPage === page
-            ? 'bg-blue-600 text-white'
-            : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-        "
+        :class="currentPage === page ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'"
       >
         {{ page }}
       </button>
     </div>
 
-    <!-- ==========================================
-         XP TOAST (affiché après action)
-         ========================================== -->
+    <!-- XP TOAST -->
     <Transition
       enter-active-class="transition-all duration-300 ease-out"
       enter-from-class="translate-y-4 opacity-0"
@@ -305,6 +204,14 @@
         <span class="text-xs text-purple-200">{{ t('insights.xpToast') }}</span>
       </div>
     </Transition>
+
+    <!-- ✅ MODALE COACH ACTION — branchée ici -->
+    <CoachActionModal
+      v-model="showActionModal"
+      :insight="activeInsight"
+      :action="activeAction"
+      @success="handleModalSuccess"
+    />
   </div>
 </template>
 
@@ -313,43 +220,20 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useInsights } from '@/composables/useInsights'
-import { useGoalStore } from '@/stores/goalStore' // ✅ AJOUT
+import CoachActionModal from '@/components/insights/CoachActionModal.vue'
 import {
-  LightBulbIcon,
-  ArrowPathIcon,
-  CurrencyEuroIcon,
-  SparklesIcon,
-  ChartBarIcon,
-  BoltIcon,
-  CheckCircleIcon,
+  LightBulbIcon, ArrowPathIcon, CurrencyEuroIcon,
+  SparklesIcon, ChartBarIcon, BoltIcon, CheckCircleIcon,
 } from '@heroicons/vue/24/outline'
-
-// ==========================================
-// I18N + ROUTER + STORES + COMPOSABLE
-// ==========================================
 
 const { t, locale } = useI18n()
 const router = useRouter()
-const goalStore = useGoalStore() // ✅ AJOUT
 
 const {
-  insights,
-  summary,
-  loading,
-  generating,
-  hasUnread,
-  badgeText,
-  totalPotentialSaving,
-  currentPage,
-  lastPage,
-  generate,
-  markAsRead,
-  markAllAsRead,
-  handleInsightAction,
-  dismiss,
-  filterByType,
-  goToPage,
-  getTypeLabel,
+  insights, summary, loading, generating, hasUnread, badgeText,
+  totalPotentialSaving, currentPage, lastPage,
+  generate, markAsRead, markAllAsRead, handleInsightAction,
+  dismiss, filterByType, goToPage,
 } = useInsights()
 
 // ==========================================
@@ -357,30 +241,31 @@ const {
 // ==========================================
 
 const activeFilter = ref<string | undefined>(undefined)
-const showXpToast = ref(false)
+const showXpToast  = ref(false)
 const lastXpEarned = ref(0)
-const creatingGoal = ref(false) // ✅ AJOUT : indicateur création en cours
+const actionLoading = ref<number | null>(null) // ID de l'insight en cours
+
+// ✅ État de la modale
+const showActionModal = ref(false)
+const activeInsight   = ref<any>(null)
+const activeAction    = ref<any>(null)
 
 // ==========================================
 // FILTRES
 // ==========================================
 
 const typeFilters = [
-  { value: undefined, key: 'all', icon: '📋' },
-  { value: 'cost_reduction', key: 'costs', icon: '💳' },
-  { value: 'savings_opportunity', key: 'savings', icon: '💰' },
-  { value: 'unusual_spending', key: 'alerts', icon: '⚠️' },
-  { value: 'goal_acceleration', key: 'goals', icon: '🎯' },
-  { value: 'behavioral_pattern', key: 'habits', icon: '📊' },
+  { value: undefined,              key: 'all',     icon: '📋' },
+  { value: 'cost_reduction',       key: 'costs',   icon: '💳' },
+  { value: 'savings_opportunity',  key: 'savings', icon: '💰' },
+  { value: 'unusual_spending',     key: 'alerts',  icon: '⚠️' },
+  { value: 'goal_acceleration',    key: 'goals',   icon: '🎯' },
+  { value: 'behavioral_pattern',   key: 'habits',  icon: '📊' },
 ]
-
-// ==========================================
-// HELPERS
-// ==========================================
 
 function getTypeCount(type: string | undefined): number | undefined {
   if (!type || !summary.value) return undefined
-  return summary.value.by_type[type]
+  return summary.value.by_type?.[type]
 }
 
 // ==========================================
@@ -392,113 +277,71 @@ async function handleFilterType(type: string | undefined): Promise<void> {
   await filterByType(type)
 }
 
-async function handleGenerate(): Promise<void> {
-  await generate()
-}
-async function handleMarkAllRead(): Promise<void> {
-  await markAllAsRead()
-}
+async function handleGenerate(): Promise<void> { await generate() }
+async function handleMarkAllRead(): Promise<void> { await markAllAsRead() }
 
 async function handleRead(insight: any): Promise<void> {
-  if (!insight.is_read) {
-    await markAsRead(insight.id)
-  }
+  if (!insight.is_read) await markAsRead(insight.id)
 }
 
 /**
- * ✅ Exécuter l'action sur un insight
- *
- * Si l'action_data contient un goal_template, on crée l'objectif
- * automatiquement en BDD. Sinon on navigue normalement.
+ * ✅ Clic sur "Agir" — ouvre la modale si action structurée,
+ * sinon exécute directement (navigation ou création auto).
  */
 async function handleAction(insight: any): Promise<void> {
-  // 1️⃣ Marquer l'insight comme agi côté API (XP, gaming)
-  const result = await handleInsightAction(insight.id)
   const actionData = insight.action_data ?? {}
-  const redirectUrl = actionData.url ?? insight.action_url ?? null
 
-  // 2️⃣ Afficher le toast XP si applicable
-  if (result?.gaming?.xp_earned) {
-    lastXpEarned.value = result.gaming.xp_earned
-    showXpToast.value = true
-    setTimeout(() => {
-      showXpToast.value = false
-    }, 2500)
-  }
-
-  // 3️⃣ Création automatique d'objectif si un template est fourni
-  if (actionData.create_goal) {
-    await createGoalFromInsight(actionData.create_goal, redirectUrl)
+  // CAS 1 : action structurée avec modale (create_goal, add_contribution, update_goal)
+  const modalType = resolveModalType(actionData)
+  if (modalType) {
+    activeInsight.value = insight
+    activeAction.value  = buildModalAction(modalType, actionData)
+    showActionModal.value = true
     return
   }
 
-  // 4️⃣ Sinon : navigation simple après le toast
-  if (result?.gaming?.xp_earned) {
-    setTimeout(() => navigateIfUrl(redirectUrl), 1500)
-  } else {
-    navigateIfUrl(redirectUrl)
+  // CAS 2 : création auto directe (sans confirmation) — comportement legacy
+  if (actionData.create_goal) {
+    actionLoading.value = insight.id
+    try {
+      const result = await handleInsightAction(insight.id)
+      showXpReward(result?.gaming?.xp_earned)
+      router.push('/app/goals')
+    } finally {
+      actionLoading.value = null
+    }
+    return
+  }
+
+  // CAS 3 : navigation simple
+  actionLoading.value = insight.id
+  try {
+    const result = await handleInsightAction(insight.id)
+    showXpReward(result?.gaming?.xp_earned)
+    const url = actionData.url ?? insight.action_url ?? null
+    if (result?.gaming?.xp_earned) {
+      setTimeout(() => navigateIfUrl(url), 1500)
+    } else {
+      navigateIfUrl(url)
+    }
+  } finally {
+    actionLoading.value = null
   }
 }
 
 /**
- * ✅ Crée un objectif en BDD depuis les données de l'insight
- * puis navigue vers la liste des objectifs
+ * ✅ Callback après confirmation dans la modale
+ * → déclenche le XP côté API puis affiche le toast
  */
-async function createGoalFromInsight(
-  template: Record<string, any>,
-  redirectUrl: string | null,
-): Promise<void> {
-  creatingGoal.value = true
+async function handleModalSuccess(_result: any): Promise<void> {
+  if (!activeInsight.value) return
 
   try {
-    const goalData = {
-      name: template.name ?? "Objectif d'épargne",
-      description: template.description ?? 'Objectif créé par le Coach IA',
-      target_amount: template.target_amount ?? 1000,
-      current_amount: 0,
-      target_date: template.target_date ?? getDefaultTargetDate(),
-      icon: template.icon ?? '💰',
-      priority: template.priority ?? 'medium',
-    }
-
-    console.log("🎯 [Coach IA] Création automatique d'objectif:", goalData)
-
-    const success = await goalStore.createGoal(goalData)
-
-    if (success) {
-      console.log('✅ [Coach IA] Objectif créé en BDD')
-      // Recharger les goals pour avoir la liste à jour
-      await goalStore.fetchGoals()
-      // Naviguer vers la liste des objectifs
-      router.push('/app/goals')
-    } else {
-      console.error('❌ [Coach IA] Échec création objectif:', goalStore.error)
-      // En cas d'échec, naviguer quand même vers les goals
-      navigateIfUrl(redirectUrl)
-    }
-  } catch (err) {
-    console.error('❌ [Coach IA] Erreur création objectif:', err)
-    navigateIfUrl(redirectUrl)
+    const gaming = await handleInsightAction(activeInsight.value.id)
+    showXpReward(gaming?.gaming?.xp_earned ?? gaming?.xp_earned)
   } finally {
-    creatingGoal.value = false
-  }
-}
-
-/**
- * Calcule une date cible par défaut (6 mois à partir d'aujourd'hui)
- */
-function getDefaultTargetDate(): string {
-  const date = new Date()
-  date.setMonth(date.getMonth() + 6)
-  return date.toISOString().split('T')[0]
-}
-
-function navigateIfUrl(url: string | null): void {
-  if (!url) return
-  if (url.startsWith('http')) {
-    window.open(url, '_blank')
-  } else {
-    router.push(url)
+    activeInsight.value  = null
+    activeAction.value   = null
   }
 }
 
@@ -507,95 +350,96 @@ async function handleDismiss(id: number): Promise<void> {
 }
 
 // ==========================================
+// HELPERS MODALE
+// ==========================================
+
+/**
+ * Détermine si l'action_data doit ouvrir la modale et quel type
+ */
+function resolveModalType(actionData: Record<string, any>): string | null {
+  // Le backend peut envoyer explicitement un type de modale
+  if (actionData.type && ['create_goal', 'add_contribution', 'update_goal'].includes(actionData.type)) {
+    return actionData.type
+  }
+  // Ou un create_goal avec confirmation (champ confirm: true)
+  if (actionData.create_goal && actionData.confirm === true) {
+    return 'create_goal'
+  }
+  return null
+}
+
+/**
+ * Construit l'objet action pour la modale depuis action_data
+ */
+function buildModalAction(type: string, actionData: Record<string, any>): object {
+  const defaults = actionData.defaults ?? actionData.create_goal ?? {}
+  return {
+    type,
+    hint:    actionData.hint    ?? null,
+    fields:  actionData.fields  ?? [],
+    defaults,
+  }
+}
+
+// ==========================================
+// HELPERS XP
+// ==========================================
+
+function showXpReward(xp?: number): void {
+  if (!xp) return
+  lastXpEarned.value = xp
+  showXpToast.value  = true
+  setTimeout(() => { showXpToast.value = false }, 2500)
+}
+
+function navigateIfUrl(url: string | null): void {
+  if (!url) return
+  if (url.startsWith('http')) window.open(url, '_blank')
+  else router.push(url)
+}
+
+// ==========================================
 // HELPERS UI
 // ==========================================
 
 function getPriorityBgClass(priority: number): string {
-  const classes: Record<number, string> = {
-    1: 'bg-red-100',
-    2: 'bg-amber-100',
-    3: 'bg-blue-100',
-  }
-  return classes[priority] ?? 'bg-gray-100'
+  return ({ 1: 'bg-red-100', 2: 'bg-amber-100', 3: 'bg-blue-100' } as Record<number,string>)[priority] ?? 'bg-gray-100'
 }
 
 function getPriorityLabelClass(priority: number): string {
-  const classes: Record<number, string> = {
-    1: 'bg-red-100 text-red-700',
-    2: 'bg-amber-100 text-amber-700',
-    3: 'bg-blue-100 text-blue-700',
-  }
-  return classes[priority] ?? 'bg-gray-100 text-gray-700'
+  return ({ 1: 'bg-red-100 text-red-700', 2: 'bg-amber-100 text-amber-700', 3: 'bg-blue-100 text-blue-700' } as Record<number,string>)[priority] ?? 'bg-gray-100 text-gray-700'
 }
 
 function getPriorityLabel(priority: number): string {
-  const keys: Record<number, string> = {
-    1: 'insights.priority.urgent',
-    2: 'insights.priority.important',
-    3: 'insights.priority.info',
-  }
+  const keys: Record<number, string> = { 1: 'insights.priority.urgent', 2: 'insights.priority.important', 3: 'insights.priority.info' }
   return t(keys[priority] ?? 'insights.priority.info')
 }
 
 function getDefaultIcon(type: string): string {
-  const icons: Record<string, string> = {
-    cost_reduction: '💳',
-    savings_opportunity: '💰',
-    unusual_spending: '⚠️',
-    goal_acceleration: '🎯',
-    behavioral_pattern: '📊',
-  }
-  return icons[type] ?? '💡'
+  return ({ cost_reduction: '💳', savings_opportunity: '💰', unusual_spending: '⚠️', goal_acceleration: '🎯', behavioral_pattern: '📊' } as Record<string,string>)[type] ?? '💡'
 }
 
 function formatCurrency(amount: number): string {
   const loc = locale.value === 'en' ? 'en-US' : 'fr-FR'
-  return new Intl.NumberFormat(loc, {
-    style: 'currency',
-    currency: 'EUR',
-    maximumFractionDigits: 0,
-  }).format(amount)
+  return new Intl.NumberFormat(loc, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(amount)
 }
 
 function formatRelativeDate(dateStr: string): string {
-  const date = new Date(dateStr)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffH = Math.floor(diffMs / 3600000)
-  const diffD = Math.floor(diffMs / 86400000)
-
-  if (diffH < 1) return t('time.justNow')
+  const date  = new Date(dateStr)
+  const diffH = Math.floor((Date.now() - date.getTime()) / 3600000)
+  const diffD = Math.floor(diffH / 24)
+  if (diffH < 1)  return t('time.justNow')
   if (diffH < 24) return t('time.hoursAgo', { n: diffH })
-  if (diffD < 7) return t('time.daysAgo', { n: diffD })
-
+  if (diffD < 7)  return t('time.daysAgo',  { n: diffD })
   const loc = locale.value === 'en' ? 'en-US' : 'fr-FR'
   return date.toLocaleDateString(loc, { day: '2-digit', month: 'short' })
 }
 </script>
 
 <style scoped>
-/* ==========================================
-   ANIMATIONS LISTE
-   ========================================== */
-.insight-list-enter-active {
-  transition: all 0.3s ease-out;
-}
-
-.insight-list-leave-active {
-  transition: all 0.2s ease-in;
-}
-
-.insight-list-enter-from {
-  opacity: 0;
-  transform: translateX(-20px);
-}
-
-.insight-list-leave-to {
-  opacity: 0;
-  transform: translateX(20px);
-}
-
-.insight-list-move {
-  transition: transform 0.3s ease;
-}
+.insight-list-enter-active { transition: all 0.3s ease-out }
+.insight-list-leave-active { transition: all 0.2s ease-in }
+.insight-list-enter-from   { opacity: 0; transform: translateX(-20px) }
+.insight-list-leave-to     { opacity: 0; transform: translateX(20px) }
+.insight-list-move         { transition: transform 0.3s ease }
 </style>
