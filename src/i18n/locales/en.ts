@@ -739,6 +739,54 @@ const en = {
       ex3Desc: 'Level up to unlock new features',
       tip1: 'Points reflect real positive financial habits',
     },
+    onboarding: {
+      skipTitle: 'Skip tutorial',
+      startBtn: '🚀 Get started!',
+
+      step1: {
+        title: 'Welcome to CoinQuest!',
+        description:
+          'CoinQuest is a budget app <strong>that motivates you</strong> to save by turning money management into a progressive adventure.',
+        howTitle: 'How does it work?',
+        how1: '<strong>Connect your bank</strong> (secure and automatic)',
+        how2: '<strong>Set your goals</strong> (travel, apartment, car...)',
+        how3: '<strong>The app calculates your savings capacity</strong> automatically',
+        how4: '<strong>You earn points</strong> with every progress 🎯',
+        freeAlpha: 'Free during the alpha phase',
+      },
+
+      step2: {
+        title: 'Why points?',
+        description: 'Because <strong>seeing your progress</strong> makes saving more motivating!',
+        optional: "(It's 100% optional, you can ignore them)",
+        saving: 'Savings achieved',
+        savingDesc: 'Every progress counts',
+        goalReached: 'Goal reached',
+        goalDesc: 'Celebrate your wins',
+        streak: '7-day streak',
+        streakDesc: 'Consistency pays off',
+        challenge: 'Challenge completed',
+        challengeDesc: 'Weekly challenges',
+        secretTitle: '💡 The secret',
+        secretDesc:
+          "The more points you accumulate, the more badges and features you unlock. <strong>It's optional</strong>, but it makes budgeting less boring!",
+      },
+
+      step3: {
+        title: 'Your data is 100% secure',
+        description:
+          'CoinQuest uses <strong>Bridge</strong>, the same system European banks use to securely connect your accounts.',
+        certifiedTitle: 'Certified European bank connection',
+        certifiedDesc: 'PSD2 compliant, just like your official banking app',
+        readOnlyTitle: 'Read-only access',
+        readOnlyDesc: "We can't make transfers, only view your transactions",
+        noStorageTitle: 'Your credentials NEVER stored',
+        noStorageDesc: 'Direct authentication with your bank, zero storage on our end',
+        disconnectTitle: 'Disconnect anytime',
+        disconnectDesc: 'You keep total control over your data, always',
+        gdpr: '<strong>🛡️ GDPR compliant:</strong> Your data stays in Europe, encrypted end-to-end',
+      },
+    },
   },
 }
 

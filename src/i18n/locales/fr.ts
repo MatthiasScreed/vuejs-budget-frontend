@@ -669,13 +669,16 @@ const fr = {
 
   testimonials: {
     marieRole: 'Professeure',
-    marieQuote: "J'ai économisé 400€ en 2 mois juste en visualisant mes dépenses. Je n'avais aucune idée que je dépensais autant en restaurants !",
+    marieQuote:
+      "J'ai économisé 400€ en 2 mois juste en visualisant mes dépenses. Je n'avais aucune idée que je dépensais autant en restaurants !",
     marieDuration: '2 mois',
     thomasRole: 'Développeur',
-    thomasQuote: "L'import automatique des transactions me fait gagner un temps fou. Plus besoin de tout saisir à la main comme avec Excel.",
+    thomasQuote:
+      "L'import automatique des transactions me fait gagner un temps fou. Plus besoin de tout saisir à la main comme avec Excel.",
     thomasDuration: '6 mois',
     sophieRole: 'Entrepreneure',
-    sophieQuote: "Grâce aux objectifs intelligents, j'ai pu mettre de côté 15 000€ pour l'apport de mon appartement en 18 mois. C'était mon rêve !",
+    sophieQuote:
+      "Grâce aux objectifs intelligents, j'ai pu mettre de côté 15 000€ pour l'apport de mon appartement en 18 mois. C'était mon rêve !",
     sophieDuration: '18 mois',
   },
 
@@ -764,6 +767,56 @@ const fr = {
       ex3Title: 'Paliers',
       ex3Desc: 'Monte en palier pour débloquer de nouvelles fonctionnalités',
       tip1: 'Les points reflètent de vraies bonnes habitudes financières',
+    },
+
+    onboarding: {
+      skipTitle: 'Passer le tutoriel',
+      startBtn: '🚀 Commencer !',
+
+      step1: {
+        title: 'Bienvenue sur CoinQuest !',
+        description:
+          "CoinQuest est une app de budget <strong>qui te motive</strong> à économiser en transformant la gestion d'argent en aventure progressive.",
+        howTitle: 'Comment ça marche ?',
+        how1: '<strong>Tu connectes ta banque</strong> (sécurisé et automatique)',
+        how2: '<strong>Tu définis tes objectifs</strong> (voyage, appart, voiture...)',
+        how3: "<strong>L'app calcule ta capacité d'épargne</strong> automatiquement",
+        how4: '<strong>Tu gagnes des points</strong> à chaque progrès 🎯',
+        freeAlpha: 'Gratuit pendant la phase alpha',
+      },
+
+      step2: {
+        title: 'Pourquoi des points ?',
+        description:
+          "Parce que <strong>voir sa progression</strong> rend plus motivant d'économiser !",
+        optional: "(C'est 100% optionnel, tu peux les ignorer)",
+        saving: 'Économie réalisée',
+        savingDesc: 'Chaque progrès compte',
+        goalReached: 'Objectif atteint',
+        goalDesc: 'Célèbre tes victoires',
+        streak: 'Série de 7 jours',
+        streakDesc: 'La régularité paie',
+        challenge: 'Défi complété',
+        challengeDesc: 'Challenges hebdo',
+        secretTitle: '💡 Le secret',
+        secretDesc:
+          "Plus tu accumules de points, plus tu débloques de badges et fonctionnalités. <strong>C'est optionnel</strong>, mais ça rend le budget moins ennuyeux !",
+      },
+
+      step3: {
+        title: 'Tes données sont 100% sécurisées',
+        description:
+          'CoinQuest utilise <strong>Bridge</strong>, le même système que les banques européennes pour connecter tes comptes en toute sécurité.',
+        certifiedTitle: 'Connexion bancaire européenne certifiée',
+        certifiedDesc: 'Conforme PSD2, comme ton application bancaire officielle',
+        readOnlyTitle: 'Accès lecture seule',
+        readOnlyDesc: 'On ne peut pas faire de virements, juste consulter tes transactions',
+        noStorageTitle: 'Tes identifiants JAMAIS stockés',
+        noStorageDesc: 'Authentification directe avec ta banque, zéro stockage chez nous',
+        disconnectTitle: 'Tu peux déconnecter à tout moment',
+        disconnectDesc: 'Tu gardes le contrôle total de tes données, toujours',
+        gdpr: '<strong>🛡️ Conforme RGPD :</strong> Tes données restent en Europe, chiffrées de bout en bout',
+      },
     },
   },
 }
