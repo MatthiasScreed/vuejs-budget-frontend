@@ -313,6 +313,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useInsights } from '@/composables/useInsights'
+import { useGoalStore } from '@/stores/goalStore' // ✅ AJOUT
 import {
   LightBulbIcon,
   ArrowPathIcon,
@@ -324,11 +325,12 @@ import {
 } from '@heroicons/vue/24/outline'
 
 // ==========================================
-// I18N + ROUTER + COMPOSABLE
+// I18N + ROUTER + STORES + COMPOSABLE
 // ==========================================
 
 const { t, locale } = useI18n()
 const router = useRouter()
+const goalStore = useGoalStore() // ✅ AJOUT
 
 const {
   insights,
@@ -357,9 +359,10 @@ const {
 const activeFilter = ref<string | undefined>(undefined)
 const showXpToast = ref(false)
 const lastXpEarned = ref(0)
+const creatingGoal = ref(false) // ✅ AJOUT : indicateur création en cours
 
 // ==========================================
-// FILTRES (avec clés i18n)
+// FILTRES
 // ==========================================
 
 const typeFilters = [
@@ -372,12 +375,9 @@ const typeFilters = [
 ]
 
 // ==========================================
-// COMPUTED
+// HELPERS
 // ==========================================
 
-/**
- * Compteur par type depuis le summary
- */
 function getTypeCount(type: string | undefined): number | undefined {
   if (!type || !summary.value) return undefined
   return summary.value.by_type[type]
@@ -395,7 +395,6 @@ async function handleFilterType(type: string | undefined): Promise<void> {
 async function handleGenerate(): Promise<void> {
   await generate()
 }
-
 async function handleMarkAllRead(): Promise<void> {
   await markAllAsRead()
 }
@@ -407,31 +406,91 @@ async function handleRead(insight: any): Promise<void> {
 }
 
 /**
- * Exécuter l'action sur un insight
- * École 42: Fonction claire, un rôle
+ * ✅ Exécuter l'action sur un insight
+ *
+ * Si l'action_data contient un goal_template, on crée l'objectif
+ * automatiquement en BDD. Sinon on navigue normalement.
  */
 async function handleAction(insight: any): Promise<void> {
+  // 1️⃣ Marquer l'insight comme agi côté API (XP, gaming)
   const result = await handleInsightAction(insight.id)
-  const redirectUrl = insight.action_data?.url ?? insight.action_url ?? null
+  const actionData = insight.action_data ?? {}
+  const redirectUrl = actionData.url ?? insight.action_url ?? null
 
+  // 2️⃣ Afficher le toast XP si applicable
   if (result?.gaming?.xp_earned) {
     lastXpEarned.value = result.gaming.xp_earned
     showXpToast.value = true
-
     setTimeout(() => {
       showXpToast.value = false
-      navigateIfUrl(redirectUrl)
-    }, 1500)
+    }, 2500)
+  }
+
+  // 3️⃣ Création automatique d'objectif si un template est fourni
+  if (actionData.create_goal) {
+    await createGoalFromInsight(actionData.create_goal, redirectUrl)
+    return
+  }
+
+  // 4️⃣ Sinon : navigation simple après le toast
+  if (result?.gaming?.xp_earned) {
+    setTimeout(() => navigateIfUrl(redirectUrl), 1500)
   } else {
     navigateIfUrl(redirectUrl)
   }
 }
 
-const ACTION_ROUTES: Record<string, string> = {
-  '/goals/create': '/app/goals',
-  '/goals': '/app/goals',
-  '/transactions': '/app/transactions',
-  '/categories': '/app/categories',
+/**
+ * ✅ Crée un objectif en BDD depuis les données de l'insight
+ * puis navigue vers la liste des objectifs
+ */
+async function createGoalFromInsight(
+  template: Record<string, any>,
+  redirectUrl: string | null,
+): Promise<void> {
+  creatingGoal.value = true
+
+  try {
+    const goalData = {
+      name: template.name ?? "Objectif d'épargne",
+      description: template.description ?? 'Objectif créé par le Coach IA',
+      target_amount: template.target_amount ?? 1000,
+      current_amount: 0,
+      target_date: template.target_date ?? getDefaultTargetDate(),
+      icon: template.icon ?? '💰',
+      priority: template.priority ?? 'medium',
+    }
+
+    console.log("🎯 [Coach IA] Création automatique d'objectif:", goalData)
+
+    const success = await goalStore.createGoal(goalData)
+
+    if (success) {
+      console.log('✅ [Coach IA] Objectif créé en BDD')
+      // Recharger les goals pour avoir la liste à jour
+      await goalStore.fetchGoals()
+      // Naviguer vers la liste des objectifs
+      router.push('/app/goals')
+    } else {
+      console.error('❌ [Coach IA] Échec création objectif:', goalStore.error)
+      // En cas d'échec, naviguer quand même vers les goals
+      navigateIfUrl(redirectUrl)
+    }
+  } catch (err) {
+    console.error('❌ [Coach IA] Erreur création objectif:', err)
+    navigateIfUrl(redirectUrl)
+  } finally {
+    creatingGoal.value = false
+  }
+}
+
+/**
+ * Calcule une date cible par défaut (6 mois à partir d'aujourd'hui)
+ */
+function getDefaultTargetDate(): string {
+  const date = new Date()
+  date.setMonth(date.getMonth() + 6)
+  return date.toISOString().split('T')[0]
 }
 
 function navigateIfUrl(url: string | null): void {
@@ -439,8 +498,7 @@ function navigateIfUrl(url: string | null): void {
   if (url.startsWith('http')) {
     window.open(url, '_blank')
   } else {
-    const correctedUrl = ACTION_ROUTES[url] ?? url
-    router.push(correctedUrl)
+    router.push(url)
   }
 }
 
@@ -449,7 +507,7 @@ async function handleDismiss(id: number): Promise<void> {
 }
 
 // ==========================================
-// HELPERS UI (i18n-aware)
+// HELPERS UI
 // ==========================================
 
 function getPriorityBgClass(priority: number): string {
@@ -470,9 +528,6 @@ function getPriorityLabelClass(priority: number): string {
   return classes[priority] ?? 'bg-gray-100 text-gray-700'
 }
 
-/**
- * Label de priorité via i18n
- */
 function getPriorityLabel(priority: number): string {
   const keys: Record<number, string> = {
     1: 'insights.priority.urgent',
@@ -493,9 +548,6 @@ function getDefaultIcon(type: string): string {
   return icons[type] ?? '💡'
 }
 
-/**
- * Formater un montant (locale-aware)
- */
 function formatCurrency(amount: number): string {
   const loc = locale.value === 'en' ? 'en-US' : 'fr-FR'
   return new Intl.NumberFormat(loc, {
@@ -505,9 +557,6 @@ function formatCurrency(amount: number): string {
   }).format(amount)
 }
 
-/**
- * Formater une date relative (locale-aware)
- */
 function formatRelativeDate(dateStr: string): string {
   const date = new Date(dateStr)
   const now = new Date()
@@ -520,10 +569,7 @@ function formatRelativeDate(dateStr: string): string {
   if (diffD < 7) return t('time.daysAgo', { n: diffD })
 
   const loc = locale.value === 'en' ? 'en-US' : 'fr-FR'
-  return date.toLocaleDateString(loc, {
-    day: '2-digit',
-    month: 'short',
-  })
+  return date.toLocaleDateString(loc, { day: '2-digit', month: 'short' })
 }
 </script>
 
