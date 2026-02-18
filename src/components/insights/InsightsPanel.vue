@@ -57,9 +57,9 @@
             </p>
           </div>
         </div>
-        <span class="text-xl font-bold text-green-700"
-          >{{ formatCurrency(totalPotentialSaving) }}{{ t('insights.perYear') }}</span
-        >
+        <span class="text-xl font-bold text-green-700">
+          {{ formatCurrency(totalPotentialSaving) }}{{ t('insights.perYear') }}
+        </span>
       </div>
     </div>
 
@@ -77,9 +77,9 @@
         "
       >
         {{ filter.icon }} {{ t(`insights.filters.${filter.key}`) }}
-        <span v-if="getTypeCount(filter.value)" class="ml-1 text-xs opacity-70"
-          >({{ getTypeCount(filter.value) }})</span
-        >
+        <span v-if="getTypeCount(filter.value)" class="ml-1 text-xs opacity-70">
+          ({{ getTypeCount(filter.value) }})
+        </span>
       </button>
     </div>
 
@@ -170,10 +170,9 @@
               class="mt-2 inline-flex items-center space-x-1 px-2 py-1 bg-green-50 border border-green-200 rounded-lg"
             >
               <CurrencyEuroIcon class="w-3.5 h-3.5 text-green-600" />
-              <span class="text-xs font-medium text-green-700"
-                >{{ formatCurrency(insight.potential_saving)
-                }}{{ t('insights.savingPerYear') }}</span
-              >
+              <span class="text-xs font-medium text-green-700">
+                {{ formatCurrency(insight.potential_saving) }}{{ t('insights.savingPerYear') }}
+              </span>
             </div>
 
             <!-- Impact objectifs -->
@@ -187,10 +186,10 @@
                 class="flex items-center space-x-1.5 text-xs text-blue-600"
               >
                 <ChartBarIcon class="w-3.5 h-3.5" />
-                <span
-                  >{{ impact.goal_name }} :
-                  {{ t('insights.monthsSaved', { count: impact.months_saved }) }}</span
-                >
+                <span>
+                  {{ impact.goal_name }} :
+                  {{ t('insights.monthsSaved', { count: impact.months_saved }) }}
+                </span>
               </div>
             </div>
 
@@ -274,7 +273,7 @@
       </div>
     </Transition>
 
-    <!-- ✅ MODALE COACH ACTION — branchée ici -->
+    <!-- MODALE COACH ACTION -->
     <CoachActionModal
       v-model="showActionModal"
       :insight="activeInsight"
@@ -289,20 +288,39 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useInsights } from '@/composables/useInsights'
+import { useGoalStore } from '@/stores/goalStore'
 import CoachActionModal from '@/components/insights/CoachActionModal.vue'
 import {
-  LightBulbIcon, ArrowPathIcon, CurrencyEuroIcon,
-  SparklesIcon, ChartBarIcon, BoltIcon, CheckCircleIcon,
+  LightBulbIcon,
+  ArrowPathIcon,
+  CurrencyEuroIcon,
+  SparklesIcon,
+  ChartBarIcon,
+  BoltIcon,
+  CheckCircleIcon,
 } from '@heroicons/vue/24/outline'
 
 const { t, locale } = useI18n()
 const router = useRouter()
+const goalStore = useGoalStore()
 
 const {
-  insights, summary, loading, generating, hasUnread, badgeText,
-  totalPotentialSaving, currentPage, lastPage,
-  generate, markAsRead, markAllAsRead, handleInsightAction,
-  dismiss, filterByType, goToPage,
+  insights,
+  summary,
+  loading,
+  generating,
+  hasUnread,
+  badgeText,
+  totalPotentialSaving,
+  currentPage,
+  lastPage,
+  generate,
+  markAsRead,
+  markAllAsRead,
+  handleInsightAction,
+  dismiss,
+  filterByType,
+  goToPage,
 } = useInsights()
 
 // ==========================================
@@ -310,26 +328,27 @@ const {
 // ==========================================
 
 const activeFilter = ref<string | undefined>(undefined)
-const showXpToast  = ref(false)
+const showXpToast = ref(false)
 const lastXpEarned = ref(0)
-const actionLoading = ref<number | null>(null) // ID de l'insight en cours
+const actionLoading = ref<number | null>(null)
+const creatingGoal = ref(false)
 
-// ✅ État de la modale
+// État de la modale
 const showActionModal = ref(false)
-const activeInsight   = ref<any>(null)
-const activeAction    = ref<any>(null)
+const activeInsight = ref<any>(null)
+const activeAction = ref<any>(null)
 
 // ==========================================
 // FILTRES
 // ==========================================
 
 const typeFilters = [
-  { value: undefined,              key: 'all',     icon: '📋' },
-  { value: 'cost_reduction',       key: 'costs',   icon: '💳' },
-  { value: 'savings_opportunity',  key: 'savings', icon: '💰' },
-  { value: 'unusual_spending',     key: 'alerts',  icon: '⚠️' },
-  { value: 'goal_acceleration',    key: 'goals',   icon: '🎯' },
-  { value: 'behavioral_pattern',   key: 'habits',  icon: '📊' },
+  { value: undefined, key: 'all', icon: '📋' },
+  { value: 'cost_reduction', key: 'costs', icon: '💳' },
+  { value: 'savings_opportunity', key: 'savings', icon: '💰' },
+  { value: 'unusual_spending', key: 'alerts', icon: '⚠️' },
+  { value: 'goal_acceleration', key: 'goals', icon: '🎯' },
+  { value: 'behavioral_pattern', key: 'habits', icon: '📊' },
 ]
 
 function getTypeCount(type: string | undefined): number | undefined {
@@ -346,49 +365,60 @@ async function handleFilterType(type: string | undefined): Promise<void> {
   await filterByType(type)
 }
 
-async function handleGenerate(): Promise<void> { await generate() }
-async function handleMarkAllRead(): Promise<void> { await markAllAsRead() }
+async function handleGenerate(): Promise<void> {
+  await generate()
+}
+async function handleMarkAllRead(): Promise<void> {
+  await markAllAsRead()
+}
+async function handleDismiss(id: number): Promise<void> {
+  await dismiss(id)
+}
 
 async function handleRead(insight: any): Promise<void> {
   if (!insight.is_read) await markAsRead(insight.id)
 }
 
 /**
- * ✅ CORRIGÉ : on crée l'objectif D'ABORD, puis on marque comme agi
- * Ainsi "Action effectuée" = objectif vraiment créé en BDD
+ * Gère le clic sur le bouton d'action d'un insight.
+ * Si action_data contient create_goal → crée l'objectif EN PREMIER.
+ * Le marquage "agi" n'arrive que si la création a réussi.
  */
 async function handleAction(insight: any): Promise<void> {
-  const actionData = insight.action_data ?? {}
-  const redirectUrl = actionData.url ?? insight.action_url ?? null
+  actionLoading.value = insight.id
 
-  // 1️⃣ Si create_goal : créer l'objectif EN PREMIER
-  if (actionData.create_goal) {
-    const created = await createGoalFromInsight(actionData.create_goal, redirectUrl)
-    if (!created) return // ← on n'agit pas si la création a échoué
-  }
+  try {
+    const actionData = insight.action_data ?? {}
+    const redirectUrl = actionData.url ?? insight.action_url ?? null
 
-  // 2️⃣ Marquer comme agi (XP) seulement si tout s'est bien passé
-  const result = await handleInsightAction(insight.id)
-
-  // 3️⃣ Toast XP
-  if (result?.gaming?.xp_earned) {
-    lastXpEarned.value = result.gaming.xp_earned
-    showXpToast.value = true
-    setTimeout(() => { showXpToast.value = false }, 2500)
-  }
-
-  // 4️⃣ Navigation si pas de create_goal (sinon déjà redirigé)
-  if (!actionData.create_goal) {
-    if (result?.gaming?.xp_earned) {
-      setTimeout(() => navigateIfUrl(redirectUrl), 1500)
-    } else {
-      navigateIfUrl(redirectUrl)
+    // 1️⃣ Créer l'objectif en BDD si le Coach en fournit un template
+    if (actionData.create_goal) {
+      const created = await createGoalFromInsight(actionData.create_goal, redirectUrl)
+      if (!created) return // annule si la création a échoué
     }
+
+    // 2️⃣ Marquer comme agi côté API (XP)
+    const result = await handleInsightAction(insight.id)
+
+    // 3️⃣ Toast XP
+    showXpReward(result?.gaming?.xp_earned)
+
+    // 4️⃣ Navigation uniquement si pas de create_goal (sinon déjà redirigé)
+    if (!actionData.create_goal) {
+      if (result?.gaming?.xp_earned) {
+        setTimeout(() => navigateIfUrl(redirectUrl), 1500)
+      } else {
+        navigateIfUrl(redirectUrl)
+      }
+    }
+  } finally {
+    actionLoading.value = null
   }
 }
 
 /**
- * ✅ CORRIGÉ : retourne boolean pour que handleAction sache si ça a marché
+ * Crée un objectif en BDD depuis le template fourni par le Coach IA.
+ * Retourne true si succès, false si échec (sans crasher).
  */
 async function createGoalFromInsight(
   template: Record<string, any>,
@@ -416,12 +446,11 @@ async function createGoalFromInsight(
       await goalStore.fetchGoals()
       router.push('/app/goals')
       return true
-    } else {
-      console.error('❌ [Coach IA] Échec:', goalStore.error)
-      // Afficher l'erreur à l'utilisateur (remplace par ton système de toast)
-      alert(`Impossible de créer l'objectif : ${goalStore.error ?? 'Erreur inconnue'}`)
-      return false
     }
+
+    console.error('❌ [Coach IA] Échec:', goalStore.error)
+    alert(`Impossible de créer l'objectif : ${goalStore.error ?? 'Erreur inconnue'}`)
+    return false
   } catch (err: any) {
     console.error('❌ [Coach IA] Exception:', err)
     return false
@@ -430,25 +459,8 @@ async function createGoalFromInsight(
   }
 }
 
-  // CAS 3 : navigation simple
-  actionLoading.value = insight.id
-  try {
-    const result = await handleInsightAction(insight.id)
-    showXpReward(result?.gaming?.xp_earned)
-    const url = actionData.url ?? insight.action_url ?? null
-    if (result?.gaming?.xp_earned) {
-      setTimeout(() => navigateIfUrl(url), 1500)
-    } else {
-      navigateIfUrl(url)
-    }
-  } finally {
-    actionLoading.value = null
-  }
-}
-
 /**
- * ✅ Callback après confirmation dans la modale
- * → déclenche le XP côté API puis affiche le toast
+ * Callback après confirmation dans la modale CoachActionModal
  */
 async function handleModalSuccess(_result: any): Promise<void> {
   if (!activeInsight.value) return
@@ -457,56 +469,28 @@ async function handleModalSuccess(_result: any): Promise<void> {
     const gaming = await handleInsightAction(activeInsight.value.id)
     showXpReward(gaming?.gaming?.xp_earned ?? gaming?.xp_earned)
   } finally {
-    activeInsight.value  = null
-    activeAction.value   = null
-  }
-}
-
-async function handleDismiss(id: number): Promise<void> {
-  await dismiss(id)
-}
-
-// ==========================================
-// HELPERS MODALE
-// ==========================================
-
-/**
- * Détermine si l'action_data doit ouvrir la modale et quel type
- */
-function resolveModalType(actionData: Record<string, any>): string | null {
-  // Le backend peut envoyer explicitement un type de modale
-  if (actionData.type && ['create_goal', 'add_contribution', 'update_goal'].includes(actionData.type)) {
-    return actionData.type
-  }
-  // Ou un create_goal avec confirmation (champ confirm: true)
-  if (actionData.create_goal && actionData.confirm === true) {
-    return 'create_goal'
-  }
-  return null
-}
-
-/**
- * Construit l'objet action pour la modale depuis action_data
- */
-function buildModalAction(type: string, actionData: Record<string, any>): object {
-  const defaults = actionData.defaults ?? actionData.create_goal ?? {}
-  return {
-    type,
-    hint:    actionData.hint    ?? null,
-    fields:  actionData.fields  ?? [],
-    defaults,
+    activeInsight.value = null
+    activeAction.value = null
   }
 }
 
 // ==========================================
-// HELPERS XP
+// HELPERS
 // ==========================================
+
+function getDefaultTargetDate(): string {
+  const d = new Date()
+  d.setMonth(d.getMonth() + 6)
+  return d.toISOString().split('T')[0]
+}
 
 function showXpReward(xp?: number): void {
   if (!xp) return
   lastXpEarned.value = xp
-  showXpToast.value  = true
-  setTimeout(() => { showXpToast.value = false }, 2500)
+  showXpToast.value = true
+  setTimeout(() => {
+    showXpToast.value = false
+  }, 2500)
 }
 
 function navigateIfUrl(url: string | null): void {
@@ -515,39 +499,64 @@ function navigateIfUrl(url: string | null): void {
   else router.push(url)
 }
 
-// ==========================================
-// HELPERS UI
-// ==========================================
-
-function getPriorityBgClass(priority: number): string {
-  return ({ 1: 'bg-red-100', 2: 'bg-amber-100', 3: 'bg-blue-100' } as Record<number,string>)[priority] ?? 'bg-gray-100'
+function getPriorityBgClass(p: number): string {
+  return (
+    ({ 1: 'bg-red-100', 2: 'bg-amber-100', 3: 'bg-blue-100' } as Record<number, string>)[p] ??
+    'bg-gray-100'
+  )
 }
 
-function getPriorityLabelClass(priority: number): string {
-  return ({ 1: 'bg-red-100 text-red-700', 2: 'bg-amber-100 text-amber-700', 3: 'bg-blue-100 text-blue-700' } as Record<number,string>)[priority] ?? 'bg-gray-100 text-gray-700'
+function getPriorityLabelClass(p: number): string {
+  return (
+    (
+      {
+        1: 'bg-red-100 text-red-700',
+        2: 'bg-amber-100 text-amber-700',
+        3: 'bg-blue-100 text-blue-700',
+      } as Record<number, string>
+    )[p] ?? 'bg-gray-100 text-gray-700'
+  )
 }
 
-function getPriorityLabel(priority: number): string {
-  const keys: Record<number, string> = { 1: 'insights.priority.urgent', 2: 'insights.priority.important', 3: 'insights.priority.info' }
-  return t(keys[priority] ?? 'insights.priority.info')
+function getPriorityLabel(p: number): string {
+  const keys: Record<number, string> = {
+    1: 'insights.priority.urgent',
+    2: 'insights.priority.important',
+    3: 'insights.priority.info',
+  }
+  return t(keys[p] ?? 'insights.priority.info')
 }
 
 function getDefaultIcon(type: string): string {
-  return ({ cost_reduction: '💳', savings_opportunity: '💰', unusual_spending: '⚠️', goal_acceleration: '🎯', behavioral_pattern: '📊' } as Record<string,string>)[type] ?? '💡'
+  return (
+    (
+      {
+        cost_reduction: '💳',
+        savings_opportunity: '💰',
+        unusual_spending: '⚠️',
+        goal_acceleration: '🎯',
+        behavioral_pattern: '📊',
+      } as Record<string, string>
+    )[type] ?? '💡'
+  )
 }
 
 function formatCurrency(amount: number): string {
   const loc = locale.value === 'en' ? 'en-US' : 'fr-FR'
-  return new Intl.NumberFormat(loc, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(amount)
+  return new Intl.NumberFormat(loc, {
+    style: 'currency',
+    currency: 'EUR',
+    maximumFractionDigits: 0,
+  }).format(amount)
 }
 
 function formatRelativeDate(dateStr: string): string {
-  const date  = new Date(dateStr)
+  const date = new Date(dateStr)
   const diffH = Math.floor((Date.now() - date.getTime()) / 3600000)
   const diffD = Math.floor(diffH / 24)
-  if (diffH < 1)  return t('time.justNow')
+  if (diffH < 1) return t('time.justNow')
   if (diffH < 24) return t('time.hoursAgo', { n: diffH })
-  if (diffD < 7)  return t('time.daysAgo',  { n: diffD })
+  if (diffD < 7) return t('time.daysAgo', { n: diffD })
   const loc = locale.value === 'en' ? 'en-US' : 'fr-FR'
   return date.toLocaleDateString(loc, { day: '2-digit', month: 'short' })
 }
