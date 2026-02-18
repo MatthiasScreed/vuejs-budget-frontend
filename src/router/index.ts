@@ -107,6 +107,15 @@ const routes = [
         },
       },
       {
+        path: 'insights',
+        name: 'Insights',
+        component: () => import('@/views/Insights.vue'),
+        meta: {
+          requiresAuth: true,
+          title: 'Coach IA - CoinQuest',
+        },
+      },
+      {
         path: 'categories',
         name: 'Categories',
         component: Categories,

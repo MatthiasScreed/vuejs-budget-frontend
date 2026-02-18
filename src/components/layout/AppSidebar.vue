@@ -81,6 +81,14 @@
             >
               {{ item.badge }}
             </span>
+
+            <!-- ✅ Badge compteur insights non lus -->
+            <span
+              v-if="item.href === '/app/insights' && unreadInsightsCount > 0 && isOpen"
+              class="ml-auto px-2 py-0.5 text-xs bg-red-500 text-white rounded-full font-bold"
+            >
+              {{ unreadInsightsCount }}
+            </span>
           </router-link>
         </template>
       </div>
@@ -128,10 +136,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject } from 'vue'
+import { ref, computed, inject, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useGamingStore } from '@/stores/gamingStore'
+import { useInsightStore } from '@/stores/insightStore'
 import { useBreakpoints } from '@vueuse/core'
 import {
   HomeIcon,
@@ -143,7 +152,6 @@ import {
   PlusIcon,
   StarIcon,
   ChevronLeftIcon,
-  FolderIcon,
   CalendarIcon,
   LightBulbIcon,
 } from '@heroicons/vue/24/outline'
@@ -169,6 +177,7 @@ const emit = defineEmits<{
 // Composables
 const route = useRoute()
 const gamingStore = useGamingStore()
+const insightStore = useInsightStore()
 
 const showApiStatus = inject('showApiStatus', ref(false))
 
@@ -218,7 +227,10 @@ const totalAchievements = computed(() => gamingStore.achievements?.length || 0)
 const currentStreak = computed(() => gamingStore.currentStreak || 0)
 const weeklyRank = computed(() => gamingStore.weeklyRank || '--')
 
-// ✅ Navigation structure avec i18n
+// ✅ Compteur insights non lus
+const unreadInsightsCount = computed(() => insightStore.unreadCount || 0)
+
+// ✅ Navigation structure avec i18n + INSIGHTS
 const navigationItems = computed(() => [
   // Dashboard
   { type: 'link', name: t('nav.dashboard'), href: '/app/dashboard', icon: HomeIcon },
@@ -228,6 +240,15 @@ const navigationItems = computed(() => [
   { type: 'link', name: t('nav.transactions'), href: '/app/transactions', icon: CreditCardIcon },
   { type: 'link', name: t('nav.budget'), href: '/app/categories', icon: ChartBarIcon },
   { type: 'link', name: t('nav.goals'), href: '/app/goals', icon: CalendarIcon },
+
+  // ✅ INSIGHTS AJOUTÉ ICI
+  {
+    type: 'link',
+    name: 'Coach IA',
+    href: '/app/insights',
+    icon: LightBulbIcon,
+    badge: unreadInsightsCount.value > 0 ? String(unreadInsightsCount.value) : undefined,
+  },
 
   // Section Gaming
   { type: 'header', name: t('sidebar.sectionGaming') },
@@ -243,7 +264,7 @@ const navigationItems = computed(() => [
 
   // Section Outils
   { type: 'header', name: t('sidebar.sectionTools') },
-  { type: 'link', name: t('nav.analytics'), href: '/app/analytics', icon: LightBulbIcon },
+  { type: 'link', name: t('nav.analytics'), href: '/app/analytics', icon: ChartBarIcon },
   { type: 'link', name: t('nav.connections'), href: '/app/banking', icon: CogIcon },
   { type: 'link', name: t('nav.profile'), href: '/app/profile', icon: UserGroupIcon },
 ])
@@ -268,6 +289,15 @@ const openQuickTransaction = (): void => {
 const openDailyChallenge = (): void => {
   console.log('Opening daily challenge')
 }
+
+// ✅ Charger le summary au montage pour avoir le compteur
+onMounted(async () => {
+  try {
+    await insightStore.loadSummary()
+  } catch (error) {
+    console.error('Erreur chargement insights summary:', error)
+  }
+})
 </script>
 
 <style scoped>

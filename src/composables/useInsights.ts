@@ -136,15 +136,21 @@ export function useInsights(autoLoad = true) {
 
   /**
    * Action sur un insight (marquer lu + agir)
+   * Retourne la réponse API complète (avec gaming.xp_earned)
    */
   async function handleInsightAction(id: number): Promise<any> {
-    // Marquer lu d'abord si pas encore lu
     const insight = insights.value.find((i) => i.id === id)
+
     if (insight && !insight.is_read) {
       await store.markAsRead(id)
     }
 
-    return await store.markAsActed(id)
+    const result = await store.markAsActed(id)
+
+    // Recharger le summary (compteurs à jour)
+    await store.loadSummary()
+
+    return result
   }
 
   /**

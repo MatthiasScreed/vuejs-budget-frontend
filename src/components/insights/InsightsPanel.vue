@@ -296,7 +296,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useInsights } from '@/composables/useInsights'
 import {
   LightBulbIcon,
@@ -309,8 +310,10 @@ import {
 } from '@heroicons/vue/24/outline'
 
 // ==========================================
-// COMPOSABLE
+// ROUTER + COMPOSABLE
 // ==========================================
+
+const router = useRouter()
 
 const {
   insights,
@@ -402,16 +405,38 @@ async function handleRead(insight: any): Promise<void> {
 
 /**
  * Exécuter l'action sur un insight
+ * 1. POST markAsActed → récupérer XP
+ * 2. Toast XP pendant 1.5s
+ * 3. Redirection vers action_data.url
  */
 async function handleAction(insight: any): Promise<void> {
   const result = await handleInsightAction(insight.id)
 
+  const redirectUrl = insight.action_data?.url ?? insight.action_url ?? null
+
   if (result?.gaming?.xp_earned) {
     lastXpEarned.value = result.gaming.xp_earned
     showXpToast.value = true
+
     setTimeout(() => {
       showXpToast.value = false
-    }, 3000)
+      navigateIfUrl(redirectUrl)
+    }, 1500)
+  } else {
+    navigateIfUrl(redirectUrl)
+  }
+}
+
+/**
+ * Naviguer vers une URL interne si valide
+ */
+function navigateIfUrl(url: string | null): void {
+  if (!url) return
+
+  if (url.startsWith('http')) {
+    window.open(url, '_blank')
+  } else {
+    router.push(url)
   }
 }
 
