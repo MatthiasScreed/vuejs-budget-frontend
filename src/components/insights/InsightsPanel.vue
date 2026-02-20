@@ -362,6 +362,8 @@ async function handleRead(insight: any): Promise<void> {
  * Le marquage "agi" n'arrive que si la création a réussi.
  */
 async function handleAction(insight: any): Promise<void> {
+  // Empêche les doubles clics
+  if (actionLoading.value !== null || creatingGoal.value) return
   actionLoading.value = insight.id
 
   try {
