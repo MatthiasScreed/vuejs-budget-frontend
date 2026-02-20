@@ -585,9 +585,7 @@ function formatCurrency(amount: number): string {
 function formatRelativeDate(dateStr: string | null | undefined): string {
   if (!dateStr) return ''
   const date = new Date(dateStr)
-  // Guard : date invalide (NaN)
-  if (isNaN(date.getTime())) return ''
-
+  if (isNaN(date.getTime())) return '' // ← guard contre RangeError
   const diffH = Math.floor((Date.now() - date.getTime()) / 3600000)
   const diffD = Math.floor(diffH / 24)
   if (diffH < 1) return t('time.justNow')
