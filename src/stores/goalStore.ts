@@ -546,6 +546,33 @@ export const useGoalStore = defineStore('goal', () => {
   }
 
   /**
+   * Supprime les doublons d'objectifs côté API
+   * et recharge la liste propre
+   */
+  async function deleteDuplicates(): Promise<{ deletedCount: number } | false> {
+    try {
+      const response = await api.delete('/financial-goals/duplicates')
+
+      if (response.data.success) {
+        const { deleted_count } = response.data.data
+
+        // Recharger les objectifs si des doublons ont été supprimés
+        if (deleted_count > 0) {
+          await fetchGoals()
+        }
+
+        return { deletedCount: deleted_count }
+      }
+
+      return false
+    } catch (err: any) {
+      error.value = err.message || 'Erreur lors du nettoyage des doublons'
+      console.error('Erreur deleteDuplicates:', err)
+      return false
+    }
+  }
+
+  /**
    * Changer le statut d'un objectif
    */
   async function changeStatus(
@@ -629,6 +656,7 @@ export const useGoalStore = defineStore('goal', () => {
     changeStatus,
     completeGoal,
     pauseGoal,
+    deleteDuplicates,
     resumeGoal,
     calculateProgress,
     calculateRemaining,

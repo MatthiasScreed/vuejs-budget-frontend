@@ -229,8 +229,8 @@
               </button>
 
               <span class="ml-auto text-xs text-gray-400">{{
-                  formatRelativeDate(insight.created_at)
-                }}</span>
+                formatRelativeDate(insight.created_at)
+              }}</span>
             </div>
           </div>
         </div>
@@ -291,47 +291,64 @@ import { useInsights } from '@/composables/useInsights'
 import { useGoalStore } from '@/stores/goalStore'
 import CoachActionModal from '@/components/insights/CoachActionModal.vue'
 import {
-  LightBulbIcon, ArrowPathIcon, CurrencyEuroIcon,
-  SparklesIcon, ChartBarIcon, BoltIcon, CheckCircleIcon,
+  LightBulbIcon,
+  ArrowPathIcon,
+  CurrencyEuroIcon,
+  SparklesIcon,
+  ChartBarIcon,
+  BoltIcon,
+  CheckCircleIcon,
 } from '@heroicons/vue/24/outline'
 
 const { t, locale } = useI18n()
-const router    = useRouter()
+const router = useRouter()
 const goalStore = useGoalStore()
 
 const {
-  insights, summary, loading, generating, hasUnread, badgeText,
-  totalPotentialSaving, currentPage, lastPage,
-  generate, markAsRead, markAllAsRead, handleInsightAction,
-  dismiss, filterByType, goToPage,
+  insights,
+  summary,
+  loading,
+  generating,
+  hasUnread,
+  badgeText,
+  totalPotentialSaving,
+  currentPage,
+  lastPage,
+  generate,
+  markAsRead,
+  markAllAsRead,
+  handleInsightAction,
+  dismiss,
+  filterByType,
+  goToPage,
 } = useInsights()
 
 // ==========================================
 // STATE LOCAL
 // ==========================================
 
-const activeFilter  = ref<string | undefined>(undefined)
-const showXpToast   = ref(false)
-const lastXpEarned  = ref(0)
+const activeFilter = ref<string | undefined>(undefined)
+const showXpToast = ref(false)
+const lastXpEarned = ref(0)
 const actionLoading = ref<number | null>(null)
-const creatingGoal  = ref(false)
+const creatingGoal = ref(false)
 
 // État de la modale
 const showActionModal = ref(false)
-const activeInsight   = ref<any>(null)
-const activeAction    = ref<any>(null)
+const activeInsight = ref<any>(null)
+const activeAction = ref<any>(null)
 
 // ==========================================
 // FILTRES
 // ==========================================
 
 const typeFilters = [
-  { value: undefined,             key: 'all',     icon: '📋' },
-  { value: 'cost_reduction',      key: 'costs',   icon: '💳' },
+  { value: undefined, key: 'all', icon: '📋' },
+  { value: 'cost_reduction', key: 'costs', icon: '💳' },
   { value: 'savings_opportunity', key: 'savings', icon: '💰' },
-  { value: 'unusual_spending',    key: 'alerts',  icon: '⚠️' },
-  { value: 'goal_acceleration',   key: 'goals',   icon: '🎯' },
-  { value: 'behavioral_pattern',  key: 'habits',  icon: '📊' },
+  { value: 'unusual_spending', key: 'alerts', icon: '⚠️' },
+  { value: 'goal_acceleration', key: 'goals', icon: '🎯' },
+  { value: 'behavioral_pattern', key: 'habits', icon: '📊' },
 ]
 
 function getTypeCount(type: string | undefined): number | undefined {
@@ -348,50 +365,59 @@ async function handleFilterType(type: string | undefined): Promise<void> {
   await filterByType(type)
 }
 
-async function handleGenerate(): Promise<void>    { await generate() }
-async function handleMarkAllRead(): Promise<void> { await markAllAsRead() }
-async function handleDismiss(id: number): Promise<void> { await dismiss(id) }
+async function handleGenerate(): Promise<void> {
+  await generate()
+}
+async function handleMarkAllRead(): Promise<void> {
+  await markAllAsRead()
+}
+async function handleDismiss(id: number): Promise<void> {
+  await dismiss(id)
+}
 
 async function handleRead(insight: any): Promise<void> {
   if (!insight.is_read) await markAsRead(insight.id)
 }
 
-/**
- * Gère le clic sur le bouton d'action d'un insight.
- * Si action_data contient create_goal → crée l'objectif EN PREMIER.
- * Le marquage "agi" n'arrive que si la création a réussi.
- */
+// ==========================================
+// STATE LOCAL — ajouter ce Set pour tracker les insights déjà traités
+// ==========================================
+const processingInsightIds = ref<Set<number>>(new Set())
+
+// ==========================================
+// HANDLER principal — protégé contre les double-clics
+// ==========================================
 async function handleAction(insight: any): Promise<void> {
-  // Empêche les doubles clics
-  if (actionLoading.value !== null || creatingGoal.value) return
-  actionLoading.value = insight.id
+  // ✅ Guard : si déjà en cours de traitement pour cet insight, ignorer
+  if (processingInsightIds.value.has(insight.id) || creatingGoal.value) return
+  processingInsightIds.value.add(insight.id)
 
   try {
-    const actionData  = insight.action_data ?? {}
+    const result = await handleInsightAction(insight.id)
+    const actionData = insight.action_data ?? {}
     const redirectUrl = actionData.url ?? insight.action_url ?? null
 
-    // 1️⃣ Créer l'objectif en BDD si le Coach en fournit un template
-    if (actionData.create_goal) {
-      const created = await createGoalFromInsight(actionData.create_goal, redirectUrl)
-      if (!created) return // annule si la création a échoué
+    if (result?.gaming?.xp_earned) {
+      lastXpEarned.value = result.gaming.xp_earned
+      showXpToast.value = true
+      setTimeout(() => {
+        showXpToast.value = false
+      }, 2500)
     }
 
-    // 2️⃣ Marquer comme agi côté API (XP)
-    const result = await handleInsightAction(insight.id)
+    if (actionData.create_goal) {
+      await createGoalFromInsight(actionData.create_goal, redirectUrl)
+      return
+    }
 
-    // 3️⃣ Toast XP
-    showXpReward(result?.gaming?.xp_earned)
-
-    // 4️⃣ Navigation uniquement si pas de create_goal (sinon déjà redirigé)
-    if (!actionData.create_goal) {
-      if (result?.gaming?.xp_earned) {
-        setTimeout(() => navigateIfUrl(redirectUrl), 1500)
-      } else {
-        navigateIfUrl(redirectUrl)
-      }
+    if (result?.gaming?.xp_earned) {
+      setTimeout(() => navigateIfUrl(redirectUrl), 1500)
+    } else {
+      navigateIfUrl(redirectUrl)
     }
   } finally {
-    actionLoading.value = null
+    // ✅ Toujours libérer le verrou, même en cas d'erreur
+    processingInsightIds.value.delete(insight.id)
   }
 }
 
@@ -405,24 +431,28 @@ function mapPriorityToInt(p: string | number | undefined): number {
   return ({ high: 1, medium: 3, low: 5 } as Record<string, number>)[p ?? 'medium'] ?? 3
 }
 
+// ==========================================
+// Création d'objectif — protégée contre les appels multiples
+// ==========================================
 async function createGoalFromInsight(
   template: Record<string, any>,
   redirectUrl: string | null,
-): Promise<boolean> {
+): Promise<void> {
+  if (creatingGoal.value) return // ✅ Guard supplémentaire
   creatingGoal.value = true
 
   try {
     const goalData = {
-      name:          template.name          ?? "Objectif d'épargne",
-      description:   template.description   ?? 'Objectif créé par le Coach IA',
+      name: template.name ?? "Objectif d'épargne",
+      description: template.description ?? 'Objectif créé par le Coach IA',
       target_amount: template.target_amount ?? 1000,
       current_amount: 0,
-      target_date:   template.target_date   ?? getDefaultTargetDate(),
-      icon:          template.icon          ?? '💰',
-      priority:      mapPriorityToInt(template.priority), // ✅ string → integer
+      target_date: template.target_date ?? getDefaultTargetDate(),
+      icon: template.icon ?? '💰',
+      priority: template.priority ?? 'medium',
     }
 
-    console.log('🎯 [Coach IA] Création objectif:', goalData)
+    console.log("🎯 [Coach IA] Création automatique d'objectif:", goalData)
 
     const success = await goalStore.createGoal(goalData)
 
@@ -430,16 +460,13 @@ async function createGoalFromInsight(
       console.log('✅ [Coach IA] Objectif créé en BDD')
       await goalStore.fetchGoals()
       router.push('/app/goals')
-      return true
+    } else {
+      console.error('❌ [Coach IA] Échec création objectif:', goalStore.error)
+      navigateIfUrl(redirectUrl)
     }
-
-    console.error('❌ [Coach IA] Échec:', goalStore.error)
-    alert(`Impossible de créer l'objectif : ${goalStore.error ?? 'Erreur inconnue'}`)
-    return false
-
-  } catch (err: any) {
-    console.error('❌ [Coach IA] Exception:', err)
-    return false
+  } catch (err) {
+    console.error('❌ [Coach IA] Erreur création objectif:', err)
+    navigateIfUrl(redirectUrl)
   } finally {
     creatingGoal.value = false
   }
@@ -456,7 +483,7 @@ async function handleModalSuccess(_result: any): Promise<void> {
     showXpReward(gaming?.gaming?.xp_earned ?? gaming?.xp_earned)
   } finally {
     activeInsight.value = null
-    activeAction.value  = null
+    activeAction.value = null
   }
 }
 
@@ -473,8 +500,10 @@ function getDefaultTargetDate(): string {
 function showXpReward(xp?: number): void {
   if (!xp) return
   lastXpEarned.value = xp
-  showXpToast.value  = true
-  setTimeout(() => { showXpToast.value = false }, 2500)
+  showXpToast.value = true
+  setTimeout(() => {
+    showXpToast.value = false
+  }, 2500)
 }
 
 function navigateIfUrl(url: string | null): void {
@@ -484,43 +513,84 @@ function navigateIfUrl(url: string | null): void {
 }
 
 function getPriorityBgClass(p: number): string {
-  return ({ 1: 'bg-red-100', 2: 'bg-amber-100', 3: 'bg-blue-100' } as Record<number,string>)[p] ?? 'bg-gray-100'
+  return (
+    ({ 1: 'bg-red-100', 2: 'bg-amber-100', 3: 'bg-blue-100' } as Record<number, string>)[p] ??
+    'bg-gray-100'
+  )
 }
 
 function getPriorityLabelClass(p: number): string {
-  return ({ 1: 'bg-red-100 text-red-700', 2: 'bg-amber-100 text-amber-700', 3: 'bg-blue-100 text-blue-700' } as Record<number,string>)[p] ?? 'bg-gray-100 text-gray-700'
+  return (
+    (
+      {
+        1: 'bg-red-100 text-red-700',
+        2: 'bg-amber-100 text-amber-700',
+        3: 'bg-blue-100 text-blue-700',
+      } as Record<number, string>
+    )[p] ?? 'bg-gray-100 text-gray-700'
+  )
 }
 
 function getPriorityLabel(p: number): string {
-  const keys: Record<number,string> = { 1: 'insights.priority.urgent', 2: 'insights.priority.important', 3: 'insights.priority.info' }
+  const keys: Record<number, string> = {
+    1: 'insights.priority.urgent',
+    2: 'insights.priority.important',
+    3: 'insights.priority.info',
+  }
   return t(keys[p] ?? 'insights.priority.info')
 }
 
 function getDefaultIcon(type: string): string {
-  return ({ cost_reduction: '💳', savings_opportunity: '💰', unusual_spending: '⚠️', goal_acceleration: '🎯', behavioral_pattern: '📊' } as Record<string,string>)[type] ?? '💡'
+  return (
+    (
+      {
+        cost_reduction: '💳',
+        savings_opportunity: '💰',
+        unusual_spending: '⚠️',
+        goal_acceleration: '🎯',
+        behavioral_pattern: '📊',
+      } as Record<string, string>
+    )[type] ?? '💡'
+  )
 }
 
 function formatCurrency(amount: number): string {
   const loc = locale.value === 'en' ? 'en-US' : 'fr-FR'
-  return new Intl.NumberFormat(loc, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(amount)
+  return new Intl.NumberFormat(loc, {
+    style: 'currency',
+    currency: 'EUR',
+    maximumFractionDigits: 0,
+  }).format(amount)
 }
 
 function formatRelativeDate(dateStr: string): string {
-  const date  = new Date(dateStr)
+  const date = new Date(dateStr)
   const diffH = Math.floor((Date.now() - date.getTime()) / 3600000)
   const diffD = Math.floor(diffH / 24)
-  if (diffH < 1)  return t('time.justNow')
+  if (diffH < 1) return t('time.justNow')
   if (diffH < 24) return t('time.hoursAgo', { n: diffH })
-  if (diffD < 7)  return t('time.daysAgo',  { n: diffD })
+  if (diffD < 7) return t('time.daysAgo', { n: diffD })
   const loc = locale.value === 'en' ? 'en-US' : 'fr-FR'
   return date.toLocaleDateString(loc, { day: '2-digit', month: 'short' })
 }
 </script>
 
 <style scoped>
-.insight-list-enter-active { transition: all 0.3s ease-out; }
-.insight-list-leave-active { transition: all 0.2s ease-in; }
-.insight-list-enter-from   { opacity: 0; transform: translateX(-20px); }
-.insight-list-leave-to     { opacity: 0; transform: translateX(20px); }
-.insight-list-move         { transition: transform 0.3s ease; }
+.insight-list-enter-active {
+  transition: all 0.3s ease-out;
+}
+.insight-list-leave-active {
+  transition: all 0.2s ease-in;
+}
+.insight-list-enter-from {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+.insight-list-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
+.insight-list-move {
+  transition: transform 0.3s ease;
+}
 </style>
