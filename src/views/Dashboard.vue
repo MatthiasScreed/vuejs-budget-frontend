@@ -183,16 +183,21 @@ const showEncouragementCard = computed(() => {
 })
 
 const mappedGoals = computed(() => {
-  return goals.value.map((goal) => ({
-    id: goal.id,
-    name: goal.name,
-    currentAmount: goal.current_amount,
-    targetAmount: goal.target_amount,
-    progressPercentage: goal.progress_percentage,
-    estimatedCompletionDate: goal.estimated_completion_date || goal.deadline || '',
-    category: goal.category,
-    icon: goal.icon,
-  }))
+  return goals.value.map((goal) => {
+    // ✅ Ne jamais passer une string vide à un composant qui fait new Date()
+    const rawDate = goal.estimated_completion_date || goal.deadline || goal.target_date || null
+
+    return {
+      id: goal.id,
+      name: goal.name,
+      currentAmount: goal.current_amount,
+      targetAmount: goal.target_amount,
+      progressPercentage: goal.progress_percentage,
+      estimatedCompletionDate: rawDate ?? null, // null explicite, jamais ''
+      category: goal.category,
+      icon: goal.icon,
+    }
+  })
 })
 
 // ==========================================
