@@ -133,7 +133,7 @@ export function useInsights(autoLoad = true) {
   async function generate(): Promise<void> {
     await store.generateInsights()
   }
-  
+
   /**
    * ✅ CORRIGÉ : Action sur un insight
    * - Parse action_data si string JSON

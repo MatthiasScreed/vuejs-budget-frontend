@@ -409,16 +409,11 @@ async function handleAction(insight: any): Promise<void> {
   actionLoading.value = insight.id
 
   try {
-    // ✅ Parse défensif : action_data peut arriver en string ou en objet
+    // ✅ Parse défensif : action_data peut arriver en string ou objet
     const actionData = parseActionData(insight.action_data)
 
-    console.log('[Coach IA] action_data parsé:', actionData)
-    console.log('[Coach IA] create_goal présent:', !!actionData.create_goal)
-
-    // Marquer comme agi côté API
     const result = await handleInsightAction(insight.id)
 
-    // Toast XP
     if (result?.gaming?.xp_earned) {
       lastXpEarned.value = result.gaming.xp_earned
       showXpToast.value = true
@@ -429,13 +424,11 @@ async function handleAction(insight: any): Promise<void> {
 
     const redirectUrl = actionData.url ?? null
 
-    // Création automatique d'objectif si template présent
     if (actionData.create_goal) {
       await createGoalFromInsight(actionData.create_goal, redirectUrl)
       return
     }
 
-    // Navigation simple sinon
     if (result?.gaming?.xp_earned) {
       setTimeout(() => navigateIfUrl(redirectUrl), 1500)
     } else {
@@ -589,8 +582,12 @@ function formatCurrency(amount: number): string {
   }).format(amount)
 }
 
-function formatRelativeDate(dateStr: string): string {
+function formatRelativeDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return ''
   const date = new Date(dateStr)
+  // Guard : date invalide (NaN)
+  if (isNaN(date.getTime())) return ''
+
   const diffH = Math.floor((Date.now() - date.getTime()) / 3600000)
   const diffD = Math.floor(diffH / 24)
   if (diffH < 1) return t('time.justNow')
