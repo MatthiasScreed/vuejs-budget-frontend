@@ -327,11 +327,9 @@ export const useGoalStore = defineStore('goal', () => {
    * 🔐 Protégé par auth guard
    */
   async function createGoal(data: CreateGoalData): Promise<boolean> {
-    // 🔐 VÉRIFICATION AUTH
-    const isAuth = await ensureAuthenticated()
-    if (!isAuth) {
-      console.warn('⚠️ [Goals] createGoal annulé - utilisateur non authentifié')
-      error.value = 'Authentification requise'
+    // ✅ Empêche les appels simultanés
+    if (creating.value) {
+      console.warn('⚠️ createGoal déjà en cours, appel ignoré')
       return false
     }
 
@@ -340,36 +338,24 @@ export const useGoalStore = defineStore('goal', () => {
     validationErrors.value = {}
 
     try {
-      console.log('📝 [Goals] Création objectif:', data)
+      const response = await api.post('/financial-goals', data)
 
-      const response = await api.post<FinancialGoal>('/financial-goals', data)
-
-      if (!response) {
-        throw new Error("Aucune réponse de l'API")
-      }
-
-      if (response.success && response.data) {
-        goals.value.push(response.data)
-        console.log('✅ [Goals] Objectif créé:', response.data)
+      if (response.data.success) {
+        // L'API retourne { data: { goal: {...}, engagement: {...} } }
+        const goal = response.data.data?.goal ?? response.data.data
+        if (goal) goals.value.push(goal)
         return true
-      }
-
-      if (response.errors) {
-        validationErrors.value = response.errors
-      }
-
-      error.value = response.message || 'Erreur lors de la création'
-      return false
-    } catch (err: any) {
-      console.error('❌ [Goals] Erreur création objectif:', err)
-
-      if (err.response?.status === 422 && err.response?.data?.errors) {
-        validationErrors.value = err.response.data.errors
-        error.value = 'Erreur de validation'
       } else {
-        error.value = err.message || "Erreur lors de la création de l'objectif"
+        throw new Error(response.data.message || 'Erreur lors de la création')
       }
-
+    } catch (err: any) {
+      if (err.response?.status === 422) {
+        validationErrors.value = err.response.data.errors || {}
+        error.value = Object.values(validationErrors.value).flat().join(', ')
+      } else {
+        error.value = err.response?.data?.message || err.message || 'Erreur lors de la création'
+      }
+      console.error('Erreur createGoal:', err)
       return false
     } finally {
       creating.value = false
