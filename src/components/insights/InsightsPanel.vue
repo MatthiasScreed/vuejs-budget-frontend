@@ -387,16 +387,38 @@ const processingInsightIds = ref<Set<number>>(new Set())
 // ==========================================
 // HANDLER principal — protégé contre les double-clics
 // ==========================================
+/**
+ * Parse action_data qu'il soit string JSON ou objet
+ * Laravel peut retourner les champs JSON castés en string selon le contexte
+ */
+function parseActionData(raw: any): Record<string, any> {
+  if (!raw) return {}
+  if (typeof raw === 'string') {
+    try {
+      return JSON.parse(raw)
+    } catch {
+      return {}
+    }
+  }
+  return raw
+}
+
 async function handleAction(insight: any): Promise<void> {
-  // ✅ Guard : si déjà en cours de traitement pour cet insight, ignorer
   if (processingInsightIds.value.has(insight.id) || creatingGoal.value) return
   processingInsightIds.value.add(insight.id)
+  actionLoading.value = insight.id
 
   try {
-    const result = await handleInsightAction(insight.id)
-    const actionData = insight.action_data ?? {}
-    const redirectUrl = actionData.url ?? insight.action_url ?? null
+    // ✅ Parse défensif : action_data peut arriver en string ou en objet
+    const actionData = parseActionData(insight.action_data)
 
+    console.log('[Coach IA] action_data parsé:', actionData)
+    console.log('[Coach IA] create_goal présent:', !!actionData.create_goal)
+
+    // Marquer comme agi côté API
+    const result = await handleInsightAction(insight.id)
+
+    // Toast XP
     if (result?.gaming?.xp_earned) {
       lastXpEarned.value = result.gaming.xp_earned
       showXpToast.value = true
@@ -405,19 +427,23 @@ async function handleAction(insight: any): Promise<void> {
       }, 2500)
     }
 
+    const redirectUrl = actionData.url ?? null
+
+    // Création automatique d'objectif si template présent
     if (actionData.create_goal) {
       await createGoalFromInsight(actionData.create_goal, redirectUrl)
       return
     }
 
+    // Navigation simple sinon
     if (result?.gaming?.xp_earned) {
       setTimeout(() => navigateIfUrl(redirectUrl), 1500)
     } else {
       navigateIfUrl(redirectUrl)
     }
   } finally {
-    // ✅ Toujours libérer le verrou, même en cas d'erreur
     processingInsightIds.value.delete(insight.id)
+    actionLoading.value = null
   }
 }
 

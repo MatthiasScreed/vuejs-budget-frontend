@@ -133,10 +133,12 @@ export function useInsights(autoLoad = true) {
   async function generate(): Promise<void> {
     await store.generateInsights()
   }
-
+  
   /**
-   * Action sur un insight (marquer lu + agir)
-   * Retourne la réponse API complète (avec gaming.xp_earned)
+   * ✅ CORRIGÉ : Action sur un insight
+   * - Parse action_data si string JSON
+   * - Met à jour l'insight localement sans attendre un refetch
+   * - Retourne la réponse API complète (avec gaming.xp_earned)
    */
   async function handleInsightAction(id: number): Promise<any> {
     const insight = insights.value.find((i) => i.id === id)
@@ -146,6 +148,17 @@ export function useInsights(autoLoad = true) {
     }
 
     const result = await store.markAsActed(id)
+
+    // ✅ Mettre à jour l'insight localement pour que acted_at soit visible
+    // sans attendre un refetch complet (évite le flash)
+    const idx = insights.value.findIndex((i) => i.id === id)
+    if (idx !== -1) {
+      insights.value[idx] = {
+        ...insights.value[idx],
+        acted_at: new Date().toISOString(),
+        is_read: true,
+      }
+    }
 
     // Recharger le summary (compteurs à jour)
     await store.loadSummary()
