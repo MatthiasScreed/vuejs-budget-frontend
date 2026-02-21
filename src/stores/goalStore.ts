@@ -444,31 +444,34 @@ export const useGoalStore = defineStore('goal', () => {
   ): Promise<boolean> {
     try {
       const response = await api.post(`/financial-goals/${goalId}/contributions`, {
-        amount: parseFloat(String(amount)),
+        amount: Number(amount), // ✅ cast explicite
         description,
       })
 
       if (response.data.success) {
         const updated = response.data.data?.goal
-        const goal = goals.value.find((g) => g.id === goalId)
 
-        if (goal && updated) {
-          // ✅ parseFloat pour éviter les NaN avec les strings de l'API
-          goal.current_amount = parseFloat(updated.current_amount) || 0
-          goal.target_amount = parseFloat(updated.target_amount) || goal.target_amount
-          goal.status = updated.status
-        } else if (goal) {
-          // Fallback local sécurisé
-          const safeAmount = parseFloat(String(goal.current_amount)) || 0
-          goal.current_amount = safeAmount + amount
-          if (goal.current_amount >= goal.target_amount) goal.status = 'completed'
+        const idx = goals.value.findIndex((g) => g.id === goalId)
+        if (idx !== -1) {
+          if (updated) {
+            // ✅ Remplacer l'objet entier pour déclencher la réactivité Vue
+            goals.value[idx] = normalizeGoal(updated)
+          } else {
+            // Fallback local si l'API ne renvoie pas le goal mis à jour
+            const goal = { ...goals.value[idx] }
+            goal.current_amount = (parseFloat(String(goal.current_amount)) || 0) + amount
+            if (goal.current_amount >= goal.target_amount) goal.status = 'completed'
+            goals.value[idx] = normalizeGoal(goal) // ✅ réassignation = réactivité
+          }
         }
+
         return true
-      } else {
-        throw new Error(response.data.message || "Erreur lors de l'ajout de la contribution")
       }
+
+      throw new Error(response.data.message || "Erreur lors de l'ajout de la contribution")
     } catch (err: any) {
       error.value = err.response?.data?.message || err.message || "Erreur lors de l'ajout"
+      console.error('Erreur addContribution:', err)
       return false
     }
   }

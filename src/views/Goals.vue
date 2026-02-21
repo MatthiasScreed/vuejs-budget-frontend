@@ -503,17 +503,22 @@ function handleAddContribution(goal: any) {
 async function submitContribution() {
   if (!contributionGoal.value || !contributionAmount.value) return
 
+  // ✅ Vider l'erreur précédente avant de réessayer
+  goalStore.error = null
+
   const success = await goalStore.addContribution(
     contributionGoal.value.id,
-    Number(contributionAmount.value), // ✅ paramètre séparé + cast en number
-    'Contribution manuelle'           // ✅ paramètre séparé
+    Number(contributionAmount.value), // ✅ cast en number
+    'Contribution manuelle',
   )
 
   if (success) {
+    // ✅ Fermeture du modal uniquement si l'API a répondu avec succès
     showContributionModal.value = false
     contributionGoal.value = null
     contributionAmount.value = 0
   }
+  // Si !success, le modal reste ouvert et l'erreur s'affiche dans la bannière
 }
 
 async function handlePause(goal: any) {
