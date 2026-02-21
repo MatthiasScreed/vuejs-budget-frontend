@@ -242,41 +242,28 @@ export const useGoalStore = defineStore('goal', () => {
    * 🔐 Protégé par auth guard
    */
   async function fetchGoals(): Promise<void> {
-    // 🔐 VÉRIFICATION AUTH
     const isAuth = await ensureAuthenticated()
     if (!isAuth) {
-      console.warn('⚠️ [Goals] fetchGoals annulé - utilisateur non authentifié')
       error.value = 'Authentification requise'
       return
     }
-
-    if (loading.value) {
-      console.log('⏳ [Goals] Chargement déjà en cours, ignoré')
-      return
-    }
+    if (loading.value) return
 
     loading.value = true
     error.value = null
 
     try {
-      console.log('🎯 [Goals] Chargement des objectifs...')
-
       const response = await api.get<any>('/financial-goals')
-
       if (!response) {
-        console.warn("⚠️ [Goals] Aucune réponse de l'API")
         goals.value = []
         return
       }
 
       if (response.success && response.data) {
-        // Gérer les deux formats possibles
-        const goalsData = Array.isArray(response.data) ? response.data : response.data.data || []
-
-        goals.value = goalsData
+        const raw = Array.isArray(response.data) ? response.data : response.data.data || []
+        goals.value = raw.map(normalizeGoal) // ✅ normalisation systématique
         console.log('✅ [Goals] Objectifs chargés:', goals.value.length)
       } else {
-        console.warn('⚠️ [Goals] API returned no data')
         goals.value = []
       }
     } catch (err: any) {
@@ -327,11 +314,7 @@ export const useGoalStore = defineStore('goal', () => {
    * 🔐 Protégé par auth guard
    */
   async function createGoal(data: CreateGoalData): Promise<boolean> {
-    // ✅ Empêche les appels simultanés
-    if (creating.value) {
-      console.warn('⚠️ createGoal déjà en cours, appel ignoré')
-      return false
-    }
+    if (creating.value) return false
 
     creating.value = true
     error.value = null
@@ -341,9 +324,8 @@ export const useGoalStore = defineStore('goal', () => {
       const response = await api.post('/financial-goals', data)
 
       if (response.data.success) {
-        // L'API retourne { data: { goal: {...}, engagement: {...} } }
-        const goal = response.data.data?.goal ?? response.data.data
-        if (goal) goals.value.push(goal)
+        const raw = response.data.data?.goal ?? response.data.data
+        if (raw) goals.value.push(normalizeGoal(raw)) // ✅
         return true
       } else {
         throw new Error(response.data.message || 'Erreur lors de la création')
@@ -355,7 +337,6 @@ export const useGoalStore = defineStore('goal', () => {
       } else {
         error.value = err.response?.data?.message || err.message || 'Erreur lors de la création'
       }
-      console.error('Erreur createGoal:', err)
       return false
     } finally {
       creating.value = false
@@ -367,10 +348,8 @@ export const useGoalStore = defineStore('goal', () => {
    * 🔐 Protégé par auth guard
    */
   async function updateGoal(goalId: number, data: UpdateGoalData): Promise<boolean> {
-    // 🔐 VÉRIFICATION AUTH
     const isAuth = await ensureAuthenticated()
     if (!isAuth) {
-      console.warn('⚠️ [Goals] updateGoal annulé - utilisateur non authentifié')
       error.value = 'Authentification requise'
       return false
     }
@@ -380,44 +359,27 @@ export const useGoalStore = defineStore('goal', () => {
     validationErrors.value = {}
 
     try {
-      console.log('✏️ [Goals] Mise à jour objectif:', goalId, data)
-
       const response = await api.put<FinancialGoal>(`/financial-goals/${goalId}`, data)
-
-      if (!response) {
-        throw new Error("Aucune réponse de l'API")
-      }
+      if (!response) throw new Error("Aucune réponse de l'API")
 
       if (response.success && response.data) {
+        const normalized = normalizeGoal(response.data) // ✅
         const index = goals.value.findIndex((g) => g.id === goalId)
-        if (index !== -1) {
-          goals.value[index] = response.data
-        }
-
-        if (currentGoal.value?.id === goalId) {
-          currentGoal.value = response.data
-        }
-
-        console.log('✅ [Goals] Objectif mis à jour')
+        if (index !== -1) goals.value[index] = normalized
+        if (currentGoal.value?.id === goalId) currentGoal.value = normalized
         return true
       }
 
-      if (response.errors) {
-        validationErrors.value = response.errors
-      }
-
+      if (response.errors) validationErrors.value = response.errors
       error.value = response.message || 'Erreur lors de la mise à jour'
       return false
     } catch (err: any) {
-      console.error('❌ [Goals] Erreur mise à jour objectif:', err)
-
       if (err.response?.status === 422 && err.response?.data?.errors) {
         validationErrors.value = err.response.data.errors
         error.value = 'Erreur de validation'
       } else {
         error.value = err.message || 'Erreur lors de la mise à jour'
       }
-
       return false
     } finally {
       updating.value = false
@@ -477,41 +439,41 @@ export const useGoalStore = defineStore('goal', () => {
    */
   async function addContribution(
     goalId: number,
-    data: { amount: number; description?: string },
+    amount: number,
+    description?: string,
   ): Promise<boolean> {
-    // 🔐 VÉRIFICATION AUTH
-    const isAuth = await ensureAuthenticated()
-    if (!isAuth) {
-      console.warn('⚠️ [Goals] addContribution annulé - utilisateur non authentifié')
-      error.value = 'Authentification requise'
-      return false
-    }
-
     try {
-      console.log('💰 [Goals] Ajout contribution:', { goalId, ...data })
+      const response = await api.post(`/financial-goals/${goalId}/contributions`, {
+        amount,
+        description,
+      })
 
-      const response = await api.post(`/financial-goals/${goalId}/contributions`, data)
+      if (response.data.success) {
+        const updated = response.data.data?.goal
+        const goal = goals.value.find((g) => g.id === goalId)
 
-      if (!response) {
-        throw new Error("Aucune réponse de l'API")
-      }
-
-      if (response.success) {
-        // Recharger les objectifs pour avoir les montants à jour
-        await fetchGoals()
-        console.log('✅ [Goals] Contribution ajoutée')
+        if (goal && updated) {
+          // ✅ parseFloat pour éviter les NaN avec les strings de l'API
+          goal.current_amount = parseFloat(updated.current_amount) || 0
+          goal.target_amount = parseFloat(updated.target_amount) || goal.target_amount
+          goal.status = updated.status
+        } else if (goal) {
+          // Fallback local sécurisé
+          const safeAmount = parseFloat(String(goal.current_amount)) || 0
+          goal.current_amount = safeAmount + amount
+          if (goal.current_amount >= goal.target_amount) goal.status = 'completed'
+        }
         return true
+      } else {
+        throw new Error(response.data.message || "Erreur lors de l'ajout de la contribution")
       }
-
-      error.value = response.message || "Erreur lors de l'ajout"
-      return false
     } catch (err: any) {
-      console.error('❌ [Goals] Erreur ajout contribution:', err)
-      error.value = err.message || "Erreur lors de l'ajout de la contribution"
+      error.value = err.response?.data?.message || err.message || "Erreur lors de l'ajout"
       return false
     }
   }
 
+  
   /**
    * Récupérer les contributions d'un objectif
    * 🔐 Protégé par auth guard
@@ -542,6 +504,19 @@ export const useGoalStore = defineStore('goal', () => {
     } catch (err: any) {
       console.error('❌ [Goals] Erreur chargement contributions:', err)
       contributions.value = []
+    }
+  }
+
+  /**
+  * Normalise un objectif en s'assurant que les montants sont des numbers
+  * L'API Laravel peut retourner des strings pour les champs decimal
+  */
+  function normalizeGoal(goal: any): FinancialGoal {
+    return {
+      ...goal,
+      current_amount: parseFloat(goal.current_amount) || 0,
+      target_amount:  parseFloat(goal.target_amount)  || 0,
+      monthly_target: parseFloat(goal.monthly_target) || 0,
     }
   }
 
