@@ -503,10 +503,11 @@ function handleAddContribution(goal: any) {
 async function submitContribution() {
   if (!contributionGoal.value || !contributionAmount.value) return
 
-  const success = await goalStore.addContribution(contributionGoal.value.id, {
-    amount: contributionAmount.value,
-    description: 'Contribution manuelle',
-  })
+  const success = await goalStore.addContribution(
+    contributionGoal.value.id,
+    Number(contributionAmount.value), // ✅ paramètre séparé + cast en number
+    'Contribution manuelle'           // ✅ paramètre séparé
+  )
 
   if (success) {
     showContributionModal.value = false

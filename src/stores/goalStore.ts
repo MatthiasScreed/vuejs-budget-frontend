@@ -444,7 +444,7 @@ export const useGoalStore = defineStore('goal', () => {
   ): Promise<boolean> {
     try {
       const response = await api.post(`/financial-goals/${goalId}/contributions`, {
-        amount,
+        amount: parseFloat(String(amount)),
         description,
       })
 
@@ -473,7 +473,7 @@ export const useGoalStore = defineStore('goal', () => {
     }
   }
 
-  
+
   /**
    * Récupérer les contributions d'un objectif
    * 🔐 Protégé par auth guard
