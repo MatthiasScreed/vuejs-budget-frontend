@@ -1,6 +1,6 @@
 // src/services/api/projectionApi.ts
-
-import axiosInstance from './axiosInstance'
+// ✅ CORRIGÉ: Utilise le client API centralisé
+import { apiClient } from '@/services/api'
 import type { ApiResponse, ProjectionApiResponse, InsightApiResponse } from '@/types/api.types'
 
 /**
@@ -8,39 +8,26 @@ import type { ApiResponse, ProjectionApiResponse, InsightApiResponse } from '@/t
  * École 42: Service séparé pour l'IA
  */
 export class ProjectionApi {
-  /**
-   * Récupère toutes les projections
-   */
   static async getProjections(): Promise<ProjectionApiResponse[]> {
-    const response = await axiosInstance.get<ApiResponse<ProjectionApiResponse[]>>('/projections')
+    const response = await apiClient.get<ApiResponse<ProjectionApiResponse[]>>('/projections')
     return response.data.data
   }
 
-  /**
-   * Récupère les insights IA
-   */
   static async getInsights(): Promise<InsightApiResponse[]> {
-    const response =
-      await axiosInstance.get<ApiResponse<InsightApiResponse[]>>('/projections/insights')
+    const response = await apiClient.get<ApiResponse<InsightApiResponse[]>>('/projections/insights')
     return response.data.data
   }
 
-  /**
-   * Force le recalcul des projections
-   */
   static async refreshProjections(): Promise<ProjectionApiResponse[]> {
     const response =
-      await axiosInstance.post<ApiResponse<ProjectionApiResponse[]>>('/projections/refresh')
+      await apiClient.post<ApiResponse<ProjectionApiResponse[]>>('/projections/refresh')
     return response.data.data
   }
 
-  /**
-   * Récupère une projection spécifique
-   */
   static async getProjectionByPeriod(
     period: '3months' | '6months' | '12months',
   ): Promise<ProjectionApiResponse> {
-    const response = await axiosInstance.get<ApiResponse<ProjectionApiResponse>>(
+    const response = await apiClient.get<ApiResponse<ProjectionApiResponse>>(
       `/projections/${period}`,
     )
     return response.data.data

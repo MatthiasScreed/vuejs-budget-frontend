@@ -1,6 +1,6 @@
 // src/services/api/transactionApi.ts
-
-import axiosInstance from './axiosInstance'
+// ✅ CORRIGÉ: Utilise le client API centralisé
+import { apiClient } from '@/services/api'
 import type {
   ApiResponse,
   PaginatedResponse,
@@ -20,7 +20,7 @@ export class TransactionApi {
     page: number = 1,
     perPage: number = 15,
   ): Promise<PaginatedResponse<TransactionApiResponse>> {
-    const response = await axiosInstance.get<PaginatedResponse<TransactionApiResponse>>(
+    const response = await apiClient.get<PaginatedResponse<TransactionApiResponse>>(
       '/transactions',
       { params: { page, per_page: perPage } },
     )
@@ -31,7 +31,7 @@ export class TransactionApi {
    * Récupère les transactions récentes
    */
   static async getRecentTransactions(limit: number = 10): Promise<TransactionApiResponse[]> {
-    const response = await axiosInstance.get<ApiResponse<TransactionApiResponse[]>>(
+    const response = await apiClient.get<ApiResponse<TransactionApiResponse[]>>(
       '/transactions/recent',
       { params: { limit } },
     )
@@ -42,9 +42,7 @@ export class TransactionApi {
    * Récupère une transaction par ID
    */
   static async getTransaction(id: number): Promise<TransactionApiResponse> {
-    const response = await axiosInstance.get<ApiResponse<TransactionApiResponse>>(
-      `/transactions/${id}`,
-    )
+    const response = await apiClient.get<ApiResponse<TransactionApiResponse>>(`/transactions/${id}`)
     return response.data.data
   }
 
@@ -52,7 +50,7 @@ export class TransactionApi {
    * Crée une nouvelle transaction
    */
   static async createTransaction(data: CreateTransactionRequest): Promise<TransactionApiResponse> {
-    const response = await axiosInstance.post<ApiResponse<TransactionApiResponse>>(
+    const response = await apiClient.post<ApiResponse<TransactionApiResponse>>(
       '/transactions',
       data,
     )
@@ -66,7 +64,7 @@ export class TransactionApi {
     id: number,
     data: Partial<CreateTransactionRequest>,
   ): Promise<TransactionApiResponse> {
-    const response = await axiosInstance.put<ApiResponse<TransactionApiResponse>>(
+    const response = await apiClient.put<ApiResponse<TransactionApiResponse>>(
       `/transactions/${id}`,
       data,
     )
@@ -77,7 +75,7 @@ export class TransactionApi {
    * Supprime une transaction
    */
   static async deleteTransaction(id: number): Promise<void> {
-    await axiosInstance.delete(`/transactions/${id}`)
+    await apiClient.delete(`/transactions/${id}`)
   }
 
   /**
@@ -87,7 +85,7 @@ export class TransactionApi {
     categoryId: number,
     page: number = 1,
   ): Promise<PaginatedResponse<TransactionApiResponse>> {
-    const response = await axiosInstance.get<PaginatedResponse<TransactionApiResponse>>(
+    const response = await apiClient.get<PaginatedResponse<TransactionApiResponse>>(
       `/transactions/category/${categoryId}`,
       { params: { page } },
     )
@@ -101,7 +99,7 @@ export class TransactionApi {
     startDate: string,
     endDate: string,
   ): Promise<TransactionApiResponse[]> {
-    const response = await axiosInstance.get<ApiResponse<TransactionApiResponse[]>>(
+    const response = await apiClient.get<ApiResponse<TransactionApiResponse[]>>(
       '/transactions/period',
       { params: { start_date: startDate, end_date: endDate } },
     )

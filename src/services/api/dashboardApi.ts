@@ -1,6 +1,6 @@
 // src/services/api/dashboardApi.ts
-
-import axiosInstance from './axiosInstance'
+// ✅ CORRIGÉ: Utilise le client API centralisé au lieu de axiosInstance
+import { apiClient } from '@/services/api'
 import type {
   ApiResponse,
   DashboardDataResponse,
@@ -16,7 +16,7 @@ export class DashboardApi {
    * Récupère toutes les données du dashboard
    */
   static async getDashboardData(): Promise<DashboardDataResponse> {
-    const response = await axiosInstance.get<ApiResponse<DashboardDataResponse>>('/dashboard')
+    const response = await apiClient.get<ApiResponse<DashboardDataResponse>>('/dashboard')
     return response.data.data
   }
 
@@ -25,7 +25,7 @@ export class DashboardApi {
    */
   static async getMetrics(): Promise<DashboardMetricsResponse> {
     const response =
-      await axiosInstance.get<ApiResponse<DashboardMetricsResponse>>('/dashboard/metrics')
+      await apiClient.get<ApiResponse<DashboardMetricsResponse>>('/dashboard/metrics')
     return response.data.data
   }
 
@@ -33,10 +33,9 @@ export class DashboardApi {
    * Force le recalcul des métriques
    */
   static async refreshMetrics(): Promise<DashboardMetricsResponse> {
-    const response = await axiosInstance.post<ApiResponse<DashboardMetricsResponse>>(
+    const response = await apiClient.post<ApiResponse<DashboardMetricsResponse>>(
       '/dashboard/metrics/refresh',
     )
     return response.data.data
   }
 }
-

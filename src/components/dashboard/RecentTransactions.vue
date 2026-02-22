@@ -45,7 +45,7 @@
                 {{ transaction.category?.name || 'Non catégorisé' }}
               </span>
               <span class="transaction-date">
-                {{ formatDate(transaction.date) }}
+                {{ formatDate(transaction.transaction_date || transaction.date) }}
               </span>
             </p>
           </div>
@@ -162,10 +162,13 @@ const handleTransactionClick = (transactionId: number): void => {
 }
 
 /**
- * Formate une date
+ * Formate une date (avec guard contre les valeurs invalides)
  */
-const formatDate = (dateStr: string): string => {
+const formatDate = (dateStr: string | null | undefined): string => {
+  if (!dateStr) return '-'
   const date = new Date(dateStr)
+  if (isNaN(date.getTime())) return '-'
+
   const now = new Date()
   const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
 
@@ -187,7 +190,7 @@ const formatCurrency = (amount: number): string => {
     style: 'currency',
     currency: 'EUR',
     maximumFractionDigits: 0,
-  }).format(Math.abs(amount))
+  }).format(Math.abs(amount || 0))
 }
 
 /**

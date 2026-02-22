@@ -1,6 +1,6 @@
 // src/services/api/goalApi.ts
-
-import axiosInstance from './axiosInstance'
+// ✅ CORRIGÉ: Utilise le client API centralisé
+import { apiClient } from '@/services/api'
 import type { ApiResponse, GoalApiResponse } from '@/types/api.types'
 
 /**
@@ -8,50 +8,32 @@ import type { ApiResponse, GoalApiResponse } from '@/types/api.types'
  * École 42: CRUD complet pour les objectifs
  */
 export class GoalApi {
-  /**
-   * Récupère tous les objectifs
-   */
   static async getGoals(): Promise<GoalApiResponse[]> {
-    const response = await axiosInstance.get<ApiResponse<GoalApiResponse[]>>('/goals')
+    const response = await apiClient.get<ApiResponse<GoalApiResponse[]>>('/goals')
     return response.data.data
   }
 
-  /**
-   * Récupère les objectifs actifs
-   */
   static async getActiveGoals(): Promise<GoalApiResponse[]> {
-    const response = await axiosInstance.get<ApiResponse<GoalApiResponse[]>>('/goals/active')
+    const response = await apiClient.get<ApiResponse<GoalApiResponse[]>>('/goals/active')
     return response.data.data
   }
 
-  /**
-   * Récupère un objectif par ID
-   */
   static async getGoal(id: number): Promise<GoalApiResponse> {
-    const response = await axiosInstance.get<ApiResponse<GoalApiResponse>>(`/goals/${id}`)
+    const response = await apiClient.get<ApiResponse<GoalApiResponse>>(`/goals/${id}`)
     return response.data.data
   }
 
-  /**
-   * Crée un nouvel objectif
-   */
   static async createGoal(data: any): Promise<GoalApiResponse> {
-    const response = await axiosInstance.post<ApiResponse<GoalApiResponse>>('/goals', data)
+    const response = await apiClient.post<ApiResponse<GoalApiResponse>>('/goals', data)
     return response.data.data
   }
 
-  /**
-   * Met à jour un objectif
-   */
   static async updateGoal(id: number, data: any): Promise<GoalApiResponse> {
-    const response = await axiosInstance.put<ApiResponse<GoalApiResponse>>(`/goals/${id}`, data)
+    const response = await apiClient.put<ApiResponse<GoalApiResponse>>(`/goals/${id}`, data)
     return response.data.data
   }
 
-  /**
-   * Supprime un objectif
-   */
   static async deleteGoal(id: number): Promise<void> {
-    await axiosInstance.delete(`/goals/${id}`)
+    await apiClient.delete(`/goals/${id}`)
   }
 }
