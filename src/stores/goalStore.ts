@@ -323,13 +323,17 @@ export const useGoalStore = defineStore('goal', () => {
     try {
       const response = await api.post('/financial-goals', data)
 
-      if (response.data.success) {
-        const raw = response.data.data?.goal ?? response.data.data
-        if (raw) goals.value.push(normalizeGoal(raw)) // ✅
+      // ✅ Gérer les deux formats : Axios brut { data: { success } } ou unwrappé { success }
+      const payload = response.data ?? response
+      const success = payload.success ?? false
+
+      if (success) {
+        const raw = payload.data?.goal ?? payload.data
+        if (raw) goals.value.push(normalizeGoal(raw))
         return true
-      } else {
-        throw new Error(response.data.message || 'Erreur lors de la création')
       }
+
+      throw new Error(payload.message || 'Erreur lors de la création')
     } catch (err: any) {
       if (err.response?.status === 422) {
         validationErrors.value = err.response.data.errors || {}
@@ -337,6 +341,7 @@ export const useGoalStore = defineStore('goal', () => {
       } else {
         error.value = err.response?.data?.message || err.message || 'Erreur lors de la création'
       }
+      console.error('Erreur createGoal:', err)
       return false
     } finally {
       creating.value = false
@@ -444,31 +449,31 @@ export const useGoalStore = defineStore('goal', () => {
   ): Promise<boolean> {
     try {
       const response = await api.post(`/financial-goals/${goalId}/contributions`, {
-        amount: Number(amount), // ✅ cast explicite
+        amount: Number(amount),
         description,
       })
 
-      if (response.data.success) {
-        const updated = response.data.data?.goal
+      // ✅ Gérer les deux formats possibles de réponse
+      const data = response.data ?? response
+      const success = data.success ?? false
+      const updatedGoal = data.data?.goal
 
+      if (success) {
         const idx = goals.value.findIndex((g) => g.id === goalId)
         if (idx !== -1) {
-          if (updated) {
-            // ✅ Remplacer l'objet entier pour déclencher la réactivité Vue
-            goals.value[idx] = normalizeGoal(updated)
+          if (updatedGoal) {
+            goals.value[idx] = normalizeGoal(updatedGoal)
           } else {
-            // Fallback local si l'API ne renvoie pas le goal mis à jour
             const goal = { ...goals.value[idx] }
             goal.current_amount = (parseFloat(String(goal.current_amount)) || 0) + amount
             if (goal.current_amount >= goal.target_amount) goal.status = 'completed'
-            goals.value[idx] = normalizeGoal(goal) // ✅ réassignation = réactivité
+            goals.value[idx] = normalizeGoal(goal)
           }
         }
-
         return true
       }
 
-      throw new Error(response.data.message || "Erreur lors de l'ajout de la contribution")
+      throw new Error(data.message || "Erreur lors de l'ajout de la contribution")
     } catch (err: any) {
       error.value = err.response?.data?.message || err.message || "Erreur lors de l'ajout"
       console.error('Erreur addContribution:', err)
