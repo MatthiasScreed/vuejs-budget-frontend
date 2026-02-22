@@ -68,9 +68,11 @@
     </div>
 
     <!-- 🎯 CONTENU PRINCIPAL - Affiché seulement après init complète -->
-    <Transition name="fade" mode="out-in">
-      <router-view v-if="appInitialized" />
-    </Transition>
+    <router-view v-if="appInitialized" v-slot="{ Component }">
+      <Transition name="fade" mode="out-in">
+        <component :is="Component" />
+      </Transition>
+    </router-view>
   </div>
 </template>
 

@@ -1,6 +1,7 @@
 // src/services/api/axiosInstance.ts
 
-import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios'
+import axios from 'axios'
+import type { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { useAuthStore } from '@/stores/authStore'
 import router from '@/router'
 
