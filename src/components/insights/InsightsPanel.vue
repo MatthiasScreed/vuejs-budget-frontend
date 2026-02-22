@@ -288,6 +288,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useInsights } from '@/composables/useInsights'
+import { useInsightStore } from '@/stores/insightStore'
 import { useGoalStore } from '@/stores/goalStore'
 import CoachActionModal from '@/components/insights/CoachActionModal.vue'
 import {
@@ -303,6 +304,7 @@ import {
 const { t, locale } = useI18n()
 const router = useRouter()
 const goalStore = useGoalStore()
+const insightStore = useInsightStore()
 
 const {
   insights,
@@ -321,6 +323,7 @@ const {
   dismiss,
   filterByType,
   goToPage,
+  loadAll,
 } = useInsights()
 
 // ==========================================
@@ -337,6 +340,9 @@ const creatingGoal = ref(false)
 const showActionModal = ref(false)
 const activeInsight = ref<any>(null)
 const activeAction = ref<any>(null)
+
+// Anti double-clic
+const processingInsightIds = ref<Set<number>>(new Set())
 
 // ==========================================
 // FILTRES
@@ -368,9 +374,11 @@ async function handleFilterType(type: string | undefined): Promise<void> {
 async function handleGenerate(): Promise<void> {
   await generate()
 }
+
 async function handleMarkAllRead(): Promise<void> {
   await markAllAsRead()
 }
+
 async function handleDismiss(id: number): Promise<void> {
   await dismiss(id)
 }
@@ -380,17 +388,9 @@ async function handleRead(insight: any): Promise<void> {
 }
 
 // ==========================================
-// STATE LOCAL — ajouter ce Set pour tracker les insights déjà traités
+// HELPERS — Parse action_data
 // ==========================================
-const processingInsightIds = ref<Set<number>>(new Set())
 
-// ==========================================
-// HANDLER principal — protégé contre les double-clics
-// ==========================================
-/**
- * Parse action_data qu'il soit string JSON ou objet
- * Laravel peut retourner les champs JSON castés en string selon le contexte
- */
 function parseActionData(raw: any): Record<string, any> {
   if (!raw) return {}
   if (typeof raw === 'string') {
@@ -403,61 +403,59 @@ function parseActionData(raw: any): Record<string, any> {
   return raw
 }
 
+// ==========================================
+// ✅ HANDLER ACTION — avec suppression après action
+// ==========================================
+
 async function handleAction(insight: any): Promise<void> {
   if (processingInsightIds.value.has(insight.id) || creatingGoal.value) return
   processingInsightIds.value.add(insight.id)
   actionLoading.value = insight.id
 
   try {
-    // ✅ Parse défensif : action_data peut arriver en string ou objet
     const actionData = parseActionData(insight.action_data)
-
     const result = await handleInsightAction(insight.id)
 
+    // ✅ Afficher XP toast
     if (result?.gaming?.xp_earned) {
-      lastXpEarned.value = result.gaming.xp_earned
-      showXpToast.value = true
-      setTimeout(() => {
-        showXpToast.value = false
-      }, 2500)
+      showXpReward(result.gaming.xp_earned)
     }
 
     const redirectUrl = actionData.url ?? null
 
+    // ✅ Création d'objectif si demandé
     if (actionData.create_goal) {
       await createGoalFromInsight(actionData.create_goal, redirectUrl)
-      return
-    }
-
-    if (result?.gaming?.xp_earned) {
+    } else if (result?.gaming?.xp_earned) {
       setTimeout(() => navigateIfUrl(redirectUrl), 1500)
     } else {
       navigateIfUrl(redirectUrl)
     }
+
+    // ✅ NOUVEAU : Retirer l'insight de la liste après action
+    // Petit délai pour laisser l'animation XP se jouer
+    setTimeout(
+      async () => {
+        insightStore.insights = insightStore.insights.filter((i) => i.id !== insight.id)
+        await insightStore.loadSummary()
+      },
+      result?.gaming?.xp_earned ? 2000 : 500,
+    )
   } finally {
     processingInsightIds.value.delete(insight.id)
     actionLoading.value = null
   }
 }
 
-/**
- * Crée un objectif en BDD depuis le template fourni par le Coach IA.
- * Retourne true si succès, false si échec (sans crasher).
- */
-/** Convertit "high"/"medium"/"low" en integer 1-5 attendu par le backend */
-function mapPriorityToInt(p: string | number | undefined): number {
-  if (typeof p === 'number') return p
-  return ({ high: 1, medium: 3, low: 5 } as Record<string, number>)[p ?? 'medium'] ?? 3
-}
+// ==========================================
+// Création d'objectif
+// ==========================================
 
-// ==========================================
-// Création d'objectif — protégée contre les appels multiples
-// ==========================================
 async function createGoalFromInsight(
   template: Record<string, any>,
   redirectUrl: string | null,
 ): Promise<void> {
-  if (creatingGoal.value) return // ✅ Guard supplémentaire
+  if (creatingGoal.value) return
   creatingGoal.value = true
 
   try {
@@ -471,35 +469,39 @@ async function createGoalFromInsight(
       priority: template.priority ?? 'medium',
     }
 
-    console.log("🎯 [Coach IA] Création automatique d'objectif:", goalData)
-
     const success = await goalStore.createGoal(goalData)
 
     if (success) {
-      console.log('✅ [Coach IA] Objectif créé en BDD')
       await goalStore.fetchGoals()
       router.push('/app/goals')
     } else {
-      console.error('❌ [Coach IA] Échec création objectif:', goalStore.error)
       navigateIfUrl(redirectUrl)
     }
   } catch (err) {
-    console.error('❌ [Coach IA] Erreur création objectif:', err)
+    console.error('❌ Erreur création objectif:', err)
     navigateIfUrl(redirectUrl)
   } finally {
     creatingGoal.value = false
   }
 }
 
-/**
- * Callback après confirmation dans la modale CoachActionModal
- */
+// ==========================================
+// ✅ Callback modale — avec suppression après action
+// ==========================================
+
 async function handleModalSuccess(_result: any): Promise<void> {
   if (!activeInsight.value) return
 
   try {
     const gaming = await handleInsightAction(activeInsight.value.id)
     showXpReward(gaming?.gaming?.xp_earned ?? gaming?.xp_earned)
+
+    // ✅ NOUVEAU : Retirer l'insight après action modale
+    const insightId = activeInsight.value.id
+    setTimeout(async () => {
+      insightStore.insights = insightStore.insights.filter((i) => i.id !== insightId)
+      await insightStore.loadSummary()
+    }, 2000)
   } finally {
     activeInsight.value = null
     activeAction.value = null
@@ -585,7 +587,7 @@ function formatCurrency(amount: number): string {
 function formatRelativeDate(dateStr: string | null | undefined): string {
   if (!dateStr) return ''
   const date = new Date(dateStr)
-  if (isNaN(date.getTime())) return '' // ← guard contre RangeError
+  if (isNaN(date.getTime())) return ''
   const diffH = Math.floor((Date.now() - date.getTime()) / 3600000)
   const diffD = Math.floor(diffH / 24)
   if (diffH < 1) return t('time.justNow')
