@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore.ts'
 
@@ -17,50 +17,69 @@ const form = ref({
 
 // État de l'interface
 const error = ref('')
+const fieldErrors = ref<Record<string, string[]>>({})
 const showPassword = ref(false)
 const showPasswordConfirm = ref(false)
+
+/**
+ * Vérifier si un champ a une erreur
+ */
+const hasFieldError = (field: string): boolean => {
+  return !!fieldErrors.value[field]?.length
+}
+
+/**
+ * Récupérer le premier message d'erreur d'un champ
+ */
+const getFieldError = (field: string): string => {
+  return fieldErrors.value[field]?.[0] || ''
+}
 
 /**
  * Gérer l'inscription
  */
 const handleRegister = async (): Promise<void> => {
   error.value = ''
+  fieldErrors.value = {}
 
-  // Validation des conditions
+  // Validation côté client
   if (!form.value.terms_accepted) {
-    error.value = "Tu dois accepter les conditions d'utilisation pour continuer"
+    error.value = "Tu dois accepter les conditions d'utilisation"
     return
   }
 
-  // Validation des mots de passe
   if (form.value.password !== form.value.password_confirmation) {
-    error.value = 'Les mots de passe ne correspondent pas'
+    fieldErrors.value.password_confirmation = ['Les mots de passe ne correspondent pas']
     return
   }
 
   if (form.value.password.length < 8) {
-    error.value = 'Le mot de passe doit contenir au moins 8 caractères'
+    fieldErrors.value.password = ['Le mot de passe doit contenir au moins 8 caractères']
     return
   }
 
   try {
-    // ✅ CORRECTION: Ajout de terms_accepted
     const result = await authStore.register({
       name: form.value.name,
       email: form.value.email,
       password: form.value.password,
       password_confirmation: form.value.password_confirmation,
-      terms_accepted: form.value.terms_accepted, // ← AJOUTÉ !
+      terms_accepted: form.value.terms_accepted,
     })
 
     if (result.success) {
       router.push('/app/dashboard')
     } else {
-      error.value = result.message || "Une erreur est survenue lors de l'inscription"
+      // ✅ Afficher les erreurs par champ si dispo
+      if (result.errors && Object.keys(result.errors).length) {
+        fieldErrors.value = result.errors
+      } else {
+        error.value = result.message || "Erreur lors de l'inscription"
+      }
     }
   } catch (err: any) {
     console.error('❌ Erreur inscription:', err)
-    error.value = err.message || 'Impossible de créer le compte. Réessaye dans quelques instants.'
+    error.value = 'Impossible de créer le compte. Réessaye.'
   }
 }
 </script>
@@ -93,9 +112,17 @@ const handleRegister = async (): Promise<void> => {
               type="text"
               required
               autocomplete="name"
-              class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              :class="[
+                'appearance-none block w-full px-4 py-3 border rounded-lg placeholder-gray-500 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:border-transparent transition-all',
+                hasFieldError('name')
+                  ? 'border-red-400 focus:ring-red-500'
+                  : 'border-gray-300 hover:border-gray-400 focus:ring-purple-500',
+              ]"
               placeholder="Ton pseudo de champion"
             />
+            <p v-if="hasFieldError('name')" class="mt-1 text-sm text-red-600">
+              {{ getFieldError('name') }}
+            </p>
           </div>
 
           <!-- Email -->
@@ -103,15 +130,24 @@ const handleRegister = async (): Promise<void> => {
             <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
               Adresse email
             </label>
+
             <input
               id="email"
               v-model="form.email"
               type="email"
               required
               autocomplete="email"
-              class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              :class="[
+                'appearance-none block w-full px-4 py-3 border rounded-lg placeholder-gray-500 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:border-transparent transition-all',
+                hasFieldError('email')
+                  ? 'border-red-400 focus:ring-red-500'
+                  : 'border-gray-300 hover:border-gray-400 focus:ring-purple-500',
+              ]"
               placeholder="ton@email.com"
             />
+            <p v-if="hasFieldError('email')" class="mt-1 text-sm text-red-600">
+              {{ getFieldError('email') }}
+            </p>
           </div>
 
           <!-- Mot de passe -->
@@ -167,6 +203,9 @@ const handleRegister = async (): Promise<void> => {
             </div>
             <p class="mt-2 text-xs text-gray-500">
               Au moins 8 caractères avec majuscule, minuscule, chiffre et caractère spécial
+            </p>
+            <p v-if="hasFieldError('password')" class="mt-1 text-sm text-red-600 font-medium">
+              {{ getFieldError('password') }}
             </p>
           </div>
 
@@ -224,6 +263,9 @@ const handleRegister = async (): Promise<void> => {
                 </svg>
               </button>
             </div>
+            <p v-if="hasFieldError('password_confirmation')" class="mt-1 text-sm text-red-600">
+              {{ getFieldError('password_confirmation') }}
+            </p>
           </div>
 
           <!-- Conditions d'utilisation -->

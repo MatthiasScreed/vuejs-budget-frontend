@@ -181,11 +181,18 @@ export const useAuthStore = defineStore('auth', {
 
         throw new Error(response.message || 'Erreur inscription')
       } catch (error: any) {
-        this.error = error.message
-        if (error.response?.data?.errors) {
-          this.validationErrors = error.response.data.errors
+        // ✅ Extraire le vrai message + erreurs de validation
+        const apiErrors = error.response?.data?.errors || {}
+        const apiMessage = error.response?.data?.message || ''
+
+        this.validationErrors = apiErrors
+        this.error = apiMessage || error.message
+
+        return {
+          success: false,
+          message: apiMessage || error.message,
+          errors: apiErrors, // ← ON RETOURNE LES ERREURS PAR CHAMP
         }
-        return { success: false, message: error.message }
       } finally {
         this.loading = false
       }
