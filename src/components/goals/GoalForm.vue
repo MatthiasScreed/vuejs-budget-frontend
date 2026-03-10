@@ -602,6 +602,7 @@ onMounted(() => {
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
   font-size: 1rem;
+  color: #111827;
   transition:
     border-color 0.2s,
     box-shadow 0.2s;
