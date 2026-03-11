@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/authStore'
 import { useGamingStore } from '@/stores/gamingStore'
+import api from '@/services/api'
 import {
   Bars3Icon,
   BellIcon,
@@ -18,10 +19,8 @@ import {
 } from '@heroicons/vue/24/outline'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 
-// ✅ Utiliser vue-i18n
 const { t } = useI18n()
 
-// Props avec valeurs par défaut et validation
 interface Props {
   user?: any
   level?: number
@@ -36,38 +35,87 @@ const props = withDefaults(defineProps<Props>(), {
   showApiStatus: false,
 })
 
-// Emits
 defineEmits<{
   'toggle-sidebar': []
 }>()
 
-// Stores & Composables
 const router = useRouter()
 const authStore = useAuthStore()
 const gamingStore = useGamingStore()
+
+// ✅ State local pour les données gaming du header
+const headerLevel = ref(1)
+const headerXP = ref(0)
+const headerNextLevelXP = ref(100)
+const headerProgressPercent = ref(0)
+const headerStreak = ref(0)
+
+// ✅ Charger les données gaming au mount
+onMounted(async () => {
+  await loadHeaderGamingData()
+})
+
+/**
+ * ✅ Charger les données gaming depuis l'API summary
+ */
+async function loadHeaderGamingData(): Promise<void> {
+  try {
+    if (!authStore.isAuthenticated) return
+
+    const response = await api.get<any>('/gaming/summary')
+
+    if (response.success && response.data) {
+      const data = response.data
+      const levelInfo = data.level_info || data
+
+      headerLevel.value = levelInfo.current_level || levelInfo.level || 1
+      headerXP.value = levelInfo.total_xp || levelInfo.current_level_xp || 0
+      headerNextLevelXP.value = levelInfo.next_level_xp || levelInfo.xp_to_next_level || 100
+      headerProgressPercent.value = levelInfo.progress_percentage || 0
+
+      // Streak
+      if (data.streaks) {
+        const loginStreak = Array.isArray(data.streaks)
+          ? data.streaks.find((s: any) => s.type === 'daily_login' || s.type === 'daily_activity')
+          : null
+        headerStreak.value = loginStreak?.current_count || 0
+      }
+    }
+  } catch (err) {
+    console.warn('⚠️ Header gaming data failed (non-bloquant)')
+    // Fallback: utiliser les données du user/store
+    headerLevel.value = authStore.userLevel || 1
+    headerXP.value = authStore.userXP || 0
+  }
+}
 
 // State
 const notificationsOpen = ref(false)
 const profileOpen = ref(false)
 
-// Computed avec valeurs sécurisées
-const safeLevel = computed(() => props.level || 1)
-const safeXP = computed(() => props.xp || 0)
+// ✅ Computed utilisant les données locales chargées
+const safeLevel = computed(() => {
+  return headerLevel.value || props.level || 1
+})
+
+const safeXP = computed(() => {
+  return headerXP.value || props.xp || 0
+})
 
 const nextLevelXP = computed(() => {
-  return (safeLevel.value + 1) * 1000
+  return headerNextLevelXP.value || 100
 })
 
 const xpProgress = computed(() => {
-  const currentLevelXP = safeLevel.value * 1000
-  const currentXP = safeXP.value - currentLevelXP
-  const requiredXP = nextLevelXP.value - currentLevelXP
-
-  if (requiredXP <= 0) return 0
-  return Math.min((currentXP / requiredXP) * 100, 100)
+  if (headerProgressPercent.value > 0) {
+    return headerProgressPercent.value
+  }
+  const total = nextLevelXP.value
+  if (total <= 0) return 0
+  return Math.min((safeXP.value / total) * 100, 100)
 })
 
-const currentStreak = computed(() => gamingStore.currentStreak || 0)
+const currentStreak = computed(() => headerStreak.value)
 const unreadCount = computed(() => gamingStore.unreadNotifications || 0)
 
 const headerClasses = computed(() => {
@@ -77,7 +125,6 @@ const headerClasses = computed(() => {
   ]
 })
 
-// ✅ Notifications avec i18n
 const recentNotifications = computed(() => [
   {
     id: 1,
@@ -102,14 +149,12 @@ const recentNotifications = computed(() => [
   },
 ])
 
-// ✅ Profile menu avec i18n
 const profileMenuItems = computed(() => [
   { name: t('nav.profile'), href: '/profile', icon: UserIcon },
   { name: t('nav.analytics'), href: '/stats', icon: ChartBarIcon },
   { name: t('nav.settings'), href: '/settings', icon: CogIcon },
 ])
 
-// Methods
 const toggleNotifications = (): void => {
   notificationsOpen.value = !notificationsOpen.value
   profileOpen.value = false
@@ -148,7 +193,6 @@ const handleLogout = async (): Promise<void> => {
   }
 }
 
-// Fermer dropdowns au clic extérieur
 import { onClickOutside } from '@vueuse/core'
 
 const notificationsRef = ref(null)
