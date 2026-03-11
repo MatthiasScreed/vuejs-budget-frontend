@@ -1,6 +1,5 @@
-// src/stores/achievementStore.ts - VERSION CORRIGÉE
-// ✅ Utilise @/services/api (comme goalStore et transactionStore)
-// ❌ Plus de useApi() qui pointait vers une URL différente
+// src/stores/achievementStore.ts — VERSION CORRIGÉE
+// ✅ Parse correctement le format { achievement_id, achievement: {...}, unlocked, progress }
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { useAuthStore } from '@/stores/authStore'
@@ -53,7 +52,7 @@ export const useAchievementStore = defineStore('achievement', () => {
   const error = ref<string | null>(null)
 
   // ==========================================
-  // 🔐 AUTH GUARD (même pattern que goalStore)
+  // AUTH GUARD
   // ==========================================
 
   async function ensureAuthenticated(): Promise<boolean> {
@@ -86,7 +85,7 @@ export const useAchievementStore = defineStore('achievement', () => {
   })
 
   const totalXP = computed(() => {
-    return unlockedAchievements.value.reduce((sum, a) => sum + a.xp_reward, 0)
+    return unlockedAchievements.value.reduce((sum, a) => sum + (a.xp_reward || 0), 0)
   })
 
   const completionPercentage = computed(() => {
@@ -100,8 +99,9 @@ export const useAchievementStore = defineStore('achievement', () => {
   // ==========================================
 
   /**
-   * Charger les données d'achievements
-   * ✅ Utilise api singleton (même URL que les autres stores)
+   * ✅ Charger les achievements — UN SEUL appel API suffit
+   * L'endpoint user-achievements retourne TOUS les achievements
+   * avec leur statut unlocked/locked pour l'utilisateur
    */
   async function loadAchievementData(): Promise<void> {
     if (loading.value) return
@@ -119,47 +119,75 @@ export const useAchievementStore = defineStore('achievement', () => {
     try {
       console.log('🏆 Chargement achievements...')
 
-      // Charger les achievements disponibles
-      const achievementsRes = await api.get<Achievement[]>('/gaming/achievements')
+      const response = await api.get<any[]>('/gaming/user-achievements')
 
-      if (achievementsRes.success && achievementsRes.data) {
-        achievements.value = Array.isArray(achievementsRes.data) ? achievementsRes.data : []
-      }
+      if (response.success && response.data) {
+        const rawData = Array.isArray(response.data) ? response.data : []
 
-      // Charger la progression utilisateur
-      const progressRes = await api.get<any[]>('/gaming/user-achievements')
+        // ✅ Extraire les achievements depuis le format imbriqué
+        // Format API: { achievement_id, achievement: {...}, unlocked, progress }
+        const parsedAchievements: Achievement[] = []
+        const parsedProgress: Record<number, UserAchievementProgress> = {}
+        const unlocked: any[] = []
 
-      if (progressRes.success && progressRes.data) {
-        const progressData = Array.isArray(progressRes.data) ? progressRes.data : []
+        rawData.forEach((item: any) => {
+          // Extraire l'achievement (format imbriqué ou plat)
+          const achData = item.achievement || item
+          const achId = item.achievement_id || achData.id
 
-        // Mapper les unlocks récents
-        const unlocked = progressData.filter((a: any) => a.unlocked)
+          if (achId) {
+            // Ajouter à la liste des achievements
+            parsedAchievements.push({
+              id: achId,
+              name: achData.name || '',
+              description: achData.description || '',
+              icon: achData.icon || '🏆',
+              xp_reward: achData.xp_reward || achData.points || 0,
+              criteria: achData.criteria || null,
+              rarity: achData.rarity || 'common',
+              category: achData.category || achData.type || 'general',
+            })
 
-        recentUnlocks.value = unlocked
-          .sort(
-            (a: any, b: any) =>
-              new Date(b.unlocked_at).getTime() - new Date(a.unlocked_at).getTime(),
-          )
-          .slice(0, 10)
+            // Mapper la progression
+            parsedProgress[achId] = {
+              unlocked: item.unlocked === true,
+              progress: item.progress || 0,
+              unlocked_at: item.unlocked_at || undefined,
+            }
 
-        // Mapper la progression
-        progressData.forEach((p: any) => {
-          userProgress.value[p.achievement_id] = {
-            unlocked: p.unlocked,
-            progress: p.progress || 0,
-            unlocked_at: p.unlocked_at,
+            // Collecter les débloqués pour les récents
+            if (item.unlocked) {
+              unlocked.push({
+                ...parsedAchievements[parsedAchievements.length - 1],
+                unlocked_at: item.unlocked_at,
+              })
+            }
           }
         })
+
+        // Mettre à jour le state
+        achievements.value = parsedAchievements
+        userProgress.value = parsedProgress
+
+        // Trier les récents par date
+        recentUnlocks.value = unlocked
+          .filter((a) => a.unlocked_at)
+          .sort((a, b) => {
+            const dateA = new Date(a.unlocked_at).getTime() || 0
+            const dateB = new Date(b.unlocked_at).getTime() || 0
+            return dateB - dateA
+          })
+          .slice(0, 10)
+
+        // Construire les catégories
+        buildCategories()
+
+        console.log('✅ Achievements loaded:', {
+          total: achievements.value.length,
+          unlocked: unlockedAchievements.value.length,
+          recent: recentUnlocks.value.length,
+        })
       }
-
-      // Construire les catégories
-      buildCategories()
-
-      console.log('✅ Achievements loaded:', {
-        total: achievements.value.length,
-        unlocked: unlockedAchievements.value.length,
-        recent: recentUnlocks.value.length,
-      })
     } catch (err: any) {
       console.error('❌ Erreur achievements:', err)
       error.value = err.message || 'Erreur chargement'
@@ -170,23 +198,31 @@ export const useAchievementStore = defineStore('achievement', () => {
   }
 
   /**
-   * Construire les catégories à partir des achievements
+   * Construire les catégories
    */
   function buildCategories(): void {
     const categoryMap = new Map<string, AchievementCategory>()
 
     const defaultCategories: Record<string, { name: string; icon: string }> = {
+      transaction: { name: 'Transactions', icon: '💰' },
       transactions: { name: 'Transactions', icon: '💰' },
       savings: { name: 'Épargne', icon: '🏦' },
+      streak: { name: 'Séries', icon: '🔥' },
       streaks: { name: 'Séries', icon: '🔥' },
+      goal: { name: 'Objectifs', icon: '🎯' },
       goals: { name: 'Objectifs', icon: '🎯' },
-      general: { name: 'Général', icon: '⭐' },
+      milestone: { name: 'Étapes', icon: '⭐' },
+      general: { name: 'Général', icon: '📋' },
     }
 
     achievements.value.forEach((a) => {
       const catKey = a.category || 'general'
+
       if (!categoryMap.has(catKey)) {
-        const def = defaultCategories[catKey] || { name: catKey, icon: '📋' }
+        const def = defaultCategories[catKey] || {
+          name: catKey,
+          icon: '📋',
+        }
         categoryMap.set(catKey, {
           id: catKey,
           name: def.name,
@@ -194,6 +230,7 @@ export const useAchievementStore = defineStore('achievement', () => {
           achievements: [],
         })
       }
+
       categoryMap.get(catKey)!.achievements.push(a)
     })
 
@@ -202,7 +239,6 @@ export const useAchievementStore = defineStore('achievement', () => {
 
   /**
    * Vérifier les nouveaux achievements
-   * ✅ Utilise api singleton
    */
   async function checkAchievements(): Promise<{
     newUnlocks: Achievement[]
@@ -250,7 +286,7 @@ export const useAchievementStore = defineStore('achievement', () => {
     }
   }
 
-  // Aliases rétrocompatibilité
+  // Aliases
   const fetchAchievements = loadAchievementData
   const fetchUserAchievements = loadAchievementData
 
@@ -264,12 +300,7 @@ export const useAchievementStore = defineStore('achievement', () => {
     error.value = null
   }
 
-  // ==========================================
-  // RETURN
-  // ==========================================
-
   return {
-    // State
     achievements,
     userProgress,
     recentUnlocks,
@@ -277,15 +308,11 @@ export const useAchievementStore = defineStore('achievement', () => {
     loading,
     checking,
     error,
-
-    // Getters
     unlockedAchievements,
     lockedAchievements,
     totalXP,
     completionPercentage,
     recentAchievements,
-
-    // Actions
     fetchAchievements,
     fetchUserAchievements,
     loadAchievementData,
