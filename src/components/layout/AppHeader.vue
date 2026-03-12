@@ -67,13 +67,11 @@ async function loadHeaderGamingData(): Promise<void> {
     if (response.success && response.data) {
       const data = response.data
 
-      // ✅ Utiliser les clés exactes du backend
+      // ✅ Clés adaptées au backend
       headerLevel.value = data.level || 1
       headerXP.value = data.xp || 0
       headerNextLevelXP.value = data.xp_for_next_level || 100
       headerProgressPercent.value = data.progress_percent || 0
-
-      // Streak
       headerStreak.value = data.active_streaks_count || 0
     }
   } catch (err) {
