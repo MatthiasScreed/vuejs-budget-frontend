@@ -222,6 +222,11 @@ onClickOutside(profileRef, () => {
           </div>
           <span class="text-xl font-bold text-gray-900 hidden sm:block">CoinQuest</span>
         </router-link>
+
+        <!-- ✅ Mini XP indicator mobile -->
+        <div class="flex md:hidden items-center ml-2 bg-blue-50 px-2 py-1 rounded-full">
+          <span class="text-xs font-semibold text-blue-600">{{ safeXP }} XP</span>
+        </div>
       </div>
 
       <!-- Center: Barre XP (desktop seulement) -->

@@ -28,8 +28,8 @@
             <div class="text-lg font-bold text-green-600">{{ currentStreak }}</div>
             <div class="text-xs text-gray-500">{{ t('gaming.streak') }}</div>
           </div>
-          <div class="bg-white rounded-lg p-2">
-            <div class="text-lg font-bold text-purple-600">{{ weeklyRank }}</div>
+          <div class="bg-white rounded-lg p-2 overflow-hidden">
+            <div class="text-sm font-bold text-purple-600 truncate">{{ weeklyRank }}</div>
             <div class="text-xs text-gray-500">{{ t('gaming.rank') }}</div>
           </div>
         </div>
