@@ -20,19 +20,19 @@
 
         <!-- Quick Stats -->
         <div class="grid grid-cols-3 gap-2 text-center">
-          <div class="bg-white rounded-lg p-2">
+          <div class="bg-white rounded-lg p-2 min-h-[60px] flex flex-col justify-center">
             <div class="text-lg font-bold text-blue-600">{{ totalAchievements }}</div>
-            <div class="text-xs text-gray-500">{{ t('gaming.achievements') }}</div>
-          </div>
-          <div class="bg-white rounded-lg p-2">
-            <div class="text-lg font-bold text-green-600">{{ currentStreak }}</div>
-            <div class="text-xs text-gray-500">{{ t('gaming.streak') }}</div>
-          </div>
-          <div class="bg-white rounded-lg p-2 overflow-hidden">
-            <div class="text-xs font-bold text-purple-600 leading-tight" :title="weeklyRank">
-              {{ weeklyRank }}
+            <div class="text-[10px] text-gray-500 leading-tight">
+              {{ t('gaming.achievements') }}
             </div>
-            <div class="text-xs text-gray-500">{{ t('gaming.rank') }}</div>
+          </div>
+          <div class="bg-white rounded-lg p-2 min-h-[60px] flex flex-col justify-center">
+            <div class="text-lg font-bold text-green-600">{{ currentStreak }}</div>
+            <div class="text-[10px] text-gray-500 leading-tight">{{ t('gaming.streak') }}</div>
+          </div>
+          <div class="bg-white rounded-lg p-2 min-h-[60px] flex flex-col justify-center">
+            <div class="text-sm font-bold text-purple-600">{{ weeklyRank }}</div>
+            <div class="text-[10px] text-gray-500 leading-tight">{{ t('gaming.rank') }}</div>
           </div>
         </div>
       </div>
