@@ -66,24 +66,18 @@ async function loadHeaderGamingData(): Promise<void> {
 
     if (response.success && response.data) {
       const data = response.data
-      const levelInfo = data.level_info || data
 
-      headerLevel.value = levelInfo.current_level || levelInfo.level || 1
-      headerXP.value = levelInfo.total_xp || levelInfo.current_level_xp || 0
-      headerNextLevelXP.value = levelInfo.next_level_xp || levelInfo.xp_to_next_level || 100
-      headerProgressPercent.value = levelInfo.progress_percentage || 0
+      // ✅ Utiliser les clés exactes du backend
+      headerLevel.value = data.level || 1
+      headerXP.value = data.xp || 0
+      headerNextLevelXP.value = data.xp_for_next_level || 100
+      headerProgressPercent.value = data.progress_percent || 0
 
       // Streak
-      if (data.streaks) {
-        const loginStreak = Array.isArray(data.streaks)
-          ? data.streaks.find((s: any) => s.type === 'daily_login' || s.type === 'daily_activity')
-          : null
-        headerStreak.value = loginStreak?.current_count || 0
-      }
+      headerStreak.value = data.active_streaks_count || 0
     }
   } catch (err) {
     console.warn('⚠️ Header gaming data failed (non-bloquant)')
-    // Fallback: utiliser les données du user/store
     headerLevel.value = authStore.userLevel || 1
     headerXP.value = authStore.userXP || 0
   }
