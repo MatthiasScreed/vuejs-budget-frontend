@@ -141,6 +141,8 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useGamingStore } from '@/stores/gamingStore'
 import { useInsightStore } from '@/stores/insightStore'
+import { useAuthStore } from '@/stores/authStore'
+import api from '@/services/api'
 import { useBreakpoints } from '@vueuse/core'
 import {
   HomeIcon,
@@ -178,6 +180,13 @@ const emit = defineEmits<{
 const route = useRoute()
 const gamingStore = useGamingStore()
 const insightStore = useInsightStore()
+const authStore = useAuthStore()
+
+// ✅ State local pour les stats gaming de la sidebar
+const sidebarAchievements = ref(0)
+const sidebarStreak = ref(0)
+const sidebarRank = ref('--')
+const sidebarDailyProgress = ref(0)
 
 const showApiStatus = inject('showApiStatus', ref(false))
 
@@ -222,10 +231,13 @@ const sidebarStyles = computed(() => {
 })
 
 // Computed gaming stats
-const dailyProgress = computed(() => gamingStore.dailyProgress || 0)
-const totalAchievements = computed(() => gamingStore.achievements?.length || 0)
-const currentStreak = computed(() => gamingStore.currentStreak || 0)
-const weeklyRank = computed(() => gamingStore.weeklyRank || '--')
+// ✅ Computed utilisant les données locales chargées
+const dailyProgress = computed(() => sidebarDailyProgress.value || gamingStore.dailyProgress || 0)
+const totalAchievements = computed(
+  () => sidebarAchievements.value || gamingStore.achievements?.length || 0,
+)
+const currentStreak = computed(() => sidebarStreak.value || gamingStore.currentStreak || 0)
+const weeklyRank = computed(() => sidebarRank.value || gamingStore.weeklyRank || '--')
 
 // ✅ Compteur insights non lus
 const unreadInsightsCount = computed(() => insightStore.unreadCount || 0)
@@ -290,14 +302,36 @@ const openDailyChallenge = (): void => {
   console.log('Opening daily challenge')
 }
 
-// ✅ Charger le summary au montage pour avoir le compteur
+// ✅ Charger les données gaming au montage
 onMounted(async () => {
   try {
     await insightStore.loadSummary()
+    await loadSidebarGamingData()
   } catch (error) {
-    console.error('Erreur chargement insights summary:', error)
+    console.error('Erreur chargement sidebar data:', error)
   }
 })
+
+/**
+ * ✅ Charger les données gaming depuis l'API summary
+ */
+async function loadSidebarGamingData(): Promise<void> {
+  try {
+    if (!authStore.isAuthenticated) return
+
+    const response = await api.get<any>('/gaming/summary')
+
+    if (response.success && response.data) {
+      const data = response.data
+      sidebarAchievements.value = data.achievements_unlocked_count || 0
+      sidebarStreak.value = data.active_streaks_count || 0
+      sidebarRank.value = data.rank || '--'
+      sidebarDailyProgress.value = data.progress_percent || 0
+    }
+  } catch (err) {
+    console.warn('⚠️ Sidebar gaming data failed (non-bloquant)')
+  }
+}
 </script>
 
 <style scoped>
