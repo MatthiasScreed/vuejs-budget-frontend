@@ -61,6 +61,9 @@
 
     <!-- Notifications gaming -->
     <GamingNotifications v-if="gamingNotificationsEnabled" />
+
+    <!-- ✅ Modal Onboarding pour nouveaux utilisateurs -->
+    <OnboardingModal :show="showOnboarding" @close="closeOnboarding" />
   </div>
 </template>
 
@@ -75,6 +78,7 @@ import AppHeader from './AppHeader.vue'
 import AppSidebar from './AppSidebar.vue'
 import AppFooter from './AppFooter.vue'
 import GamingNotifications from '@/components/gaming/GamingNotifications.vue'
+import OnboardingModal from '@/components/OnboardingModal.vue'
 
 // ✅ Utiliser vue-i18n
 const { t } = useI18n()
@@ -89,6 +93,7 @@ const route = useRoute()
 // State
 const sidebarOpen = ref(false)
 const gamingNotificationsEnabled = ref(false)
+const showOnboarding = ref(false) // ✅ Ajouter
 const isDevelopment = computed(() => import.meta.env.DEV)
 
 // Computed avec valeurs par défaut sécurisées
@@ -105,6 +110,20 @@ const userXP = computed(() => {
   if (authStore.user?.level?.current_xp !== undefined) return authStore.user.level.current_xp
   return 0
 })
+
+// ✅ Ajouter ces fonctions
+function checkOnboarding(): void {
+  const completed = localStorage.getItem('onboarding_completed')
+  if (!completed) {
+    setTimeout(() => {
+      showOnboarding.value = true
+    }, 500)
+  }
+}
+
+function closeOnboarding(): void {
+  showOnboarding.value = false
+}
 
 const currentRoute = computed(() => route.name as string)
 
@@ -211,6 +230,9 @@ onMounted(async () => {
   } catch (error) {
     console.warn('⚠️ Erreur chargement données initiales:', error)
   }
+
+  // ✅ Vérifier si c'est un nouvel utilisateur
+  checkOnboarding()
 
   document.addEventListener('keydown', handleKeyboard)
 
