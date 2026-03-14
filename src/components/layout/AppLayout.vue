@@ -78,7 +78,7 @@ import AppHeader from './AppHeader.vue'
 import AppSidebar from './AppSidebar.vue'
 import AppFooter from './AppFooter.vue'
 import GamingNotifications from '@/components/gaming/GamingNotifications.vue'
-import OnboardingModal from '@/components/OnboardingModal.vue'
+import OnboardingModal from '@/components/onboarding/OnboardingModal.vue'
 
 // ✅ Utiliser vue-i18n
 const { t } = useI18n()
