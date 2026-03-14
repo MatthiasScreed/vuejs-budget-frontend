@@ -528,10 +528,12 @@ onMounted(() => {
   border-radius: 0.5rem;
   font-size: 1rem;
   transition: all 0.2s;
+  color: #1f2937; /* ← Ajouter cette ligne (gray-800) */
+  background-color: #ffffff;
 }
 .form-input::placeholder,
 .form-textarea::placeholder {
-  color: #5b6270;
+  color: #6b7280;
   opacity: 1;
 }
 .form-input:focus,
