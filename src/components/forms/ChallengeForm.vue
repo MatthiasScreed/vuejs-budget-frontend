@@ -1,3 +1,4 @@
+<script setup lang="ts"></script>
 <template name="ChallengeForm.vue">
   <div class="challenge-form-container">
     <div class="max-w-6xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
@@ -10,7 +11,12 @@
           </div>
           <button @click="$emit('close')" class="text-white/80 hover:text-white">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
             </svg>
           </button>
         </div>
@@ -28,9 +34,7 @@
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Titre -->
             <div class="form-group">
-              <label for="title" class="form-label required">
-                🏷️ Titre du défi
-              </label>
+              <label for="title" class="form-label required"> 🏷️ Titre du défi </label>
               <input
                 id="title"
                 v-model="formData.title"
@@ -39,15 +43,13 @@
                 :class="{ 'input-error': errors.title }"
                 placeholder="ex: Économiser 500€ en 30 jours"
                 maxlength="100"
-              >
+              />
               <div v-if="errors.title" class="form-error">{{ errors.title }}</div>
             </div>
 
             <!-- Type -->
             <div class="form-group">
-              <label for="type" class="form-label required">
-                🎯 Type de défi
-              </label>
+              <label for="type" class="form-label required"> 🎯 Type de défi </label>
               <select
                 id="type"
                 v-model="formData.type"
@@ -66,9 +68,7 @@
 
           <!-- Description -->
           <div class="form-group mt-6">
-            <label for="description" class="form-label required">
-              📝 Description détaillée
-            </label>
+            <label for="description" class="form-label required"> 📝 Description détaillée </label>
             <textarea
               id="description"
               v-model="formData.description"
@@ -93,9 +93,7 @@
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Difficulté -->
             <div class="form-group">
-              <label for="difficulty" class="form-label required">
-                🏅 Niveau de difficulté
-              </label>
+              <label for="difficulty" class="form-label required"> 🏅 Niveau de difficulté </label>
               <select
                 id="difficulty"
                 v-model="formData.difficulty"
@@ -112,9 +110,7 @@
 
             <!-- Valeur cible -->
             <div class="form-group">
-              <label for="target_value" class="form-label required">
-                🎯 Valeur cible
-              </label>
+              <label for="target_value" class="form-label required"> 🎯 Valeur cible </label>
               <input
                 id="target_value"
                 v-model.number="formData.target_value"
@@ -124,14 +120,12 @@
                 class="form-input"
                 :class="{ 'input-error': errors.target_value }"
                 placeholder="0"
-              >
+              />
             </div>
 
             <!-- Unité -->
             <div class="form-group">
-              <label for="target_unit" class="form-label required">
-                📏 Unité de mesure
-              </label>
+              <label for="target_unit" class="form-label required"> 📏 Unité de mesure </label>
               <select
                 id="target_unit"
                 v-model="formData.target_unit"
@@ -150,9 +144,7 @@
           <!-- Durée et dates -->
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
             <div class="form-group">
-              <label for="duration_days" class="form-label required">
-                ⏱️ Durée (jours)
-              </label>
+              <label for="duration_days" class="form-label required"> ⏱️ Durée (jours) </label>
               <input
                 id="duration_days"
                 v-model.number="formData.duration_days"
@@ -162,13 +154,11 @@
                 class="form-input"
                 :class="{ 'input-error': errors.duration_days }"
                 placeholder="30"
-              >
+              />
             </div>
 
             <div class="form-group">
-              <label for="start_date" class="form-label required">
-                🚀 Date de début
-              </label>
+              <label for="start_date" class="form-label required"> 🚀 Date de début </label>
               <input
                 id="start_date"
                 v-model="formData.start_date"
@@ -176,13 +166,11 @@
                 :min="today"
                 class="form-input"
                 :class="{ 'input-error': errors.start_date }"
-              >
+              />
             </div>
 
             <div class="form-group">
-              <label for="end_date" class="form-label required">
-                🏁 Date de fin
-              </label>
+              <label for="end_date" class="form-label required"> 🏁 Date de fin </label>
               <input
                 id="end_date"
                 v-model="formData.end_date"
@@ -190,7 +178,7 @@
                 :min="formData.start_date"
                 class="form-input"
                 :class="{ 'input-error': errors.end_date }"
-              >
+              />
             </div>
           </div>
         </div>
@@ -204,9 +192,7 @@
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="form-group">
-              <label for="xp_reward" class="form-label required">
-                ⚡ Récompense XP
-              </label>
+              <label for="xp_reward" class="form-label required"> ⚡ Récompense XP </label>
               <input
                 id="xp_reward"
                 v-model.number="formData.xp_reward"
@@ -216,16 +202,14 @@
                 class="form-input"
                 :class="{ 'input-error': errors.xp_reward }"
                 placeholder="100"
-              >
+              />
               <p class="text-xs text-gray-500 mt-1">
                 Facile: 10-50 XP, Moyen: 50-150 XP, Difficile: 150-500 XP, Légendaire: 500+ XP
               </p>
             </div>
 
             <div class="form-group">
-              <label for="badge_reward" class="form-label">
-                🏆 Badge spécial (optionnel)
-              </label>
+              <label for="badge_reward" class="form-label"> 🏆 Badge spécial (optionnel) </label>
               <input
                 id="badge_reward"
                 v-model="formData.badge_reward"
@@ -233,7 +217,7 @@
                 class="form-input"
                 placeholder="ex: Économe du mois"
                 maxlength="100"
-              >
+              />
             </div>
           </div>
         </div>
@@ -260,15 +244,13 @@
                   max="1000"
                   class="form-input"
                   placeholder="Illimité"
-                >
-                <p class="text-xs text-gray-500 mt-1">
-                  Laissez vide pour un nombre illimité
-                </p>
+                />
+                <p class="text-xs text-gray-500 mt-1">Laissez vide pour un nombre illimité</p>
               </div>
 
               <div class="space-y-3">
                 <label class="flex items-center space-x-3">
-                  <input v-model="formData.is_global" type="checkbox" class="form-checkbox">
+                  <input v-model="formData.is_global" type="checkbox" class="form-checkbox" />
                   <div>
                     <span class="text-sm font-medium text-gray-700">🌍 Défi global</span>
                     <p class="text-xs text-gray-600">Visible par tous les utilisateurs</p>
@@ -276,10 +258,14 @@
                 </label>
 
                 <label class="flex items-center space-x-3">
-                  <input v-model="formData.auto_join" type="checkbox" class="form-checkbox">
+                  <input v-model="formData.auto_join" type="checkbox" class="form-checkbox" />
                   <div>
-                    <span class="text-sm font-medium text-gray-700">🚀 Inscription automatique</span>
-                    <p class="text-xs text-gray-600">Les utilisateurs éligibles rejoignent automatiquement</p>
+                    <span class="text-sm font-medium text-gray-700"
+                      >🚀 Inscription automatique</span
+                    >
+                    <p class="text-xs text-gray-600">
+                      Les utilisateurs éligibles rejoignent automatiquement
+                    </p>
                   </div>
                 </label>
               </div>
@@ -288,10 +274,10 @@
             <!-- Restrictions -->
             <div class="space-y-6">
               <div class="form-group">
-                <label class="form-label">
-                  🗂️ Catégories autorisées (optionnel)
-                </label>
-                <div class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                <label class="form-label"> 🗂️ Catégories autorisées (optionnel) </label>
+                <div
+                  class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3"
+                >
                   <label
                     v-for="category in availableCategories"
                     :key="category.id"
@@ -302,7 +288,7 @@
                       :value="category.id"
                       type="checkbox"
                       class="form-checkbox text-xs"
-                    >
+                    />
                     <span>{{ category.icon }} {{ category.name }}</span>
                   </label>
                 </div>
@@ -315,7 +301,10 @@
         </div>
 
         <!-- Aperçu du défi -->
-        <div v-if="isFormValid" class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-8">
+        <div
+          v-if="isFormValid"
+          class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-8"
+        >
           <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
             <span>👁️</span>
             <span>Aperçu du défi</span>
@@ -331,8 +320,8 @@
                     class="px-2 py-1 rounded-full text-xs font-medium"
                     :class="difficultyClasses[formData.difficulty]"
                   >
-                  {{ difficultyLabels[formData.difficulty] }}
-                </span>
+                    {{ difficultyLabels[formData.difficulty] }}
+                  </span>
                 </div>
 
                 <p class="text-gray-600 mb-4">{{ formData.description }}</p>
@@ -341,8 +330,8 @@
                   <div>
                     <span class="text-gray-500">Objectif:</span>
                     <span class="font-semibold ml-1">
-                    {{ formData.target_value }} {{ unitLabels[formData.target_unit] }}
-                  </span>
+                      {{ formData.target_value }} {{ unitLabels[formData.target_unit] }}
+                    </span>
                   </div>
                   <div>
                     <span class="text-gray-500">Durée:</span>
@@ -355,8 +344,8 @@
                   <div>
                     <span class="text-gray-500">Participants:</span>
                     <span class="font-semibold ml-1">
-                    {{ formData.max_participants || 'Illimité' }}
-                  </span>
+                      {{ formData.max_participants || 'Illimité' }}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -390,7 +379,10 @@
               :disabled="!isFormValid || loading"
               class="px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:from-orange-600 hover:to-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 shadow-lg"
             >
-              <div v-if="loading" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              <div
+                v-if="loading"
+                class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"
+              ></div>
               <span>🚀</span>
               <span>Lancer le défi</span>
             </button>
@@ -411,11 +403,14 @@
   @apply text-red-500;
 }
 
-.form-input, .form-select, .form-textarea {
-  @apply w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200;
+.form-input,
+.form-select,
+.form-textarea {
+  @apply w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200;
 }
 
-.form-input::placeholder, .form-textarea::placeholder {
+.form-input::placeholder,
+.form-textarea::placeholder {
   @apply placeholder-gray-500;
 }
 
