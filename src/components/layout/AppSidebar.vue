@@ -120,6 +120,19 @@
         </div>
       </div>
 
+      <!-- ✅ Feedback Button -->
+      <div v-if="isOpen" class="px-4 py-3 border-t border-gray-200">
+
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSeAPfntvo7HCLg90lVM4nFMmsBYDvLUgc-aYwx1dDNimQnjDw/viewform"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="w-full flex items-center justify-center space-x-2 px-3 py-2 text-sm text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-all shadow-sm"
+        >
+        <span>💬</span>
+        <span>Donner mon avis</span>
+        </a>
+      </div>
+
       <!-- Toggle button (desktop) -->
       <div class="hidden lg:block p-2 border-t border-gray-200 shrink-0">
         <button
