@@ -149,6 +149,24 @@ const fr = {
     deleted: 'Transaction supprimée',
     errorSave: 'Erreur lors de la sauvegarde',
     errorDelete: 'Erreur lors de la suppression',
+    autoCategorize: 'Catégoriser automatiquement',
+    balance: 'Solde',
+    chooseCat: 'Choisir une catégorie',
+    filterAllCategories: 'Toutes les catégories',
+    filterAllTypes: 'Tous les types',
+    filterCategory: 'Catégorie',
+    filterDateFrom: 'Date de début',
+    filterDateTo: 'Date de fin',
+    filterType: 'Type',
+    filters: 'Filtres',
+    incomeThisMonth: 'Revenus ce mois',
+    expensesThisMonth: 'Dépenses ce mois',
+    pendingTitle: 'Transactions en attente',
+    recurring: 'Récurrent',
+    uncategorized: 'Non catégorisé',
+    negative: 'Négatif',
+    neutral: 'Neutre',
+    positive: 'Positif',
   },
 
   // ==========================================
@@ -819,6 +837,52 @@ const fr = {
       },
     },
   },
+
+  // ==========================================
+  // ONBOARDING (accessible directement)
+  // ==========================================
+  onboarding: {
+    skipTitle: 'Passer le tutoriel',
+    startBtn: '🚀 Commencer !',
+
+    step1: {
+      title: 'Bienvenue sur CoinQuest !',
+      description:
+        "CoinQuest est une app de budget <strong>qui te motive</strong> à économiser en transformant la gestion d'argent en aventure progressive.",
+      howTitle: 'Comment ça marche ?',
+      how1: '<strong>Tu connectes ta banque</strong> (sécurisé et automatique)',
+      how2: '<strong>Tu définis tes objectifs</strong> (voyage, appart, voiture...)',
+      how3: "<strong>L'app calcule ta capacité d'épargne</strong> automatiquement",
+      how4: '<strong>Tu gagnes des points</strong> à chaque progrès 🎯',
+      freeAlpha: 'Gratuit pendant la phase alpha',
+    },
+
+    step2: {
+      title: 'Pourquoi des points ?',
+      description:
+        "Parce que <strong>voir sa progression</strong> rend plus motivant d'économiser !",
+      optional: "(C'est 100% optionnel, tu peux les ignorer)",
+      saving: 'Économie réalisée',
+      savingDesc: 'Chaque progrès compte',
+      goalReached: 'Objectif atteint',
+      goalDesc: 'Célèbre tes victoires',
+      streak: 'Série de 7 jours',
+      streakDesc: 'La régularité paie',
+      challenge: 'Défi complété',
+      challengeDesc: 'Challenges hebdo',
+      secretTitle: '💡 Le secret',
+      secretDesc:
+        "Plus tu accumules de points, plus tu débloques de badges et fonctionnalités. <strong>C'est optionnel</strong>, mais ça rend le budget moins ennuyeux !",
+    },
+
+    step3: {
+      title: 'Tes données sont 100% sécurisées',
+      description:
+        'CoinQuest utilise <strong>Bridge</strong>, le même système que les banques européennes pour connecter tes comptes en toute sécurité.',
+      gdpr: '<strong>🛡️ Conforme RGPD :</strong> Tes données restent en Europe, chiffrées de bout en bout',
+    },
+  },
+
   goalsProjectsTutorial: {
     welcome: {
       title: 'Bienvenue dans la Gestion de vos Objectifs !',
