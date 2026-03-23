@@ -133,20 +133,22 @@
           />
         </button>
       </div>
-
-      <!-- ✅ Feedback Button - Toujours visible en bas -->
-      <div v-if="isOpen" class="shrink-0 p-3 bg-gradient-to-r from-orange-100 to-pink-100 border-t border-orange-200">
-
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSeAPfntvo7HCLg90lVM4nFMmsBYDvLUgc-aYwx1dDNimQnjDw/viewform"
+    </nav>
+    <!-- ✅ Feedback Button - Toujours visible en bas -->
+    <div
+      v-if="isOpen"
+      class="shrink-0 p-3 bg-gradient-to-r from-orange-100 to-pink-100 border-t border-orange-200"
+    >
+      <a
+        href="https://docs.google.com/forms/d/e/1FAIpQLSeAPfntvo7HCLg90lVM4nFMmsBYDvLUgc-aYwx1dDNimQnjDw/viewform"
         target="_blank"
         rel="noopener noreferrer"
         class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 rounded-xl transition-all shadow-lg hover:shadow-xl hover:scale-105"
-        >
+      >
         <span class="text-lg">💬</span>
         <span>Ton avis compte !</span>
-        </a>
-      </div>
-    </nav>
+      </a>
+    </div>
   </aside>
 </template>
 
