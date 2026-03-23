@@ -62,6 +62,22 @@ body {
   overflow-x: hidden;
 }
 
+/* ✅ Fix contraste texte gris global */
+input::placeholder,
+textarea::placeholder {
+  color: #6B7280 !important; /* gray-500 */
+  opacity: 1 !important;
+}
+
+/* Texte secondaire plus lisible */
+.text-gray-400 {
+  color: #6B7280 !important; /* gray-500 au lieu de gray-400 */
+}
+
+.text-gray-500 {
+  color: #4B5563 !important; /* gray-600 au lieu de gray-500 */
+}
+
 #app {
   min-height: 100vh;
   position: relative;

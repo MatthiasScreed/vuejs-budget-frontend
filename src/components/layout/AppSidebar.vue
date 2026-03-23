@@ -120,19 +120,6 @@
         </div>
       </div>
 
-      <!-- ✅ Feedback Button -->
-      <div v-if="isOpen" class="px-4 py-3 border-t border-gray-200">
-
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSeAPfntvo7HCLg90lVM4nFMmsBYDvLUgc-aYwx1dDNimQnjDw/viewform"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="w-full flex items-center justify-center space-x-2 px-3 py-2 text-sm text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-all shadow-sm"
-        >
-        <span>💬</span>
-        <span>Donner mon avis</span>
-        </a>
-      </div>
-
       <!-- Toggle button (desktop) -->
       <div class="hidden lg:block p-2 border-t border-gray-200 shrink-0">
         <button
@@ -145,6 +132,19 @@
             :class="{ 'rotate-180': !isOpen }"
           />
         </button>
+      </div>
+
+      <!-- ✅ Feedback Button - Toujours visible en bas -->
+      <div v-if="isOpen" class="shrink-0 p-3 bg-gradient-to-r from-orange-100 to-pink-100 border-t border-orange-200">
+
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSeAPfntvo7HCLg90lVM4nFMmsBYDvLUgc-aYwx1dDNimQnjDw/viewform"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 rounded-xl transition-all shadow-lg hover:shadow-xl hover:scale-105"
+        >
+        <span class="text-lg">💬</span>
+        <span>Ton avis compte !</span>
+        </a>
       </div>
     </nav>
   </aside>
@@ -383,6 +383,19 @@ async function loadSidebarGamingData(): Promise<void> {
   50% {
     opacity: 0.7;
   }
+}
+
+@keyframes pulse-slow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 2s ease-in-out infinite;
 }
 
 .badge-animate {

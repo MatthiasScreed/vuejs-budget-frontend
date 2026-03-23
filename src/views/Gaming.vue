@@ -89,6 +89,9 @@
         </div>
       </div>
 
+      <!-- ✅ POINTS EXPLAINER - Nouveau composant -->
+      <PointsExplainer class="mb-8" />
+
       <!-- Quick Links -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <router-link
@@ -194,6 +197,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useAchievementStore } from '@/stores/achievementStore'
 import { useProgressiveGaming, ENGAGEMENT_LEVELS } from '@/composables/useProgressiveGaming'
+import PointsExplainer from '@/components/gaming/PointsExplainer.vue'
 
 // ==========================================
 // STORES & COMPOSABLES
@@ -230,18 +234,16 @@ const streakDays = computed(() => 7) // TODO: Connecter à l'API
 const bestStreak = computed(() => 14) // TODO: Connecter à l'API
 
 const achievementStats = computed(() => {
-  const achievements = Array.isArray(achievementStore.achievements) ? achievementStore.achievements : []
+  const achievements = Array.isArray(achievementStore.achievements)
+    ? achievementStore.achievements
+    : []
   return {
-    unlocked: achievements.filter(
-      (a) => achievementStore.userProgress[a.id]?.unlocked,
-    ).length,
+    unlocked: achievements.filter((a) => achievementStore.userProgress[a.id]?.unlocked).length,
     total: achievements.length,
     percentage:
       achievements.length > 0
         ? Math.round(
-            (achievements.filter(
-              (a) => achievementStore.userProgress[a.id]?.unlocked,
-            ).length /
+            (achievements.filter((a) => achievementStore.userProgress[a.id]?.unlocked).length /
               achievements.length) *
               100,
           )
@@ -286,10 +288,7 @@ async function loadData(): Promise<void> {
   loading.value = true
 
   try {
-    await Promise.all([
-      initialize(),
-      achievementStore.loadAchievementData(),
-    ])
+    await Promise.all([initialize(), achievementStore.loadAchievementData()])
 
     // Mock leaderboard - TODO: Connecter à l'API
     leaderboard.value = [
