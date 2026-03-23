@@ -215,6 +215,7 @@ const sidebarClasses = computed(() => {
   const baseClasses = [
     'fixed left-0 transition-all duration-300 bg-white border-r border-gray-200',
     'z-40',
+    'flex flex-col', // ✅ AJOUT ICI
     props.isOpen ? 'w-64' : 'w-16',
     'lg:translate-x-0',
   ]
