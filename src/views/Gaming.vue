@@ -160,7 +160,7 @@
       <div class="bg-white rounded-xl border border-gray-200 p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">🏆 Classement</h3>
 
-        <!-- Loading leaderboard -->
+        <!-- Loading -->
         <div v-if="leaderboardLoading" class="flex justify-center py-8">
           <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
         </div>
@@ -185,13 +185,37 @@
               {{ entry.rank }}
             </div>
             <div class="ml-4 flex-1">
-              <div class="font-medium text-gray-900">{{ entry.user_name }}</div>
+              <!-- ✅ Afficher le nom -->
+              <div class="font-medium text-gray-900">
+                {{ entry.user_name || 'Joueur Anonyme' }}
+              </div>
               <div class="text-sm text-gray-500">
                 {{ terminology.tier }} {{ entry.level }} • {{ formatNumber(entry.total_xp) }}
                 {{ terminology.points }}
               </div>
             </div>
             <span v-if="entry.is_current_user" class="text-blue-600 font-medium text-sm">Vous</span>
+          </div>
+
+          <!-- ✅ Afficher l'utilisateur s'il n'est pas dans le top -->
+          <div
+            v-if="userEntry"
+            class="flex items-center p-4 rounded-lg bg-blue-50 border border-blue-200 mt-4"
+          >
+            <div
+              class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-white text-sm font-bold"
+            >
+              {{ userEntry.rank }}
+            </div>
+            <div class="ml-4 flex-1">
+              <div class="font-medium text-gray-900">{{ userEntry.user_name }}</div>
+              <div class="text-sm text-gray-500">
+                {{ terminology.tier }} {{ userEntry.level }} •
+                {{ formatNumber(userEntry.total_xp) }}
+                {{ terminology.points }}
+              </div>
+            </div>
+            <span class="text-blue-600 font-medium text-sm">Vous</span>
           </div>
         </div>
       </div>
@@ -240,6 +264,7 @@ const userRank = ref(0)
 const totalPlayers = ref(0)
 const activeChallenges = ref(0)
 const streakData = ref({ current: 0, best: 0 })
+const userEntry = ref<LeaderboardEntry | null>(null)
 
 // ==========================================
 // COMPUTED
@@ -319,12 +344,14 @@ async function loadLeaderboard(): Promise<void> {
       leaderboard: LeaderboardEntry[]
       user_rank: number
       total_players: number
+      user_entry: LeaderboardEntry | null
     }>('/gaming/leaderboard', { params: { limit: 10 } })
 
     if (response.success && response.data) {
       leaderboard.value = response.data.leaderboard || []
       userRank.value = response.data.user_rank || 0
       totalPlayers.value = response.data.total_players || 0
+      userEntry.value = response.data.user_entry || null // ✅ Ajout
     }
   } catch (error) {
     console.error('Erreur chargement leaderboard:', error)
