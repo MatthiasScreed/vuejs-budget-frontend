@@ -173,6 +173,7 @@ import {
   ChevronLeftIcon,
   CalendarIcon,
   LightBulbIcon,
+  ShieldCheckIcon,
 } from '@heroicons/vue/24/outline'
 
 // ✅ Utiliser vue-i18n
@@ -260,6 +261,9 @@ const weeklyRank = computed(() => sidebarRank.value || gamingStore.weeklyRank ||
 // ✅ Compteur insights non lus
 const unreadInsightsCount = computed(() => insightStore.unreadCount || 0)
 
+// ✅ Vérifier si l'utilisateur est admin
+const isAdmin = computed(() => authStore.user?.is_admin === true)
+
 // ✅ Navigation structure avec i18n + INSIGHTS
 const navigationItems = computed(() => [
   // Dashboard
@@ -297,6 +301,14 @@ const navigationItems = computed(() => [
   { type: 'link', name: t('nav.analytics'), href: '/app/analytics', icon: ChartBarIcon },
   { type: 'link', name: t('nav.connections'), href: '/app/banking', icon: CogIcon },
   { type: 'link', name: t('nav.profile'), href: '/app/profile', icon: UserGroupIcon },
+
+  // Section Administration (visible seulement si admin)
+  ...(isAdmin.value
+    ? [
+        { type: 'header', name: 'Administration' },
+        { type: 'link', name: 'Admin Dashboard', href: '/app/admin', icon: ShieldCheckIcon },
+      ]
+    : []),
 ])
 
 const isCurrentRoute = (href: string): boolean => {

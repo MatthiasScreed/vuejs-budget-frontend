@@ -28,6 +28,9 @@ const Gaming = () => import('@/views/Gaming.vue')
 const Achievements = () => import('@/views/Achievements.vue')
 const Challenges = () => import('@/views/Challenges.vue')
 
+// Pages Admin
+const AdminDashboard = () => import('@/views/AdminDashboard.vue')
+
 // ==========================================
 // ROUTES
 // ==========================================
@@ -181,6 +184,18 @@ const routes = [
         },
       },
 
+      // === ADMIN ===
+      {
+        path: 'admin',
+        name: 'AdminDashboard',
+        component: AdminDashboard,
+        meta: {
+          requiresAuth: true,
+          requiresAdmin: true,
+          title: 'Admin Dashboard - CoinQuest',
+        },
+      },
+
       // Redirection /app → /app/dashboard
       {
         path: '',
@@ -243,6 +258,7 @@ router.beforeEach(async (to, from, next) => {
   console.log(`🧭 Navigation: ${from.path} → ${to.path}`)
 
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
+  const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin)
   const authStore = useAuthStore()
 
   // Routes publiques
@@ -259,6 +275,14 @@ router.beforeEach(async (to, from, next) => {
   // Routes protégées - Vérifier authentification
   if (authStore.isAuthenticated && authStore.user) {
     console.log('✅ Utilisateur authentifié:', authStore.user.email)
+
+    // Vérifier si la route nécessite les droits admin
+    if (requiresAdmin && !authStore.user.is_admin) {
+      console.log('⚠️ Accès refusé - Droits admin requis')
+      next({ name: 'Dashboard' })
+      return
+    }
+
     next()
     return
   }
@@ -275,6 +299,14 @@ router.beforeEach(async (to, from, next) => {
       authStore.isAuthenticated = true
       authStore.isInitialized = true
       console.log('✅ Session restaurée depuis localStorage')
+
+      // Vérifier admin après restauration
+      if (requiresAdmin && !user.is_admin) {
+        console.log('⚠️ Accès refusé - Droits admin requis')
+        next({ name: 'Dashboard' })
+        return
+      }
+
       next()
       return
     } catch (error) {
