@@ -16,29 +16,29 @@
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <StatsCard
           title="Utilisateurs"
-          :value="stats.users?.total || 0"
-          :subtitle="`${stats.users?.active_7d || 0} actifs (7j)`"
+          :value="stats.users?.total_users || 0"
+          :subtitle="`${stats.users?.active_users_7d || 0} actifs (7j)`"
           icon="👥"
           color="blue"
         />
         <StatsCard
           title="Transactions"
-          :value="stats.transactions?.total || 0"
-          :subtitle="`${stats.transactions?.this_month || 0} ce mois`"
+          :value="stats.financial?.total_transactions || 0"
+          :subtitle="`Volume: ${stats.financial?.total_volume || 0}€`"
           icon="💳"
           color="green"
         />
         <StatsCard
           title="Objectifs"
-          :value="stats.goals?.total || 0"
-          :subtitle="`${stats.goals?.completed || 0} complétés`"
+          :value="stats.financial?.total_goals || 0"
+          :subtitle="`${stats.financial?.completed_goals || 0} complétés`"
           icon="🎯"
           color="purple"
         />
         <StatsCard
           title="XP Total"
-          :value="formatNumber(stats.gaming?.total_xp || 0)"
-          :subtitle="`Niveau moyen: ${stats.gaming?.avg_level || 1}`"
+          :value="formatNumber(Number(stats.gaming?.total_xp_distributed || 0))"
+          :subtitle="`Niveau moyen: ${stats.users?.avg_level || 1}`"
           icon="⭐"
           color="yellow"
         />
@@ -48,7 +48,7 @@
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <StatsCard
           title="Nouveaux (7j)"
-          :value="stats.users?.new_7d || 0"
+          :value="stats.users?.new_users_7d || 0"
           icon="🆕"
           color="teal"
           small
@@ -63,7 +63,7 @@
         />
         <StatsCard
           title="Achievements"
-          :value="stats.gaming?.achievements_unlocked || 0"
+          :value="stats.gaming?.total_achievements || 0"
           icon="🏆"
           color="amber"
           small
@@ -124,7 +124,7 @@
               </div>
               <div class="text-right">
                 <div class="text-sm font-medium text-gray-900">Niv. {{ user.level }}</div>
-                <div class="text-xs text-gray-500">{{ user.transactions_count }} tx</div>
+                <div class="text-xs text-gray-500">{{ user.transactions_count || 0 }} tx</div>
               </div>
             </div>
           </div>
@@ -235,8 +235,14 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import api from '@/services/api'
+import { useApi } from '@/composables/core/useApi' // ✅ useApi au lieu de api service
 import StatsCard from '@/components/admin/StatsCard.vue'
+
+// ==========================================
+// SETUP
+// ==========================================
+
+const { get, post } = useApi() // ✅ Token ajouté automatiquement via authStore
 
 // ==========================================
 // STATE
@@ -314,7 +320,7 @@ function debouncedSearchUsers(): void {
 async function loadDashboard(): Promise<void> {
   loading.value = true
   try {
-    const response = await api.get<any>('/admin/dashboard')
+    const response = await get<any>('/admin/dashboard')
     if (response.success && response.data) {
       stats.value = response.data
     }
@@ -328,7 +334,7 @@ async function loadDashboard(): Promise<void> {
 async function loadUsers(page = 1): Promise<void> {
   usersLoading.value = true
   try {
-    const response = await api.get<any>('/admin/users', {
+    const response = await get<any>('/admin/users', {
       params: {
         page,
         per_page: 10,
@@ -352,7 +358,7 @@ async function loadUsers(page = 1): Promise<void> {
 async function loadActivityLogs(): Promise<void> {
   logsLoading.value = true
   try {
-    const response = await api.get<any[]>('/admin/activity-logs', {
+    const response = await get<any[]>('/admin/activity-logs', {
       params: { limit: 20 },
     })
     if (response.success && response.data) {
@@ -370,7 +376,7 @@ async function sendNotification(): Promise<void> {
 
   sendingNotification.value = true
   try {
-    const response = await api.post<any>('/admin/broadcast-notification', {
+    const response = await post<any>('/admin/broadcast-notification', {
       title: notification.title,
       message: notification.message,
       type: notification.type,
