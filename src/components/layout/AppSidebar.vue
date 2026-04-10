@@ -262,7 +262,7 @@ const weeklyRank = computed(() => sidebarRank.value || gamingStore.weeklyRank ||
 const unreadInsightsCount = computed(() => insightStore.unreadCount || 0)
 
 // ✅ Vérifier si l'utilisateur est admin
-const isAdmin = computed(() => authStore.user?.is_admin === true)
+const isAdmin = computed(() => !!authStore.user?.is_admin)
 
 // ✅ Navigation structure avec i18n + INSIGHTS
 const navigationItems = computed(() => [
