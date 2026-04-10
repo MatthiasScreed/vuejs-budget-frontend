@@ -1,18 +1,15 @@
 <template>
   <div class="max-w-7xl mx-auto px-4 py-6">
-    <!-- Header -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900">🛡️ Dashboard Admin</h1>
       <p class="text-gray-600 mt-2">Vue d'ensemble de CoinQuest</p>
     </div>
 
-    <!-- Loading -->
     <div v-if="loading" class="flex items-center justify-center py-12">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
     </div>
 
     <template v-else>
-      <!-- Stats Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <StatsCard
           title="Utilisateurs"
@@ -44,7 +41,6 @@
         />
       </div>
 
-      <!-- Secondary Stats -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <StatsCard
           title="Nouveaux (7j)"
@@ -77,7 +73,6 @@
         />
       </div>
 
-      <!-- Main Content Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <!-- Users List -->
         <div class="bg-white rounded-xl border border-gray-200 p-6">
@@ -115,21 +110,24 @@
                     <span
                       v-if="user.is_admin"
                       class="text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full"
+                      >Admin</span
                     >
-                      Admin
-                    </span>
                   </div>
                   <div class="text-sm text-gray-500">{{ user.email }}</div>
                 </div>
               </div>
               <div class="text-right">
-                <div class="text-sm font-medium text-gray-900">Niv. {{ user.level }}</div>
-                <div class="text-xs text-gray-500">{{ user.transactions_count || 0 }} tx</div>
+                <!-- ✅ FIX: level est un objet {level, total_xp...}, on accède à .level -->
+                <div class="text-sm font-medium text-gray-900">
+                  Niv. {{ user.level?.level || '-' }}
+                </div>
+                <div class="text-xs text-gray-500">
+                  {{ formatNumber(user.level?.total_xp || 0) }} XP
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Pagination -->
           <div v-if="usersPagination.last_page > 1" class="flex justify-center gap-2 mt-4">
             <button
               @click="loadUsers(usersPagination.current_page - 1)"
@@ -138,9 +136,9 @@
             >
               ←
             </button>
-            <span class="px-3 py-1 text-sm">
-              {{ usersPagination.current_page }} / {{ usersPagination.last_page }}
-            </span>
+            <span class="px-3 py-1 text-sm"
+              >{{ usersPagination.current_page }} / {{ usersPagination.last_page }}</span
+            >
             <button
               @click="loadUsers(usersPagination.current_page + 1)"
               :disabled="usersPagination.current_page === usersPagination.last_page"
@@ -166,13 +164,13 @@
               class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg"
             >
               <div
-                class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm"
+                class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm flex-shrink-0"
                 :class="getLogColor(log.type)"
               >
                 {{ getLogIcon(log.type) }}
               </div>
               <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-gray-900">{{ log.action }}</div>
+                <div class="text-sm font-medium text-gray-900 truncate">{{ log.action }}</div>
                 <div class="text-xs text-gray-500">
                   {{ log.user }} • {{ formatTimeAgo(log.created_at) }}
                 </div>
@@ -185,7 +183,6 @@
       <!-- Broadcast Notification -->
       <div class="bg-white rounded-xl border border-gray-200 p-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">📢 Envoyer une notification</h2>
-
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Titre</label>
@@ -235,18 +232,10 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { useApi } from '@/composables/core/useApi' // ✅ useApi au lieu de api service
+import { useApi } from '@/composables/core/useApi'
 import StatsCard from '@/components/admin/StatsCard.vue'
 
-// ==========================================
-// SETUP
-// ==========================================
-
-const { get, post } = useApi() // ✅ Token ajouté automatiquement via authStore
-
-// ==========================================
-// STATE
-// ==========================================
+const { get, post } = useApi()
 
 const loading = ref(true)
 const usersLoading = ref(false)
@@ -259,31 +248,21 @@ const userSearch = ref('')
 const usersPagination = ref({ current_page: 1, last_page: 1 })
 const activityLogs = ref<any[]>([])
 
-const notification = reactive({
-  title: '',
-  message: '',
-  type: 'info',
-})
-
-// ==========================================
-// METHODS
-// ==========================================
+const notification = reactive({ title: '', message: '', type: 'info' })
 
 function formatNumber(num: number): string {
   if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
   if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
-  return num.toLocaleString('fr-FR')
+  return Number(num).toLocaleString('fr-FR')
 }
 
 function formatTimeAgo(dateString: string): string {
   if (!dateString) return ''
   const date = new Date(dateString)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
+  const diffMs = Date.now() - date.getTime()
   const diffMins = Math.floor(diffMs / 60000)
   const diffHours = Math.floor(diffMs / 3600000)
   const diffDays = Math.floor(diffMs / 86400000)
-
   if (diffMins < 1) return "À l'instant"
   if (diffMins < 60) return `Il y a ${diffMins}min`
   if (diffHours < 24) return `Il y a ${diffHours}h`
@@ -292,23 +271,24 @@ function formatTimeAgo(dateString: string): string {
 }
 
 function getLogIcon(type: string): string {
-  const icons: Record<string, string> = {
-    transaction: '💳',
-    goal: '🎯',
-    achievement: '🏆',
-    user: '👤',
-  }
-  return icons[type] || '📝'
+  return (
+    ({ transaction: '💳', goal: '🎯', achievement: '🏆', user: '👤' } as Record<string, string>)[
+      type
+    ] || '📝'
+  )
 }
 
 function getLogColor(type: string): string {
-  const colors: Record<string, string> = {
-    transaction: 'bg-green-500',
-    goal: 'bg-purple-500',
-    achievement: 'bg-yellow-500',
-    user: 'bg-blue-500',
-  }
-  return colors[type] || 'bg-gray-500'
+  return (
+    (
+      {
+        transaction: 'bg-green-500',
+        goal: 'bg-purple-500',
+        achievement: 'bg-yellow-500',
+        user: 'bg-blue-500',
+      } as Record<string, string>
+    )[type] || 'bg-gray-500'
+  )
 }
 
 let searchTimeout: ReturnType<typeof setTimeout>
@@ -321,9 +301,7 @@ async function loadDashboard(): Promise<void> {
   loading.value = true
   try {
     const response = await get<any>('/admin/dashboard')
-    if (response.success && response.data) {
-      stats.value = response.data
-    }
+    if (response.success && response.data) stats.value = response.data
   } catch (error) {
     console.error('Erreur chargement dashboard:', error)
   } finally {
@@ -335,11 +313,7 @@ async function loadUsers(page = 1): Promise<void> {
   usersLoading.value = true
   try {
     const response = await get<any>('/admin/users', {
-      params: {
-        page,
-        per_page: 10,
-        search: userSearch.value || undefined,
-      },
+      params: { page, per_page: 10, search: userSearch.value || undefined },
     })
     if (response.success && response.data) {
       users.value = response.data.data || []
@@ -358,12 +332,8 @@ async function loadUsers(page = 1): Promise<void> {
 async function loadActivityLogs(): Promise<void> {
   logsLoading.value = true
   try {
-    const response = await get<any[]>('/admin/activity-logs', {
-      params: { limit: 20 },
-    })
-    if (response.success && response.data) {
-      activityLogs.value = response.data
-    }
+    const response = await get<any[]>('/admin/activity-logs', { params: { limit: 20 } })
+    if (response.success && response.data) activityLogs.value = response.data
   } catch (error) {
     console.error('Erreur chargement logs:', error)
   } finally {
@@ -373,15 +343,9 @@ async function loadActivityLogs(): Promise<void> {
 
 async function sendNotification(): Promise<void> {
   if (!notification.title || !notification.message) return
-
   sendingNotification.value = true
   try {
-    const response = await post<any>('/admin/broadcast-notification', {
-      title: notification.title,
-      message: notification.message,
-      type: notification.type,
-    })
-
+    const response = await post<any>('/admin/broadcast-notification', { ...notification })
     if (response.success) {
       alert(`✅ ${response.message}`)
       notification.title = ''
@@ -389,16 +353,11 @@ async function sendNotification(): Promise<void> {
       notification.type = 'info'
     }
   } catch (error) {
-    console.error('Erreur envoi notification:', error)
     alert("❌ Erreur lors de l'envoi")
   } finally {
     sendingNotification.value = false
   }
 }
-
-// ==========================================
-// LIFECYCLE
-// ==========================================
 
 onMounted(async () => {
   await Promise.all([loadDashboard(), loadUsers(), loadActivityLogs()])
