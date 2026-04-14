@@ -95,7 +95,8 @@
             <div
               v-for="user in users"
               :key="user.id"
-              class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
+              @click="openNotifyModal(user)"
             >
               <div class="flex items-center gap-3">
                 <div
@@ -117,7 +118,6 @@
                 </div>
               </div>
               <div class="text-right">
-                <!-- ✅ FIX: level est un objet {level, total_xp...}, on accède à .level -->
                 <div class="text-sm font-medium text-gray-900">
                   Niv. {{ user.level?.level || '-' }}
                 </div>
@@ -227,6 +227,91 @@
         </div>
       </div>
     </template>
+
+    <!-- ✅ Modal - Notification individuelle -->
+    <teleport to="body">
+      <transition
+        enter-active-class="transition-opacity duration-200"
+        leave-active-class="transition-opacity duration-200"
+        enter-from-class="opacity-0"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="showNotifyModal"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          @click.self="closeNotifyModal"
+        >
+          <div
+            class="bg-white rounded-xl border border-gray-200 shadow-2xl w-full max-w-md mx-4"
+            @click.stop
+          >
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-gray-200">
+              <h3 class="text-lg font-semibold text-gray-900">
+                Notifier {{ selectedUser?.name }}
+              </h3>
+              <p class="text-sm text-gray-500 mt-1">{{ selectedUser?.email }}</p>
+            </div>
+
+            <!-- Form -->
+            <div class="px-6 py-4 space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+                <input
+                  v-model="userNotification.title"
+                  type="text"
+                  placeholder="Titre de la notification"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <select
+                  v-model="userNotification.type"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                >
+                  <option value="info">Info</option>
+                  <option value="success">Succès</option>
+                  <option value="warning">Attention</option>
+                  <option value="error">Erreur</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                <textarea
+                  v-model="userNotification.message"
+                  rows="4"
+                  placeholder="Contenu du message..."
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                @click="closeNotifyModal"
+                class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                @click="sendUserNotification"
+                :disabled="
+                  !userNotification.title || !userNotification.message || sendingUserNotification
+                "
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <span v-if="sendingUserNotification">Envoi...</span>
+                <span v-else>Envoyer</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </teleport>
   </div>
 </template>
 
@@ -249,6 +334,12 @@ const usersPagination = ref({ current_page: 1, last_page: 1 })
 const activityLogs = ref<any[]>([])
 
 const notification = reactive({ title: '', message: '', type: 'info' })
+
+// ✅ État du modal de notification individuelle
+const showNotifyModal = ref(false)
+const selectedUser = ref<any>(null)
+const sendingUserNotification = ref(false)
+const userNotification = reactive({ title: '', message: '', type: 'info' as string })
 
 function formatNumber(num: number): string {
   if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
@@ -356,6 +447,50 @@ async function sendNotification(): Promise<void> {
     alert("❌ Erreur lors de l'envoi")
   } finally {
     sendingNotification.value = false
+  }
+}
+
+// ✅ Ouvrir le modal de notification individuelle
+function openNotifyModal(user: any): void {
+  selectedUser.value = user
+  userNotification.title = ''
+  userNotification.message = ''
+  userNotification.type = 'info'
+  showNotifyModal.value = true
+}
+
+// ✅ Fermer le modal
+function closeNotifyModal(): void {
+  showNotifyModal.value = false
+  selectedUser.value = null
+  userNotification.title = ''
+  userNotification.message = ''
+  userNotification.type = 'info'
+}
+
+// ✅ Envoyer la notification à l'utilisateur sélectionné
+async function sendUserNotification(): Promise<void> {
+  if (!selectedUser.value || !userNotification.title || !userNotification.message) return
+
+  sendingUserNotification.value = true
+  try {
+    const response = await post<any>(
+      `/admin/users/${selectedUser.value.id}/notify`,
+      {
+        title: userNotification.title,
+        message: userNotification.message,
+        type: userNotification.type,
+      }
+    )
+
+    if (response.success) {
+      alert(`✅ ${response.message}`)
+      closeNotifyModal()
+    }
+  } catch (error) {
+    alert("❌ Erreur lors de l'envoi")
+  } finally {
+    sendingUserNotification.value = false
   }
 }
 
