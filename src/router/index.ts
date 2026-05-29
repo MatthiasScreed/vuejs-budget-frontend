@@ -28,6 +28,9 @@ const Gaming = () => import('@/views/Gaming.vue')
 const Achievements = () => import('@/views/Achievements.vue')
 const Challenges = () => import('@/views/Challenges.vue')
 
+// ✅ MVP - Quest Dashboard
+const QuestDashboard = () => import('@/views/QuestDashboard.vue')
+
 // Pages Admin
 const AdminDashboard = () => import('@/views/AdminDashboard.vue')
 
@@ -70,6 +73,19 @@ const routes = [
     meta: {
       requiresAuth: false,
       title: 'Inscription - CoinQuest',
+    },
+  },
+
+  // ==========================================
+  // ⚔️ MVP QUEST (sans AppLayout - expérience immersive)
+  // ==========================================
+  {
+    path: '/quete',
+    name: 'Quest',
+    component: QuestDashboard,
+    meta: {
+      requiresAuth: true,
+      title: 'Ma Quête - CoinQuest',
     },
   },
 
@@ -196,10 +212,10 @@ const routes = [
         },
       },
 
-      // Redirection /app → /app/dashboard
+      // Redirection /app → /quete (MVP)
       {
         path: '',
-        redirect: { name: 'Dashboard' },
+        redirect: { name: 'Quest' },
       },
     ],
   },
@@ -208,7 +224,7 @@ const routes = [
   // 🔀 REDIRECTIONS (compatibilité anciennes URLs)
   // ==========================================
   { path: '/home', redirect: { name: 'Landing' } },
-  { path: '/dashboard', redirect: { name: 'Dashboard' } },
+  { path: '/dashboard', redirect: { name: 'Quest' } }, // ← redirige vers la quête
   { path: '/transactions', redirect: { name: 'Transactions' } },
   { path: '/goals', redirect: { name: 'Goals' } },
   { path: '/categories', redirect: { name: 'Categories' } },
@@ -264,8 +280,8 @@ router.beforeEach(async (to, from, next) => {
   // Routes publiques
   if (!requiresAuth) {
     if (authStore.isAuthenticated && (to.name === 'Login' || to.name === 'Register')) {
-      console.log('✅ Déjà connecté, redirection dashboard')
-      next({ name: 'Dashboard' })
+      console.log('✅ Déjà connecté, redirection quête')
+      next({ name: 'Quest' })
       return
     }
     next()
@@ -276,10 +292,9 @@ router.beforeEach(async (to, from, next) => {
   if (authStore.isAuthenticated && authStore.user) {
     console.log('✅ Utilisateur authentifié:', authStore.user.email)
 
-    // Vérifier si la route nécessite les droits admin
     if (requiresAdmin && !authStore.user.is_admin) {
       console.log('⚠️ Accès refusé - Droits admin requis')
-      next({ name: 'Dashboard' })
+      next({ name: 'Quest' })
       return
     }
 
@@ -300,10 +315,9 @@ router.beforeEach(async (to, from, next) => {
       authStore.isInitialized = true
       console.log('✅ Session restaurée depuis localStorage')
 
-      // Vérifier admin après restauration
       if (requiresAdmin && !user.is_admin) {
         console.log('⚠️ Accès refusé - Droits admin requis')
-        next({ name: 'Dashboard' })
+        next({ name: 'Quest' })
         return
       }
 
