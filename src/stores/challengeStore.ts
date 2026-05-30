@@ -6,7 +6,7 @@ import type {
   UserChallenge,
   ChallengeParticipation,
   ChallengeLeaderboard
-} from '@/types/entities/challenge'
+} from '@/types/entities/gaming'
 import { useNotificationStore } from './notificationStore'
 
 export const useChallengeStore = defineStore('challenge', () => {
@@ -177,6 +177,12 @@ export const useChallengeStore = defineStore('challenge', () => {
         throw new Error(response.message || 'Erreur lors du chargement des défis')
       }
     } catch (err: any) {
+      const status = err?.response?.status ?? err?.status
+      if (status === 404) {
+        console.warn('Challenges API indisponible (404) — liste vide')
+        challenges.value = []
+        return
+      }
       error.value = err.message || 'Erreur lors du chargement des défis'
       console.error('Erreur fetchChallenges:', err)
     } finally {
@@ -200,6 +206,12 @@ export const useChallengeStore = defineStore('challenge', () => {
         throw new Error(response.message || 'Erreur lors du chargement de mes défis')
       }
     } catch (err: any) {
+      const status = err?.response?.status ?? err?.status
+      if (status === 404) {
+        console.warn('User challenges API indisponible (404) — liste vide')
+        userChallenges.value = []
+        return
+      }
       error.value = err.message || 'Erreur lors du chargement de mes défis'
       console.error('Erreur fetchUserChallenges:', err)
     } finally {

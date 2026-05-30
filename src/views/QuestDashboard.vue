@@ -1,6 +1,5 @@
 <template>
   <div class="quest-dashboard">
-
     <!-- ═══════════════════════════════════════
          HEADER — Streak + Niveau
     ══════════════════════════════════════════ -->
@@ -14,7 +13,7 @@
       </div>
 
       <div class="header-center">
-        <img src="/icons/icon-72x72.png" alt="CoinQuest" class="logo" />
+        <span class="logo-text">⚔️</span>
       </div>
 
       <div class="header-right">
@@ -30,10 +29,7 @@
     ══════════════════════════════════════════ -->
     <div class="xp-bar-container">
       <div class="xp-bar-track">
-        <div
-          class="xp-bar-fill"
-          :style="{ width: gamingStore.xpPercentage + '%' }"
-        ></div>
+        <div class="xp-bar-fill" :style="{ width: gamingStore.xpPercentage + '%' }"></div>
       </div>
       <span class="xp-text">
         {{ gamingStore.player.currentXP }} / {{ gamingStore.player.maxXP }} XP
@@ -64,7 +60,6 @@
          CARTE QUÊTE PRINCIPALE
     ══════════════════════════════════════════ -->
     <div v-else class="quest-main">
-
       <!-- Nom de la quête -->
       <div class="quest-card">
         <div class="quest-card-top">
@@ -75,18 +70,13 @@
               Plus que <strong>{{ formatCurrency(goalStore.calculateRemaining(mainGoal)) }}</strong>
             </p>
           </div>
-          <button class="btn-quest-menu" @click="showGoalSelector = !showGoalSelector">
-            ⋮
-          </button>
+          <button class="btn-quest-menu" @click="showGoalSelector = !showGoalSelector">⋮</button>
         </div>
 
         <!-- Barre de progression -->
         <div class="progress-section">
           <div class="progress-track">
-            <div
-              class="progress-fill"
-              :style="{ width: progressPercent + '%' }"
-            >
+            <div class="progress-fill" :style="{ width: progressPercent + '%' }">
               <div class="progress-glow"></div>
             </div>
           </div>
@@ -108,7 +98,11 @@
       <!-- ═══════════════════════════════════════
            DÉFI DU JOUR
       ══════════════════════════════════════════ -->
-      <div v-if="dailyChallenge" class="challenge-card" :class="{ 'challenge-done': dailyChallenge.completed }">
+      <div
+        v-if="dailyChallenge"
+        class="challenge-card"
+        :class="{ 'challenge-done': dailyChallenge.completed }"
+      >
         <div class="challenge-header">
           <span class="challenge-tag">🎯 Défi du jour</span>
           <span class="challenge-reward">+{{ dailyChallenge.xp_reward }} XP</span>
@@ -122,9 +116,7 @@
         >
           {{ completingChallenge ? '...' : '✓ Relevé !' }}
         </button>
-        <div v-else class="challenge-completed-badge">
-          ✅ Complété
-        </div>
+        <div v-else class="challenge-completed-badge">✅ Complété</div>
       </div>
 
       <!-- ═══════════════════════════════════════
@@ -143,14 +135,17 @@
 
       <!-- Message de momentum -->
       <p class="momentum-message">{{ momentumMessage }}</p>
-
     </div>
 
     <!-- ═══════════════════════════════════════
          SÉLECTEUR DE QUÊTE (dropdown)
     ══════════════════════════════════════════ -->
     <Transition name="slide-up">
-      <div v-if="showGoalSelector" class="goal-selector-overlay" @click.self="showGoalSelector = false">
+      <div
+        v-if="showGoalSelector"
+        class="goal-selector-overlay"
+        @click.self="showGoalSelector = false"
+      >
         <div class="goal-selector">
           <h3>Changer de quête</h3>
           <button
@@ -176,7 +171,6 @@
     <Transition name="slide-up">
       <div v-if="showActionModal" class="action-overlay" @click.self="closeAction">
         <div class="action-modal">
-
           <!-- Header modal -->
           <div class="modal-header">
             <span class="modal-title">
@@ -234,8 +228,11 @@
           <!-- Impact quête -->
           <div v-if="actionAmount && actionType === 'save' && mainGoal" class="impact-preview">
             <span class="impact-text">
-              🎯 +{{ ((parseFloat(actionAmount) / goalStore.calculateRemaining(mainGoal)) * 100).toFixed(1) }}%
-              vers {{ mainGoal.name }}
+              🎯 +{{
+                ((parseFloat(actionAmount) / goalStore.calculateRemaining(mainGoal)) * 100).toFixed(
+                  1,
+                )
+              }}% vers {{ mainGoal.name }}
             </span>
           </div>
 
@@ -248,10 +245,9 @@
           >
             <span v-if="submitting">...</span>
             <span v-else>
-              {{ actionType === 'save' ? '✓ Confirmer l\'économie' : '✓ Enregistrer la dépense' }}
+              {{ actionType === 'save' ? "✓ Confirmer l'économie" : '✓ Enregistrer la dépense' }}
             </span>
           </button>
-
         </div>
       </div>
     </Transition>
@@ -260,11 +256,8 @@
          ANIMATION XP GAIN
     ══════════════════════════════════════════ -->
     <Transition name="xp-pop">
-      <div v-if="showXPGain" class="xp-gain-popup">
-        +{{ lastXPGain }} XP ⚡
-      </div>
+      <div v-if="showXPGain" class="xp-gain-popup">+{{ lastXPGain }} XP ⚡</div>
     </Transition>
-
   </div>
 </template>
 
@@ -275,25 +268,26 @@ import { useGamingStore } from '@/stores/gamingStore'
 import { useStreakStore } from '@/stores/streakStore'
 import { useChallengeStore } from '@/stores/challengeStore'
 import type { FinancialGoal } from '@/types/entities/gaming'
+import QuickActionModal from '@/components/QuickActionModal.vue'
 
 // ─── Stores ───────────────────────────────
-const goalStore     = useGoalStore()
-const gamingStore   = useGamingStore()
-const streakStore   = useStreakStore()
+const goalStore = useGoalStore()
+const gamingStore = useGamingStore()
+const streakStore = useStreakStore()
 const challengeStore = useChallengeStore()
 
 // ─── État local ───────────────────────────
-const selectedGoalId    = ref<number | null>(null)
-const showActionModal   = ref(false)
-const showGoalSelector  = ref(false)
-const actionType        = ref<'save' | 'spend'>('save')
-const actionAmount      = ref('')
-const selectedReason    = ref('')
-const spendDescription  = ref('')
-const submitting        = ref(false)
+const selectedGoalId = ref<number | null>(null)
+const showActionModal = ref(false)
+const showGoalSelector = ref(false)
+const actionType = ref<'save' | 'spend'>('save')
+const actionAmount = ref('')
+const selectedReason = ref('')
+const spendDescription = ref('')
+const submitting = ref(false)
 const completingChallenge = ref(false)
-const showXPGain        = ref(false)
-const lastXPGain        = ref(0)
+const showXPGain = ref(false)
+const lastXPGain = ref(0)
 
 // ─── Constantes ───────────────────────────
 const saveReasons = [
@@ -303,19 +297,22 @@ const saveReasons = [
   { emoji: '✨', label: 'Autre' },
 ]
 
-const numpadKeys = ['1','2','3','4','5','6','7','8','9','.','0','⌫']
+const numpadKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', '⌫']
 
 // ─── Computed ─────────────────────────────
 const mainGoal = computed<FinancialGoal | null>(() => {
   if (selectedGoalId.value) {
-    return goalStore.goals.find(g => g.id === selectedGoalId.value) || null
+    return goalStore.goals.find((g) => g.id === selectedGoalId.value) || null
   }
   return goalStore.activeGoals[0] || null
 })
 
+// Remplace les appels directs par des versions sécurisées
 const progressPercent = computed(() => {
   if (!mainGoal.value) return 0
-  return goalStore.calculateProgress(mainGoal.value)
+  const current = mainGoal.value.current_amount ?? 0
+  const target = mainGoal.value.target_amount ?? 1
+  return Math.min(Math.round((current / target) * 100), 100)
 })
 
 const daysRemaining = computed(() => {
@@ -323,26 +320,24 @@ const daysRemaining = computed(() => {
   return goalStore.calculateDaysRemaining(mainGoal.value)
 })
 
-const currentStreakCount = computed(() =>
-  streakStore.longestActiveStreak?.current_count ?? gamingStore.player.currentStreak
+const currentStreakCount = computed(
+  () => streakStore.longestActiveStreak?.current_count ?? gamingStore.player.currentStreak,
 )
 
-const isStreakDanger = computed(() =>
-  streakStore.streaksNeedingAttention.length > 0
-)
+const isStreakDanger = computed(() => streakStore.streaksNeedingAttention.length > 0)
 
 const dailyChallenge = computed(() => {
   const active = challengeStore.activeChallenges[0]
   if (!active) return null
-  const userChallenge = challengeStore.userChallenges.find(uc => uc.challenge_id === active.id)
+  const userChallenge = challengeStore.userChallenges.find((uc) => uc.challenge_id === active.id)
   return {
     ...active,
     completed: userChallenge?.status === 'completed',
-    xp_reward: active.xp_reward ?? 20
+    xp_reward: active.xp_reward ?? 20,
   }
 })
 
-const questIcon = computed(() => mainGoal.value ? getGoalIcon(mainGoal.value.name) : '🎯')
+const questIcon = computed(() => (mainGoal.value ? getGoalIcon(mainGoal.value.name) : '🎯'))
 
 const momentumMessage = computed(() => {
   const pct = progressPercent.value
@@ -350,7 +345,7 @@ const momentumMessage = computed(() => {
   if (pct >= 75) return '⚡ Excellent rythme, continue comme ça !'
   if (pct >= 50) return '💪 Mi-chemin, tu avances bien !'
   if (pct >= 25) return '🚀 Bonne dynamique, garde le cap !'
-  return '🌱 Chaque euro compte. C\'est parti !'
+  return "🌱 Chaque euro compte. C'est parti !"
 })
 
 // ─── Méthodes ─────────────────────────────
@@ -371,7 +366,7 @@ function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'EUR',
-    maximumFractionDigits: 0
+    maximumFractionDigits: 0,
   }).format(amount)
 }
 
@@ -413,7 +408,7 @@ async function submitAction(): Promise<void> {
       await goalStore.addContribution(
         mainGoal.value.id,
         amount,
-        selectedReason.value || 'Économie manuelle'
+        selectedReason.value || 'Économie manuelle',
       )
       await streakStore.recordSavingsActivity(amount)
       triggerXPGain(10)
@@ -442,16 +437,20 @@ async function completeChallenge(): Promise<void> {
 function triggerXPGain(xp: number): void {
   lastXPGain.value = xp
   showXPGain.value = true
-  setTimeout(() => { showXPGain.value = false }, 1500)
+  setTimeout(() => {
+    showXPGain.value = false
+  }, 1500)
 }
 
 // ─── Lifecycle ────────────────────────────
 onMounted(async () => {
-  await Promise.all([
-    goalStore.fetchGoals(),
-    streakStore.fetchStreaks(),
-    challengeStore.fetchChallenges?.(),
-  ])
+  await Promise.all([goalStore.fetchGoals(), streakStore.fetchStreaks()])
+  try {
+    await challengeStore.fetchChallenges?.()
+    await challengeStore.fetchUserChallenges?.()
+  } catch {
+    // API défis non encore disponible — on ignore silencieusement
+  }
 })
 </script>
 
@@ -479,16 +478,15 @@ onMounted(async () => {
   padding: calc(env(safe-area-inset-top) + 16px) 20px 12px;
   background: rgba(15, 15, 35, 0.8);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
-.logo {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+.logo-text {
+  font-size: 24px;
+  line-height: 1;
 }
 
 .streak-badge {
@@ -509,13 +507,27 @@ onMounted(async () => {
 }
 
 @keyframes pulse-danger {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
-.streak-fire { font-size: 16px; }
-.streak-count { font-size: 18px; font-weight: 700; color: #ff6b00; }
-.streak-label { font-size: 11px; color: rgba(255,255,255,0.5); }
+.streak-fire {
+  font-size: 16px;
+}
+.streak-count {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ff6b00;
+}
+.streak-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
 
 .level-badge {
   display: flex;
@@ -527,8 +539,15 @@ onMounted(async () => {
   padding: 6px 12px;
 }
 
-.level-label { font-size: 11px; color: rgba(255,255,255,0.5); }
-.level-number { font-size: 18px; font-weight: 700; color: #a78bfa; }
+.level-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+.level-number {
+  font-size: 18px;
+  font-weight: 700;
+  color: #a78bfa;
+}
 
 /* ═══════════════════════════════════════════
    XP BAR
@@ -543,7 +562,7 @@ onMounted(async () => {
 .xp-bar-track {
   flex: 1;
   height: 4px;
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -557,7 +576,7 @@ onMounted(async () => {
 
 .xp-text {
   font-size: 10px;
-  color: rgba(255,255,255,0.35);
+  color: rgba(255, 255, 255, 0.35);
   white-space: nowrap;
 }
 
@@ -571,7 +590,7 @@ onMounted(async () => {
   justify-content: center;
   padding: 80px 20px;
   gap: 16px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .loading-orb {
@@ -583,7 +602,11 @@ onMounted(async () => {
   animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 .empty-quest {
   display: flex;
@@ -594,9 +617,19 @@ onMounted(async () => {
   text-align: center;
 }
 
-.empty-orb { font-size: 64px; }
-.empty-quest h2 { font-size: 22px; font-weight: 700; margin: 0; }
-.empty-quest p { color: rgba(255,255,255,0.4); margin: 0; font-size: 14px; }
+.empty-orb {
+  font-size: 64px;
+}
+.empty-quest h2 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+.empty-quest p {
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+  font-size: 14px;
+}
 
 .btn-create-quest {
   margin-top: 16px;
@@ -608,10 +641,15 @@ onMounted(async () => {
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s, opacity 0.2s;
+  transition:
+    transform 0.2s,
+    opacity 0.2s;
 }
 
-.btn-create-quest:active { transform: scale(0.96); opacity: 0.9; }
+.btn-create-quest:active {
+  transform: scale(0.96);
+  opacity: 0.9;
+}
 
 /* ═══════════════════════════════════════════
    QUEST MAIN CONTENT
@@ -625,8 +663,8 @@ onMounted(async () => {
 
 /* ─── Quest Card ─── */
 .quest-card {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 20px;
   backdrop-filter: blur(8px);
@@ -639,9 +677,14 @@ onMounted(async () => {
   margin-bottom: 20px;
 }
 
-.quest-icon { font-size: 36px; line-height: 1; }
+.quest-icon {
+  font-size: 36px;
+  line-height: 1;
+}
 
-.quest-info { flex: 1; }
+.quest-info {
+  flex: 1;
+}
 
 .quest-name {
   font-size: 22px;
@@ -653,16 +696,18 @@ onMounted(async () => {
 
 .quest-remaining {
   font-size: 13px;
-  color: rgba(255,255,255,0.45);
+  color: rgba(255, 255, 255, 0.45);
   margin: 0;
 }
 
-.quest-remaining strong { color: #a78bfa; }
+.quest-remaining strong {
+  color: #a78bfa;
+}
 
 .btn-quest-menu {
   background: none;
   border: none;
-  color: rgba(255,255,255,0.3);
+  color: rgba(255, 255, 255, 0.3);
   font-size: 20px;
   cursor: pointer;
   padding: 4px;
@@ -670,11 +715,13 @@ onMounted(async () => {
 }
 
 /* ─── Progress ─── */
-.progress-section { margin-bottom: 12px; }
+.progress-section {
+  margin-bottom: 12px;
+}
 
 .progress-track {
   height: 12px;
-  background: rgba(255,255,255,0.07);
+  background: rgba(255, 255, 255, 0.07);
   border-radius: 6px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -708,17 +755,28 @@ onMounted(async () => {
   font-size: 12px;
 }
 
-.progress-current { color: #34d399; font-weight: 600; }
-.progress-percent { color: rgba(255,255,255,0.7); font-weight: 700; font-size: 14px; }
-.progress-target { color: rgba(255,255,255,0.35); }
+.progress-current {
+  color: #34d399;
+  font-weight: 600;
+}
+.progress-percent {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 700;
+  font-size: 14px;
+}
+.progress-target {
+  color: rgba(255, 255, 255, 0.35);
+}
 
 .quest-deadline {
   font-size: 12px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.4);
   text-align: center;
 }
 
-.deadline-passed { color: #f87171; }
+.deadline-passed {
+  color: #f87171;
+}
 
 /* ─── Challenge Card ─── */
 .challenge-card {
@@ -741,7 +799,11 @@ onMounted(async () => {
   margin-bottom: 8px;
 }
 
-.challenge-tag { font-size: 12px; color: #fbbf24; font-weight: 600; }
+.challenge-tag {
+  font-size: 12px;
+  color: #fbbf24;
+  font-weight: 600;
+}
 .challenge-reward {
   font-size: 12px;
   background: rgba(234, 179, 8, 0.15);
@@ -770,8 +832,13 @@ onMounted(async () => {
   transition: all 0.2s;
 }
 
-.btn-challenge:active { transform: scale(0.97); }
-.btn-challenge:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-challenge:active {
+  transform: scale(0.97);
+}
+.btn-challenge:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 .challenge-completed-badge {
   text-align: center;
@@ -797,23 +864,30 @@ onMounted(async () => {
   border: none;
   border-radius: 18px;
   cursor: pointer;
-  transition: transform 0.15s, opacity 0.15s;
+  transition:
+    transform 0.15s,
+    opacity 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 
-.btn-action:active { transform: scale(0.95); opacity: 0.9; }
+.btn-action:active {
+  transform: scale(0.95);
+  opacity: 0.9;
+}
 
 .btn-save {
-  background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(52,211,153,0.1));
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.1));
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .btn-spend {
-  background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(248,113,113,0.1));
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(248, 113, 113, 0.1));
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
-.action-icon { font-size: 28px; }
+.action-icon {
+  font-size: 28px;
+}
 
 .action-label {
   font-size: 13px;
@@ -824,7 +898,7 @@ onMounted(async () => {
 .momentum-message {
   text-align: center;
   font-size: 13px;
-  color: rgba(255,255,255,0.35);
+  color: rgba(255, 255, 255, 0.35);
   margin: 0;
   padding: 4px 0;
 }
@@ -835,7 +909,7 @@ onMounted(async () => {
 .goal-selector-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   z-index: 50;
   display: flex;
   align-items: flex-end;
@@ -844,7 +918,7 @@ onMounted(async () => {
 .goal-selector {
   width: 100%;
   background: #1a1a2e;
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px 20px 0 0;
   padding: 20px 20px calc(env(safe-area-inset-bottom) + 20px);
   display: flex;
@@ -854,7 +928,7 @@ onMounted(async () => {
 
 .goal-selector h3 {
   font-size: 14px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.4);
   margin: 0 0 8px;
   text-align: center;
 }
@@ -864,8 +938,8 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   padding: 14px 16px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   color: #f1f5f9;
   font-size: 15px;
@@ -878,14 +952,17 @@ onMounted(async () => {
   border-color: rgba(139, 92, 246, 0.3);
 }
 
-.goal-selector-progress { color: rgba(255,255,255,0.4); font-size: 13px; }
+.goal-selector-progress {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+}
 
 .goal-selector-new {
   padding: 14px;
   background: none;
-  border: 1px dashed rgba(255,255,255,0.15);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
   border-radius: 12px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.4);
   font-size: 14px;
   cursor: pointer;
   text-align: center;
@@ -897,7 +974,7 @@ onMounted(async () => {
 .action-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
   z-index: 100;
   display: flex;
   align-items: flex-end;
@@ -906,7 +983,7 @@ onMounted(async () => {
 .action-modal {
   width: 100%;
   background: #1a1a2e;
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 24px 24px 0 0;
   padding: 20px 20px calc(env(safe-area-inset-bottom) + 16px);
   display: flex;
@@ -920,12 +997,15 @@ onMounted(async () => {
   align-items: center;
 }
 
-.modal-title { font-size: 16px; font-weight: 600; }
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+}
 
 .modal-close {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   border: none;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -945,9 +1025,16 @@ onMounted(async () => {
   padding: 8px 0;
 }
 
-.amount-sign { font-size: 28px; font-weight: 700; }
-.sign-plus { color: #34d399; }
-.sign-minus { color: #f87171; }
+.amount-sign {
+  font-size: 28px;
+  font-weight: 700;
+}
+.sign-plus {
+  color: #34d399;
+}
+.sign-minus {
+  color: #f87171;
+}
 
 .amount-value {
   font-size: 52px;
@@ -958,7 +1045,10 @@ onMounted(async () => {
   text-align: center;
 }
 
-.amount-currency { font-size: 24px; color: rgba(255,255,255,0.4); }
+.amount-currency {
+  font-size: 24px;
+  color: rgba(255, 255, 255, 0.4);
+}
 
 /* ─── Numpad ─── */
 .numpad {
@@ -969,7 +1059,7 @@ onMounted(async () => {
 
 .numpad-key {
   padding: 16px 8px;
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
   border: none;
   border-radius: 12px;
   color: #f1f5f9;
@@ -980,8 +1070,13 @@ onMounted(async () => {
   -webkit-tap-highlight-color: transparent;
 }
 
-.numpad-key:active { background: rgba(255,255,255,0.14); }
-.numpad-delete { color: rgba(255,255,255,0.4); font-size: 18px; }
+.numpad-key:active {
+  background: rgba(255, 255, 255, 0.14);
+}
+.numpad-delete {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 18px;
+}
 
 /* ─── Reasons ─── */
 .reasons-grid {
@@ -992,10 +1087,10 @@ onMounted(async () => {
 
 .reason-btn {
   padding: 10px 12px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
-  color: rgba(255,255,255,0.7);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
@@ -1012,8 +1107,8 @@ onMounted(async () => {
 .spend-desc-input {
   width: 100%;
   padding: 12px 16px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   color: #f1f5f9;
   font-size: 15px;
@@ -1021,8 +1116,12 @@ onMounted(async () => {
   box-sizing: border-box;
 }
 
-.spend-desc-input::placeholder { color: rgba(255,255,255,0.25); }
-.spend-desc-input:focus { border-color: rgba(139, 92, 246, 0.4); }
+.spend-desc-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+.spend-desc-input:focus {
+  border-color: rgba(139, 92, 246, 0.4);
+}
 
 /* ─── Impact preview ─── */
 .impact-preview {
@@ -1032,7 +1131,11 @@ onMounted(async () => {
   border-radius: 10px;
 }
 
-.impact-text { font-size: 13px; color: #34d399; font-weight: 600; }
+.impact-text {
+  font-size: 13px;
+  color: #34d399;
+  font-weight: 600;
+}
 
 /* ─── Confirm button ─── */
 .btn-confirm {
@@ -1043,11 +1146,18 @@ onMounted(async () => {
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.15s;
+  transition:
+    opacity 0.2s,
+    transform 0.15s;
 }
 
-.btn-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn-confirm:not(:disabled):active { transform: scale(0.97); }
+.btn-confirm:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.btn-confirm:not(:disabled):active {
+  transform: scale(0.97);
+}
 
 .btn-confirm-save {
   background: linear-gradient(135deg, #10b981, #059669);
@@ -1082,7 +1192,9 @@ onMounted(async () => {
 ══════════════════════════════════════════ */
 .slide-up-enter-active,
 .slide-up-leave-active {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s;
 }
 
 .slide-up-enter-from,
@@ -1091,16 +1203,32 @@ onMounted(async () => {
   opacity: 0;
 }
 
-.xp-pop-enter-active { animation: xp-bounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-.xp-pop-leave-active { animation: xp-fade 0.3s ease forwards; }
+.xp-pop-enter-active {
+  animation: xp-bounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.xp-pop-leave-active {
+  animation: xp-fade 0.3s ease forwards;
+}
 
 @keyframes xp-bounce {
-  from { transform: translateX(-50%) scale(0.5); opacity: 0; }
-  to   { transform: translateX(-50%) scale(1);   opacity: 1; }
+  from {
+    transform: translateX(-50%) scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes xp-fade {
-  from { transform: translateX(-50%) translateY(0); opacity: 1; }
-  to   { transform: translateX(-50%) translateY(-30px); opacity: 0; }
+  from {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-50%) translateY(-30px);
+    opacity: 0;
+  }
 }
 </style>
