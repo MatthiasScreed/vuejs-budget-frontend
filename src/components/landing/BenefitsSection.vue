@@ -20,65 +20,51 @@ import type { Benefit } from '@/types/landing.types'
 
 const { t } = useI18n()
 
-/**
- * Bénéfices traduits via i18n
- * École 42: Computed réactif à la locale
- */
 const benefits = computed<Benefit[]>(() => [
   {
-    id: 'goals',
+    id: 'quest',
     icon: '🎯',
-    title: t('benefits.goalsTitle', 'Objectifs intelligents'),
-    description: t(
-      'benefits.goalsDesc',
-      'Créez des objectifs réalistes et suivez votre progression en temps réel.',
-    ),
-    example: t('benefits.goalsEx', 'Exemple : 15 000€ pour un voyage en 18 mois'),
+    title: 'Une quête, un objectif',
+    description:
+      "Choisis ce qui te motive vraiment : voyage, MacBook, fonds d'urgence… et suis ta progression chaque jour.",
+    example: 'Exemple : Voyage au Japon — 1 250 € / 3 000 €',
   },
   {
-    id: 'automation',
-    icon: '🤖',
-    title: t('benefits.autoTitle', 'Catégorisation automatique'),
-    description: t(
-      'benefits.autoDesc',
-      "75% de vos transactions sont classées automatiquement grâce à l'IA.",
-    ),
-    example: t('benefits.autoEx', 'Gain de temps : 2h/mois économisées'),
+    id: 'streak',
+    icon: '🔥',
+    title: 'Série quotidienne',
+    description:
+      'Chaque jour où tu enregistres une action, ta série grandit. Plus elle est longue, plus tu gagnes de points.',
+    example: 'Exemple : 🔥 17 jours de série',
   },
   {
-    id: 'insights',
-    icon: '📊',
-    title: t('benefits.insightsTitle', 'Analyse détaillée'),
-    description: t(
-      'benefits.insightsDesc',
-      'Visualisez où part votre argent avec des graphiques clairs.',
-    ),
-    example: t('benefits.insightsEx', "Identifiez 3-5 postes d'optimisation"),
+    id: 'actions',
+    icon: '⚡',
+    title: 'Action en 30 secondes',
+    description:
+      'Enregistre une économie ou une dépense en moins de 30 secondes. Pas de tableau, pas de complexité.',
+    example: "Exemple : +15 € — J'ai cuisiné",
   },
   {
-    id: 'projections',
-    icon: '🔮',
-    title: t('benefits.projectionsTitle', 'Prévisions IA'),
-    description: t(
-      'benefits.projectionsDesc',
-      'Anticipez vos finances futures basées sur vos habitudes.',
-    ),
-    example: t('benefits.projectionsEx', 'Prédictions à 3, 6 et 12 mois'),
+    id: 'levels',
+    icon: '⭐',
+    title: 'Niveaux et XP',
+    description:
+      "Chaque action te rapporte de l'expérience. Monte en niveau, débloque des badges, reste motivé.",
+    example: 'Exemple : Niveau 8 — 1 505 XP',
   },
   {
-    id: 'security',
-    icon: '🔒',
-    title: t('benefits.securityTitle', 'Sécurité bancaire'),
-    description: t(
-      'benefits.securityDesc',
-      'Connexion sécurisée PSD2 via Bridge. Vos données restent en France.',
-    ),
-    example: t('benefits.securityEx', 'Certifié ACPR et agrégateur officiel'),
+    id: 'challenges',
+    icon: '🏆',
+    title: 'Défi du jour',
+    description:
+      "Un mini-défi quotidien pour t'encourager à aller plus loin : pas de livraison, moins de 5 € dépensés…",
+    example: 'Récompense : +20 XP bonus',
   },
   {
     id: 'mobile',
     icon: '📱',
-    title: t('benefits.mobileTitle', 'Application mobile'),
+    title: 'Partout, tout le temps',
     description: t('benefits.mobileDesc', 'Suivez vos finances partout, sur tous vos appareils.'),
     example: t('benefits.mobileEx', 'iOS, Android et Web'),
   },

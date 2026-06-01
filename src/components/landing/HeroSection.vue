@@ -22,11 +22,11 @@
         <div class="trust-badges">
           <div class="badge">
             <span class="badge-icon">🔒</span>
-            <span class="badge-text">{{ t('landing.trustPsd2') }}</span>
+            <span class="badge-text">Données privées</span>
           </div>
           <div class="badge">
             <span class="badge-icon">⚡</span>
-            <span class="badge-text">{{ t('landing.trustInstant') }}</span>
+            <span class="badge-text">Gratuit pendant la bêta</span>
           </div>
           <div class="badge">
             <span class="badge-icon">🇫🇷</span>

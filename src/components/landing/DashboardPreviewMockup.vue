@@ -1,101 +1,135 @@
+<!-- src/components/landing/DashboardPreviewMockup.vue -->
 <template>
   <div
-    class="dashboard-preview rounded-2xl shadow-2xl overflow-hidden bg-white border border-gray-200"
+    class="dashboard-preview rounded-2xl shadow-2xl overflow-hidden border border-gray-700"
+    style="background: #1a1a2e"
   >
-    <!-- Header mockup -->
-    <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
+    <!-- Header -->
+    <div class="px-5 py-4" style="background: linear-gradient(135deg, #312e81, #4c1d95)">
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 bg-white/20 rounded-lg"></div>
-          <div class="h-4 w-24 bg-white/30 rounded"></div>
+        <div class="flex items-center gap-2">
+          <div
+            class="w-7 h-7 rounded-lg flex items-center justify-center text-base"
+            style="background: rgba(255, 255, 255, 0.15)"
+          >
+            🪙
+          </div>
+          <span class="font-bold text-white text-sm">CoinQuest</span>
         </div>
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 bg-white/20 rounded-full"></div>
+          <span
+            class="text-xs font-semibold px-2 py-1 rounded-full"
+            style="background: rgba(249, 115, 22, 0.2); color: #fb923c"
+            >🔥 17j</span
+          >
         </div>
       </div>
     </div>
 
-    <!-- Dashboard content mockup -->
-    <div class="p-6 space-y-6">
-      <!-- Stats cards -->
-      <div class="grid grid-cols-3 gap-4">
-        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4">
-          <div class="text-xs text-green-600 font-medium mb-1">Revenus</div>
-          <div class="text-xl font-bold text-green-700">+2 450 €</div>
-          <div class="mt-2 h-2 bg-green-200 rounded-full">
-            <div class="h-full w-3/4 bg-green-500 rounded-full"></div>
-          </div>
-        </div>
-        <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-4">
-          <div class="text-xs text-red-600 font-medium mb-1">Dépenses</div>
-          <div class="text-xl font-bold text-red-700">-1 280 €</div>
-          <div class="mt-2 h-2 bg-red-200 rounded-full">
-            <div class="h-full w-1/2 bg-red-500 rounded-full"></div>
-          </div>
-        </div>
-        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
-          <div class="text-xs text-blue-600 font-medium mb-1">Épargne</div>
-          <div class="text-xl font-bold text-blue-700">+1 170 €</div>
-          <div class="mt-2 h-2 bg-blue-200 rounded-full">
-            <div class="h-full w-2/3 bg-blue-500 rounded-full"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Goals section -->
-      <div class="space-y-3">
-        <div class="text-sm font-semibold text-gray-700">Objectifs en cours</div>
-        <div class="space-y-2">
-          <div class="bg-gray-50 rounded-lg p-3 flex items-center gap-3">
-            <div class="text-2xl">🏖️</div>
-            <div class="flex-1">
-              <div class="text-sm font-medium text-gray-800">Vacances été</div>
-              <div class="h-2 bg-gray-200 rounded-full mt-1">
-                <div
-                  class="h-full w-3/5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
-                ></div>
-              </div>
-            </div>
-            <div class="text-sm font-bold text-blue-600">60%</div>
-          </div>
-          <div class="bg-gray-50 rounded-lg p-3 flex items-center gap-3">
-            <div class="text-2xl">🚗</div>
-            <div class="flex-1">
-              <div class="text-sm font-medium text-gray-800">Nouvelle voiture</div>
-              <div class="h-2 bg-gray-200 rounded-full mt-1">
-                <div
-                  class="h-full w-1/4 bg-gradient-to-r from-green-500 to-teal-500 rounded-full"
-                ></div>
-              </div>
-            </div>
-            <div class="text-sm font-bold text-green-600">25%</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- XP Bar (gaming touch) -->
-      <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4">
-        <div class="flex items-center justify-between mb-2">
+    <div class="p-5 space-y-4">
+      <!-- Quête principale -->
+      <div
+        class="rounded-xl p-4"
+        style="
+          background: linear-gradient(135deg, #1e1b4b, #312e81);
+          border: 1px solid rgba(139, 92, 246, 0.3);
+        "
+      >
+        <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
-            <span class="text-lg">⭐</span>
-            <span class="text-sm font-semibold text-purple-700">Niveau 12</span>
+            <span class="text-2xl">✈️</span>
+            <div>
+              <div class="text-white font-bold text-sm">Voyage au Japon</div>
+              <div class="text-xs" style="color: rgba(255, 255, 255, 0.5)">1 250 € / 3 000 €</div>
+            </div>
           </div>
-          <span class="text-xs text-purple-600">2,450 / 3,000 XP</span>
+          <span class="font-extrabold text-lg" style="color: #a78bfa">41%</span>
         </div>
-        <div class="h-3 bg-purple-200 rounded-full overflow-hidden">
+        <!-- Progress bar -->
+        <div class="h-2 rounded-full" style="background: rgba(255, 255, 255, 0.1)">
           <div
-            class="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-1000"
-            style="width: 82%"
+            class="h-full rounded-full"
+            style="width: 41%; background: linear-gradient(90deg, #7c3aed, #a78bfa)"
           ></div>
         </div>
+        <div class="mt-2 text-xs" style="color: rgba(255, 255, 255, 0.4)">1 750 € restants</div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="grid grid-cols-4 gap-2">
+        <div
+          class="rounded-xl p-2 text-center"
+          style="background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.25)"
+        >
+          <div class="text-base">🔥</div>
+          <div class="font-extrabold text-sm" style="color: #fb923c">17</div>
+          <div class="text-xs" style="color: rgba(255, 255, 255, 0.35)">jours</div>
+        </div>
+        <div
+          class="rounded-xl p-2 text-center"
+          style="background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.25)"
+        >
+          <div class="text-base">⭐</div>
+          <div class="font-extrabold text-sm" style="color: #fbbf24">8</div>
+          <div class="text-xs" style="color: rgba(255, 255, 255, 0.35)">niveau</div>
+        </div>
+        <div
+          class="rounded-xl p-2 text-center"
+          style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.25)"
+        >
+          <div class="text-base">⚡</div>
+          <div class="font-extrabold text-sm" style="color: #a78bfa">340</div>
+          <div class="text-xs" style="color: rgba(255, 255, 255, 0.35)">XP</div>
+        </div>
+        <div
+          class="rounded-xl p-2 text-center"
+          style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.25)"
+        >
+          <div class="text-base">💰</div>
+          <div class="font-extrabold text-sm" style="color: #4ade80">85€</div>
+          <div class="text-xs" style="color: rgba(255, 255, 255, 0.35)">mois</div>
+        </div>
+      </div>
+
+      <!-- XP bar -->
+      <div>
+        <div class="flex justify-between text-xs mb-1" style="color: rgba(255, 255, 255, 0.4)">
+          <span>Niveau 8</span>
+          <span>1 505 / 2 000 XP</span>
+        </div>
+        <div class="h-1.5 rounded-full" style="background: rgba(255, 255, 255, 0.08)">
+          <div
+            class="h-full rounded-full"
+            style="width: 75%; background: linear-gradient(90deg, #7c3aed, #ec4899)"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Défi du jour -->
+      <div
+        class="rounded-xl p-3"
+        style="background: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.2)"
+      >
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-bold" style="color: #fbbf24">DÉFI DU JOUR</span>
+          <span class="text-xs font-bold" style="color: #fbbf24">+20 XP</span>
+        </div>
+        <p class="text-sm text-white font-medium">Pas de livraison aujourd'hui 🍕</p>
+      </div>
+
+      <!-- Action rapide -->
+      <div
+        class="rounded-xl p-3 text-center cursor-pointer"
+        style="background: linear-gradient(135deg, #7c3aed, #4f46e5)"
+      >
+        <span class="text-white font-bold text-sm">+ Enregistrer une action</span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// Composant de prévisualisation du dashboard pour la landing page
-// Affiche un mockup statique représentant les fonctionnalités
+// Mockup statique MVP — quête + streak + XP + défi du jour
 </script>
 
 <style scoped>
@@ -103,7 +137,6 @@
   transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
   transition: transform 0.3s ease;
 }
-
 .dashboard-preview:hover {
   transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
 }

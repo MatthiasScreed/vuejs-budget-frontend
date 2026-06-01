@@ -3,7 +3,7 @@
   <section class="how-it-works-section">
     <div class="container">
       <h2 class="section-title">{{ t('landing.howTitle') }}</h2>
-      <p class="section-subtitle">{{ t('landing.howSubtitle') }}</p>
+      <p class="section-subtitle">3 étapes, moins de 2 minutes pour commencer</p>
 
       <div class="steps-container">
         <div v-for="(step, index) in steps" :key="step.id" class="step-card">
@@ -35,25 +35,28 @@ const { t } = useI18n()
 
 const steps = computed<HowItWorksStep[]>(() => [
   {
-    id: 'connect',
+    id: 'quest',
     number: 1,
-    title: t('landing.step1Title'),
-    description: t('landing.step1Desc'),
-    icon: '🏦',
-  },
-  {
-    id: 'analyze',
-    number: 2,
-    title: t('landing.step2Title'),
-    description: t('landing.step2Desc'),
-    icon: '📊',
-  },
-  {
-    id: 'achieve',
-    number: 3,
-    title: t('landing.step3Title'),
-    description: t('landing.step3Desc'),
     icon: '🎯',
+    title: 'Crée ta quête',
+    description:
+      'Choisis un objectif qui te tient à cœur : voyage, achat, épargne. Donne-lui un nom, un montant, une date.',
+  },
+  {
+    id: 'action',
+    number: 2,
+    icon: '⚡',
+    title: 'Agis chaque jour',
+    description:
+      'En moins de 30 secondes, enregistre une économie ou une dépense. Chaque geste fait avancer ta quête.',
+  },
+  {
+    id: 'level',
+    number: 3,
+    icon: '🔥',
+    title: 'Monte en niveau',
+    description:
+      "Chaque action te rapporte de l'XP. Ta série grandit. Tes habitudes financières se construisent naturellement.",
   },
 ])
 
