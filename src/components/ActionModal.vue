@@ -98,7 +98,7 @@ import {
   SPEND_PRESETS,
   REASON_PRESETS,
   type ReasonPreset,
-} from '@/stores/DailyActionStore'
+} from '@/stores/Dailyactionstore.ts'
 import { useGamingStore } from '@/stores/gamingStore'
 
 // ==========================================
