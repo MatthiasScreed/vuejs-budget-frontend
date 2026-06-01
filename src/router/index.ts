@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores/authStore'
 // LAZY LOADING
 // ==========================================
 
-// Layout avec navbar (pour app authentifiée)
+// Layout
 const AppLayout = () => import('@/components/layout/AppLayout.vue')
 
 // Pages publiques
@@ -14,8 +14,10 @@ const LandingPage = () => import('@/views/LandingPage.vue')
 const Login = () => import('@/views/Login.vue')
 const Register = () => import('@/views/Register.vue')
 
-// Pages authentifiées - Core
+// MVP — Dashboard principal (quête + action quotidienne)
 const Dashboard = () => import('@/views/Dashboard.vue')
+
+// Pages authentifiées — legacy (conservées mais non prioritaires)
 const Transactions = () => import('@/views/Transactions.vue')
 const Goals = () => import('@/views/Goals.vue')
 const Categories = () => import('@/views/Categories.vue')
@@ -23,15 +25,12 @@ const Analytics = () => import('@/views/Analytics.vue')
 const Profile = () => import('@/views/Profile.vue')
 const Banking = () => import('@/views/Banking.vue')
 
-// Pages authentifiées - Gaming System
+// Gaming
 const Gaming = () => import('@/views/Gaming.vue')
 const Achievements = () => import('@/views/Achievements.vue')
 const Challenges = () => import('@/views/Challenges.vue')
 
-// ✅ MVP - Quest Dashboard
-const QuestDashboard = () => import('@/views/QuestDashboard.vue')
-
-// Pages Admin
+// Admin
 const AdminDashboard = () => import('@/views/AdminDashboard.vue')
 
 // ==========================================
@@ -40,7 +39,7 @@ const AdminDashboard = () => import('@/views/AdminDashboard.vue')
 
 const routes = [
   // ==========================================
-  // 🎯 LANDING PAGE - Page d'accueil publique
+  // LANDING PAGE
   // ==========================================
   {
     path: '/',
@@ -48,41 +47,33 @@ const routes = [
     component: LandingPage,
     meta: {
       requiresAuth: false,
-      title: 'CoinQuest - Économisez 324€/mois en moyenne',
-      description:
-        'Gérez votre budget intelligemment avec CoinQuest. Catégorisation automatique, objectifs personnalisés et analyse IA.',
+      title: 'CoinQuest - Transforme tes finances en aventure',
     },
   },
 
   // ==========================================
-  // 🔐 AUTHENTIFICATION (sans layout)
+  // AUTHENTIFICATION (sans layout)
   // ==========================================
   {
     path: '/login',
     name: 'Login',
     component: Login,
-    meta: {
-      requiresAuth: false,
-      title: 'Connexion - CoinQuest',
-    },
+    meta: { requiresAuth: false, title: 'Connexion - CoinQuest' },
   },
   {
     path: '/register',
     name: 'Register',
     component: Register,
-    meta: {
-      requiresAuth: false,
-      title: 'Inscription - CoinQuest',
-    },
+    meta: { requiresAuth: false, title: 'Inscription - CoinQuest' },
   },
 
   // ==========================================
-  // ⚔️ MVP QUEST (sans AppLayout - expérience immersive)
+  // MVP — QUÊTE (sans AppLayout, expérience immersive)
   // ==========================================
   {
     path: '/quete',
     name: 'Quest',
-    component: QuestDashboard,
+    component: Dashboard, // ← Dashboard.vue = le MVP
     meta: {
       requiresAuth: true,
       title: 'Ma Quête - CoinQuest',
@@ -90,114 +81,87 @@ const routes = [
   },
 
   // ==========================================
-  // 📱 APPLICATION (avec layout + navbar)
+  // APPLICATION (avec AppLayout + navbar)
   // ==========================================
   {
     path: '/app',
     component: AppLayout,
     meta: { requiresAuth: true },
     children: [
-      // === CORE ===
+      // Redirection /app → /quete (point d'entrée MVP)
+      {
+        path: '',
+        redirect: { name: 'Quest' },
+      },
+
+      // Dashboard legacy (redirige vers la quête MVP)
       {
         path: 'dashboard',
-        name: 'Dashboard',
-        component: Dashboard,
-        meta: {
-          requiresAuth: true,
-          title: 'Tableau de bord - CoinQuest',
-        },
+        redirect: { name: 'Quest' },
       },
+
+      // === FEATURES LEGACY ===
       {
         path: 'transactions',
         name: 'Transactions',
         component: Transactions,
-        meta: {
-          requiresAuth: true,
-          title: 'Transactions - CoinQuest',
-        },
+        meta: { requiresAuth: true, title: 'Transactions - CoinQuest' },
       },
       {
         path: 'goals',
         name: 'Goals',
         component: Goals,
-        meta: {
-          requiresAuth: true,
-          title: 'Objectifs - CoinQuest',
-        },
+        meta: { requiresAuth: true, title: 'Objectifs - CoinQuest' },
       },
       {
         path: 'insights',
         name: 'Insights',
         component: () => import('@/views/Insights.vue'),
-        meta: {
-          requiresAuth: true,
-          title: 'Coach IA - CoinQuest',
-        },
+        meta: { requiresAuth: true, title: 'Coach IA - CoinQuest' },
       },
       {
         path: 'categories',
         name: 'Categories',
         component: Categories,
-        meta: {
-          requiresAuth: true,
-          title: 'Catégories - CoinQuest',
-        },
+        meta: { requiresAuth: true, title: 'Catégories - CoinQuest' },
       },
       {
         path: 'analytics',
         name: 'Analytics',
         component: Analytics,
-        meta: {
-          requiresAuth: true,
-          title: 'Analyse - CoinQuest',
-        },
+        meta: { requiresAuth: true, title: 'Analyse - CoinQuest' },
       },
       {
         path: 'banking',
         name: 'Banking',
         component: Banking,
-        meta: {
-          requiresAuth: true,
-          title: 'Banque - CoinQuest',
-        },
+        meta: { requiresAuth: true, title: 'Banque - CoinQuest' },
       },
       {
         path: 'profile',
         name: 'Profile',
         component: Profile,
-        meta: {
-          requiresAuth: true,
-          title: 'Profil - CoinQuest',
-        },
+        meta: { requiresAuth: true, title: 'Profil - CoinQuest' },
       },
 
-      // === GAMING SYSTEM ===
+      // === GAMING ===
       {
         path: 'gaming',
         name: 'Gaming',
         component: Gaming,
-        meta: {
-          requiresAuth: true,
-          title: 'Progression - CoinQuest',
-        },
+        meta: { requiresAuth: true, title: 'Progression - CoinQuest' },
       },
       {
         path: 'gaming/achievements',
         name: 'Achievements',
         component: Achievements,
-        meta: {
-          requiresAuth: true,
-          title: 'Succès - CoinQuest',
-        },
+        meta: { requiresAuth: true, title: 'Succès - CoinQuest' },
       },
       {
         path: 'gaming/challenges',
         name: 'Challenges',
         component: Challenges,
-        meta: {
-          requiresAuth: true,
-          title: 'Défis - CoinQuest',
-        },
+        meta: { requiresAuth: true, title: 'Défis - CoinQuest' },
       },
 
       // === ADMIN ===
@@ -208,46 +172,37 @@ const routes = [
         meta: {
           requiresAuth: true,
           requiresAdmin: true,
-          title: 'Admin Dashboard - CoinQuest',
+          title: 'Admin - CoinQuest',
         },
-      },
-
-      // Redirection /app → /quete (MVP)
-      {
-        path: '',
-        redirect: { name: 'Quest' },
       },
     ],
   },
 
   // ==========================================
-  // 🔀 REDIRECTIONS (compatibilité anciennes URLs)
+  // REDIRECTIONS (compatibilité URLs existantes)
   // ==========================================
   { path: '/home', redirect: { name: 'Landing' } },
-  { path: '/dashboard', redirect: { name: 'Quest' } }, // ← redirige vers la quête
+  { path: '/dashboard', redirect: { name: 'Quest' } },
   { path: '/transactions', redirect: { name: 'Transactions' } },
   { path: '/goals', redirect: { name: 'Goals' } },
   { path: '/categories', redirect: { name: 'Categories' } },
   { path: '/analytics', redirect: { name: 'Analytics' } },
+  { path: '/profile', redirect: { name: 'Profile' } },
+  { path: '/banking', redirect: { name: 'Banking' } },
   { path: '/gaming', redirect: { name: 'Gaming' } },
   { path: '/achievements', redirect: { name: 'Achievements' } },
   { path: '/challenges', redirect: { name: 'Challenges' } },
   { path: '/gaming/achievements', redirect: { name: 'Achievements' } },
   { path: '/gaming/challenges', redirect: { name: 'Challenges' } },
-  { path: '/profile', redirect: { name: 'Profile' } },
-  { path: '/banking', redirect: { name: 'Banking' } },
 
   // ==========================================
-  // ❌ 404 - Page non trouvée
+  // 404
   // ==========================================
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/NotFound.vue'),
-    meta: {
-      requiresAuth: false,
-      title: 'Page non trouvée - CoinQuest',
-    },
+    meta: { requiresAuth: false, title: 'Page non trouvée - CoinQuest' },
   },
 ]
 
@@ -259,9 +214,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior(to, from, savedPosition) {
-    if (savedPosition) {
-      return savedPosition
-    }
+    if (savedPosition) return savedPosition
     return { top: 0, behavior: 'smooth' }
   },
 })
@@ -271,16 +224,14 @@ const router = createRouter({
 // ==========================================
 
 router.beforeEach(async (to, from, next) => {
-  console.log(`🧭 Navigation: ${from.path} → ${to.path}`)
-
-  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
-  const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin)
+  const requiresAuth = to.matched.some((r) => r.meta.requiresAuth)
+  const requiresAdmin = to.matched.some((r) => r.meta.requiresAdmin)
   const authStore = useAuthStore()
 
   // Routes publiques
   if (!requiresAuth) {
+    // Déjà connecté → pas besoin d'aller sur Login/Register
     if (authStore.isAuthenticated && (to.name === 'Login' || to.name === 'Register')) {
-      console.log('✅ Déjà connecté, redirection quête')
       next({ name: 'Quest' })
       return
     }
@@ -288,16 +239,12 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
-  // Routes protégées - Vérifier authentification
+  // Déjà authentifié en mémoire
   if (authStore.isAuthenticated && authStore.user) {
-    console.log('✅ Utilisateur authentifié:', authStore.user.email)
-
     if (requiresAdmin && !authStore.user.is_admin) {
-      console.log('⚠️ Accès refusé - Droits admin requis')
       next({ name: 'Quest' })
       return
     }
-
     next()
     return
   }
@@ -312,62 +259,44 @@ router.beforeEach(async (to, from, next) => {
       authStore.token = token
       authStore.user = user
       authStore.isAuthenticated = true
-      authStore.isInitialized = true
-      console.log('✅ Session restaurée depuis localStorage')
 
       if (requiresAdmin && !user.is_admin) {
-        console.log('⚠️ Accès refusé - Droits admin requis')
         next({ name: 'Quest' })
         return
       }
 
       next()
       return
-    } catch (error) {
-      console.error('❌ Erreur parsing user:', error)
+    } catch {
       localStorage.removeItem('auth_token')
       localStorage.removeItem('user')
     }
   }
 
   // Non authentifié → Login
-  console.log('⚠️ Non authentifié, redirection login')
-  next({
-    name: 'Login',
-    query: { redirect: to.fullPath },
-  })
+  next({ name: 'Login', query: { redirect: to.fullPath } })
 })
 
 // ==========================================
-// AFTER EACH - Métadonnées
+// AFTER EACH — Métadonnées
 // ==========================================
 
 router.afterEach((to) => {
-  const title = (to.meta.title as string) || 'CoinQuest'
-  document.title = title
+  document.title = (to.meta.title as string) || 'CoinQuest'
 
-  const description =
-    (to.meta.description as string) || 'CoinQuest - Gestion de budget intelligente'
-  const metaDescription = document.querySelector('meta[name="description"]')
-  if (metaDescription) {
-    metaDescription.setAttribute('content', description)
-  }
-
-  console.log(`✅ Page chargée: ${title}`)
+  const desc = (to.meta.description as string) || 'CoinQuest - Transforme tes finances en aventure'
+  document.querySelector('meta[name="description"]')?.setAttribute('content', desc)
 })
 
 // ==========================================
-// GESTION D'ERREURS
+// GESTION D'ERREURS (chunks lazy)
 // ==========================================
 
 router.onError((error) => {
-  console.error('❌ Erreur routeur:', error)
-
   if (
     error.message.includes('Failed to fetch dynamically imported module') ||
     error.message.includes('Loading chunk')
   ) {
-    console.warn('🔄 Rechargement nécessaire après erreur de chunk')
     window.location.reload()
   }
 })
