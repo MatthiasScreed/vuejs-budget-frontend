@@ -167,7 +167,7 @@
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGamingStore } from '@/stores/gamingStore'
-import { useQuestStore } from '@/stores/questStore'
+import { useQuestStore } from '@/stores/Queststore.ts'
 import { useApiHealth } from '@/composables/core/useApiHealth'
 import { useBreakpoints } from '@vueuse/core'
 import {
