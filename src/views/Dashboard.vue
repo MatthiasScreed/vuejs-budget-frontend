@@ -52,7 +52,7 @@
       <!-- Niveau -->
       <div class="stat-card stat-card--level">
         <div class="stat-card__icon">⭐</div>
-        <div class="stat-card__value">{{ gamingStore.playerLevel }}</div>
+        <div class="stat-card__value">{{ playerLevel }}</div>
         <div class="stat-card__label">niveau</div>
       </div>
 
@@ -74,8 +74,8 @@
     <!-- ===== XP BAR ===== -->
     <div class="xp-bar-section">
       <div class="xp-bar-section__labels">
-        <span>Niveau {{ gamingStore.playerLevel }}</span>
-        <span>{{ gamingStore.currentXP }} / {{ gamingStore.player.maxXP }} XP</span>
+        <span>Niveau {{ playerLevel }}</span>
+        <span>{{ currentXP }} / {{ maxXP }} XP</span>
       </div>
       <div class="xp-bar">
         <div class="xp-bar__fill" :style="{ width: xpPercent + '%' }" />
@@ -187,8 +187,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import ActionModal from '@/components/ActionModal.vue'
-import { useQuestStore } from '@/stores/Queststore'
-import { useDailyActionStore } from '@/stores/Dailyactionstore'
+import { useQuestStore } from '@/stores/questStore'
+import { useDailyActionStore } from '@/stores/dailyActionStore'
 import { useGamingStore } from '@/stores/gamingStore'
 import { api } from '@/services/api'
 
@@ -224,13 +224,20 @@ const questEmojis = ['🎯', '✈️', '💻', '🚗', '🏠', '🛡️', '📈'
 const quest = computed(() => questStore.mainQuest)
 
 const currentStreak = computed(() => {
-  const streak = gamingStore.currentStreak ?? 0
-  return streak
+  const dailyStreak = gamingStore.streaks.find((s: any) => s.type === 'daily')
+  return dailyStreak?.current_count ?? 0
 })
 
+const playerLevel = computed(() => gamingStore.currentLevel?.level ?? 1)
+
+const currentXP = computed(() => gamingStore.totalXP ?? 0)
+
+const maxXP = computed(() => gamingStore.currentLevel?.max_xp ?? 200)
+
 const xpPercent = computed(() => {
-  const cur = gamingStore.currentXP ?? 0
-  const max = gamingStore.player?.maxXP ?? 200
+  const minXP = gamingStore.currentLevel?.min_xp ?? 0
+  const cur = currentXP.value - minXP
+  const max = maxXP.value - minXP || 200
   return Math.min(100, Math.round((cur / max) * 100))
 })
 
