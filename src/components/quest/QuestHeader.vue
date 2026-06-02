@@ -3,13 +3,11 @@
   <header class="quest-header">
     <!-- Logo -->
     <div class="quest-header__logo">
-      <img src="@/assets/images/icon/icon.svg" class="w-10" alt="CoinQuest" />
-      <div
-        class="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"
-      >
-        
+      <div class="logo-icon-wrap">
+        <img src="@/assets/images/icon/icon.svg" class="logo-img" alt="CoinQuest" />
+        <div class="level-badge">{{ safeLevel }}</div>
       </div>
-    <span class="text-xl font-bold text-gray-900 hidden sm:block">CoinQuest</span>
+      <span class="logo-text">CoinQuest</span>
     </div>
 
     <!-- Actions -->
@@ -20,7 +18,7 @@
       <!-- Notifications -->
       <button
         class="icon-btn"
-        @click="$router.push({ name: 'Notifications' })"
+        @click="$router.push({ name: 'Profile' })"
         aria-label="Notifications"
       >
         <span class="icon-btn__icon">🔔</span>
@@ -57,6 +55,11 @@ const currentStreak = computed(() => {
   const daily = gamingStore.streaks?.find((s: any) => s.type === 'daily')
   return daily?.current_count ?? 0
 })
+
+// ✅ FIX: safeLevel défini
+const safeLevel = computed(
+  () => gamingStore.currentLevel?.level ?? authStore.user?.level?.level ?? 1,
+)
 </script>
 
 <style scoped>
@@ -67,36 +70,77 @@ const currentStreak = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  background: rgba(15, 15, 26, 0.85);
+  padding: 12px 16px;
+  background: rgba(15, 15, 26, 0.9);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  /* ✅ FIX safe area iOS */
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
 }
 
+/* ===== LOGO ===== */
 .quest-header__logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.quest-header__logo-icon {
-  font-size: 22px;
+/* ✅ FIX: position relative pour le badge absolu */
+.logo-icon-wrap {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
 }
 
-.quest-header__logo-text {
-  font-size: 16px;
+.logo-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+/* ✅ FIX: badge niveau positionné correctement */
+.level-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  background: #22c55e;
+  border: 2px solid #0f0f1a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 800;
+  color: white;
+  line-height: 1;
+}
+
+/* ✅ FIX: typo blanche en CSS scoped (pas Tailwind) */
+.logo-text {
+  font-size: 17px;
   font-weight: 800;
   color: white;
   letter-spacing: -0.02em;
+  /* Masqué sur très petits écrans */
+  display: none;
 }
 
+@media (min-width: 380px) {
+  .logo-text {
+    display: block;
+  }
+}
+
+/* ===== ACTIONS ===== */
 .quest-header__actions {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-/* Streak badge */
 .streak-badge {
   font-size: 12px;
   font-weight: 700;
@@ -105,9 +149,9 @@ const currentStreak = computed(() => {
   background: rgba(249, 115, 22, 0.15);
   border: 1px solid rgba(249, 115, 22, 0.3);
   color: #fb923c;
+  white-space: nowrap;
 }
 
-/* Icon buttons */
 .icon-btn {
   position: relative;
   width: 38px;
@@ -152,7 +196,6 @@ const currentStreak = computed(() => {
   border: 2px solid #0f0f1a;
 }
 
-/* Avatar */
 .avatar {
   width: 32px;
   height: 32px;

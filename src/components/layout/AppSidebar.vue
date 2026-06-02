@@ -1,121 +1,158 @@
 <template>
   <aside :class="sidebarClasses">
-    <!-- Gaming Stats Header (quand sidebar ouverte) -->
-    <div
-      v-if="isOpen"
-      class="p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200"
-    >
-      <div class="space-y-3">
-        <!-- Daily Progress -->
-        <div class="flex items-center justify-between">
-          <span class="text-sm font-medium text-gray-700">ProgrÃ¨s du jour</span>
-          <span class="text-sm text-blue-600 font-semibold">{{ dailyProgress }}%</span>
+    <!-- Header sidebar — quête + streak -->
+    <div v-if="isOpen" class="sidebar-header">
+      <div class="sidebar-quest" @click="goToQuest">
+        <span class="sidebar-quest__emoji">{{ questEmoji }}</span>
+        <div class="sidebar-quest__info">
+          <span class="sidebar-quest__name">{{ questName }}</span>
+          <div class="sidebar-quest__bar">
+            <div class="sidebar-quest__fill" :style="{ width: questProgress + '%' }" />
+          </div>
         </div>
-        <div class="w-full h-2 bg-gray-200 rounded-full">
-          <div
-            class="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-300"
-            :style="{ width: `${dailyProgress}%` }"
-          ></div>
-        </div>
+        <span class="sidebar-quest__pct">{{ questProgress }}%</span>
+      </div>
 
-        <!-- Quick Stats -->
-        <div class="grid grid-cols-3 gap-2 text-center">
-          <div class="bg-white rounded-lg p-2">
-            <div class="text-lg font-bold text-blue-600">{{ totalAchievements }}</div>
-            <div class="text-xs text-gray-500">SuccÃ¨s</div>
-          </div>
-          <div class="bg-white rounded-lg p-2">
-            <div class="text-lg font-bold text-green-600">{{ currentStreak }}</div>
-            <div class="text-xs text-gray-500">SÃ©rie</div>
-          </div>
-          <div class="bg-white rounded-lg p-2">
-            <div class="text-lg font-bold text-purple-600">{{ weeklyRank }}</div>
-            <div class="text-xs text-gray-500">Rang</div>
-          </div>
+      <div class="sidebar-stats">
+        <div class="sidebar-stat">
+          <span class="sidebar-stat__val">{{ totalAchievements }}</span>
+          <span class="sidebar-stat__label">Succès</span>
+        </div>
+        <div class="sidebar-stat">
+          <span class="sidebar-stat__val streak">🔥 {{ currentStreak }}</span>
+          <span class="sidebar-stat__label">Série</span>
+        </div>
+        <div class="sidebar-stat">
+          <span class="sidebar-stat__val">{{ weeklyRank }}</span>
+          <span class="sidebar-stat__label">Rang</span>
         </div>
       </div>
     </div>
 
-    <!-- Navigation Menu -->
-    <nav class="flex flex-col" :style="{ height: navHeight }">
-      <!-- Primary Navigation -->
-      <div class="flex-1 px-2 py-4 space-y-1 sidebar-scroll overflow-y-auto">
-        <template v-for="item in navigationItems" :key="item.name">
-          <!-- Section header -->
-          <div
-            v-if="item.type === 'header' && isOpen"
-            class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide"
-          >
-            {{ item.name }}
-          </div>
+    <!-- Navigation -->
+    <nav class="sidebar-nav" :style="{ height: navHeight }">
+      <div class="sidebar-nav__scroll">
+        <!-- ===== SECTION MVP ===== -->
+        <router-link
+          to="/quete"
+          class="nav-item nav-item--quest"
+          :class="{ active: isCurrentRoute('/quete') }"
+        >
+          <span class="nav-item__icon">🎯</span>
+          <span v-if="isOpen" class="nav-item__label">Ma Quête</span>
+        </router-link>
 
-          <!-- Navigation item -->
+        <!-- ===== SECTION FINANCES ===== -->
+        <div v-if="isOpen" class="nav-section">Finances</div>
+
+        <router-link
+          to="/app/transactions"
+          class="nav-item"
+          :class="{ active: isCurrentRoute('/app/transactions') }"
+        >
+          <CreditCardIcon class="nav-item__hero-icon" />
+          <span v-if="isOpen" class="nav-item__label">Transactions</span>
+        </router-link>
+
+        <router-link
+          to="/app/analytics"
+          class="nav-item"
+          :class="{ active: isCurrentRoute('/app/analytics') }"
+        >
+          <ChartBarIcon class="nav-item__hero-icon" />
+          <span v-if="isOpen" class="nav-item__label">Analytics</span>
+        </router-link>
+
+        <!-- ===== SECTION GAMING ===== -->
+        <div v-if="isOpen" class="nav-section">Gaming</div>
+
+        <router-link
+          to="/app/gaming"
+          class="nav-item"
+          :class="{ active: isCurrentRoute('/app/gaming') }"
+        >
+          <TrophyIcon class="nav-item__hero-icon" />
+          <span v-if="isOpen" class="nav-item__label">Gaming Center</span>
+          <span v-if="isOpen" class="nav-badge">NEW</span>
+        </router-link>
+
+        <router-link
+          to="/app/gaming/achievements"
+          class="nav-item"
+          :class="{ active: isCurrentRoute('/app/gaming/achievements') }"
+        >
+          <StarIcon class="nav-item__hero-icon" />
+          <span v-if="isOpen" class="nav-item__label">Succès</span>
+        </router-link>
+
+        <!-- ===== SECTION PLUS (collapse) ===== -->
+        <button v-if="isOpen" class="nav-more-toggle" @click="showMore = !showMore">
+          <span>{{ showMore ? '▲' : '▼' }} Plus</span>
+        </button>
+
+        <template v-if="showMore || !isOpen">
+          <div v-if="isOpen" class="nav-section nav-section--sub">Outils</div>
+
           <router-link
-            v-else-if="item.type === 'link'"
-            :to="item.href"
-            class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200"
-            :class="[
-              isCurrentRoute(item.href)
-                ? 'bg-blue-100 text-blue-700 border-r-4 border-blue-500'
-                : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
-              !isOpen && 'justify-center',
-            ]"
-            active-class="bg-blue-100 text-blue-700"
+            to="/app/goals"
+            class="nav-item nav-item--muted"
+            :class="{ active: isCurrentRoute('/app/goals') }"
           >
-            <component
-              :is="item.icon"
-              class="w-5 h-5 transition-colors"
-              :class="[
-                isCurrentRoute(item.href)
-                  ? 'text-blue-500'
-                  : 'text-gray-400 group-hover:text-gray-600',
-                isOpen ? 'mr-3' : '',
-              ]"
-            />
-            <span v-if="isOpen" class="truncate">{{ item.name }}</span>
+            <CalendarIcon class="nav-item__hero-icon" />
+            <span v-if="isOpen" class="nav-item__label">Objectifs legacy</span>
+          </router-link>
 
-            <!-- Badge pour nouvelles fonctionnalitÃ©s -->
-            <span
-              v-if="item.badge && isOpen"
-              class="ml-auto px-2 py-0.5 text-xs bg-green-100 text-green-600 rounded-full font-medium"
-            >
-              {{ item.badge }}
-            </span>
+          <router-link
+            to="/app/categories"
+            class="nav-item nav-item--muted"
+            :class="{ active: isCurrentRoute('/app/categories') }"
+          >
+            <FolderIcon class="nav-item__hero-icon" />
+            <span v-if="isOpen" class="nav-item__label">Catégories</span>
+          </router-link>
+
+          <router-link
+            to="/app/banking"
+            class="nav-item nav-item--muted"
+            :class="{ active: isCurrentRoute('/app/banking') }"
+          >
+            <CogIcon class="nav-item__hero-icon" />
+            <span v-if="isOpen" class="nav-item__label">Connexions</span>
+          </router-link>
+
+          <router-link
+            to="/app/gaming/challenges"
+            class="nav-item nav-item--muted"
+            :class="{ active: isCurrentRoute('/app/gaming/challenges') }"
+          >
+            <LightBulbIcon class="nav-item__hero-icon" />
+            <span v-if="isOpen" class="nav-item__label">Défis</span>
           </router-link>
         </template>
-      </div>
 
-      <!-- Gaming Quick Actions (quand sidebar ouverte) -->
-      <div v-if="isOpen" class="px-4 py-4 border-t border-gray-200 bg-gray-50">
-        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-          Actions Rapides
-        </h3>
+        <!-- ===== PROFIL ===== -->
+        <div class="nav-divider" />
 
-        <div class="space-y-2">
-          <button
-            @click="openQuickTransaction"
-            class="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-white hover:shadow-sm rounded-lg transition-all"
-          >
-            <PlusIcon class="w-4 h-4" />
-            <span>Transaction rapide</span>
-          </button>
-
-          <button
-            @click="openDailyChallenge"
-            class="w-full flex items-center space-x-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-          >
-            <StarIcon class="w-4 h-4" />
-            <span>DÃ©fi du jour</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Toggle button (desktop) -->
-      <div class="hidden lg:block p-2 border-t border-gray-200">
-        <button
-          @click="$emit('toggle-sidebar')"
-          class="w-full flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+        <router-link
+          to="/app/profile"
+          class="nav-item"
+          :class="{ active: isCurrentRoute('/app/profile') }"
         >
+          <UserGroupIcon class="nav-item__hero-icon" />
+          <span v-if="isOpen" class="nav-item__label">Profil</span>
+        </router-link>
+      </div>
+
+      <!-- Action rapide -->
+      <div v-if="isOpen" class="sidebar-quick-action">
+        <button class="quick-action-btn" @click="goToQuest">
+          <span>⚡ Enregistrer une action</span>
+        </button>
+      </div>
+
+      <!-- Toggle collapse desktop -->
+      <div class="sidebar-toggle">
+        <button @click="$emit('toggle-sidebar')">
           <ChevronLeftIcon
             class="w-5 h-5 transition-transform duration-200"
             :class="{ 'rotate-180': !isOpen }"
@@ -128,18 +165,17 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useGamingStore } from '@/stores/gamingStore'
+import { useQuestStore } from '@/stores/questStore'
 import { useApiHealth } from '@/composables/core/useApiHealth'
 import { useBreakpoints } from '@vueuse/core'
 import {
-  HomeIcon,
   CreditCardIcon,
   ChartBarIcon,
   TrophyIcon,
   UserGroupIcon,
   CogIcon,
-  PlusIcon,
   StarIcon,
   ChevronLeftIcon,
   FolderIcon,
@@ -147,156 +183,355 @@ import {
   LightBulbIcon,
 } from '@heroicons/vue/24/outline'
 
-// Props
+// ==========================================
+// PROPS / EMITS
+// ==========================================
+
 interface Props {
   isOpen: boolean
   currentRoute?: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  currentRoute: '',
-})
+const props = withDefaults(defineProps<Props>(), { currentRoute: '' })
 
-// Emits
-defineEmits<{
-  close: []
-  'toggle-sidebar': []
-}>()
+defineEmits<{ close: []; 'toggle-sidebar': [] }>()
 
-// Composables
+// ==========================================
+// STORES
+// ==========================================
+
 const route = useRoute()
+const router = useRouter()
 const gamingStore = useGamingStore()
+const questStore = useQuestStore()
 const apiHealth = useApiHealth()
 
-// Responsive
+// ==========================================
+// STATE
+// ==========================================
+
+const showMore = ref(false)
+
+// ==========================================
+// COMPUTED
+// ==========================================
+
 const breakpoints = useBreakpoints({ lg: 1024 })
 const isMobile = computed(() => !breakpoints.lg.value)
 
-// âœ… Position adaptative selon l'API status
 const showApiStatus = computed(() => !apiHealth.isConnected.value || import.meta.env.DEV)
 
-const sidebarClasses = computed(() => {
-  const baseClasses = [
-    'fixed left-0 z-20 transition-all duration-300 bg-white border-r border-gray-200',
-    props.isOpen ? 'w-64' : 'w-16',
-    'lg:translate-x-0',
-    props.isOpen || !isMobile.value ? 'translate-x-0' : '-translate-x-full',
-  ]
+const sidebarClasses = computed(() => [
+  'fixed left-0 z-20 transition-all duration-300 bg-white border-r border-gray-200',
+  props.isOpen ? 'w-64' : 'w-16',
+  'lg:translate-x-0',
+  props.isOpen || !isMobile.value ? 'translate-x-0' : '-translate-x-full',
+  showApiStatus.value ? 'top-28' : 'top-16',
+])
 
-  // Position adaptative selon l'Ã©tat de l'API
-  if (showApiStatus.value) {
-    baseClasses.push('top-28') // 48px (API) + 64px (Header) = 112px
-  } else {
-    baseClasses.push('top-16') // 64px (juste Header)
-  }
+const navHeight = computed(() =>
+  showApiStatus.value ? 'calc(100vh - 112px)' : 'calc(100vh - 64px)',
+)
 
-  return baseClasses
+// Quest
+const questEmoji = computed(() => questStore.mainQuest?.emoji ?? '🎯')
+const questName = computed(() => questStore.mainQuest?.name ?? 'Ma Quête')
+const questProgress = computed(() => questStore.mainQuest?.progress_percentage ?? 0)
+
+// Gaming stats
+const totalAchievements = computed(() => gamingStore.achievements?.length ?? 0)
+const currentStreak = computed(() => {
+  const daily = gamingStore.streaks?.find((s: any) => s.type === 'daily')
+  return daily?.current_count ?? 0
 })
+const weeklyRank = computed(() => '--')
 
-// âœ… Hauteur adaptative pour le contenu de navigation
-const navHeight = computed(() => {
-  // Calculer la hauteur restante selon la position
-  if (showApiStatus.value) {
-    return 'calc(100vh - 112px)' // Soustraire API (48px) + Header (64px)
-  } else {
-    return 'calc(100vh - 64px)' // Soustraire seulement Header (64px)
-  }
-})
+// ==========================================
+// MÉTHODES
+// ==========================================
 
-// Computed gaming stats
-const dailyProgress = computed(() => gamingStore.dailyProgress || 0)
-const totalAchievements = computed(() => gamingStore.achievements?.length || 0)
-const currentStreak = computed(() => gamingStore.currentStreak || 0)
-const weeklyRank = computed(() => gamingStore.weeklyRank || '--')
-
-// Navigation structure
-const navigationItems = [
-  // Dashboard
-  { type: 'link', name: 'Dashboard', href: '/app/dashboard', icon: HomeIcon },
-
-  // Section Finances
-  { type: 'header', name: 'Finances' },
-  { type: 'link', name: 'Transactions', href: '/app/transactions', icon: CreditCardIcon },
-  { type: 'link', name: 'Budget', href: '/app/categories', icon: ChartBarIcon },
-  { type: 'link', name: 'Objectifs', href: '/app/goals', icon: CalendarIcon },
-
-  // Section Gaming
-  { type: 'header', name: 'Gaming' },
-  { type: 'link', name: 'Gaming Center', href: '/app/gaming', icon: TrophyIcon, badge: 'NEW' },
-  { type: 'link', name: 'SuccÃ¨s', href: '/app/achievements', icon: TrophyIcon },
-  { type: 'link', name: 'DÃ©fis', href: '/app/challenges', icon: StarIcon },
-
-  // Section Outils
-  { type: 'header', name: 'Outils' },
-  { type: 'link', name: 'Analytics', href: '/app/analytics', icon: LightBulbIcon },
-  { type: 'link', name: 'Connexions', href: '/app/banking', icon: CogIcon },
-  { type: 'link', name: 'Profil', href: '/app/profile', icon: UserGroupIcon },
-]
-
-// Methods
 const isCurrentRoute = (href: string): boolean => {
-  const currentPath = route.path
-
-  // Si on est sur une route /app/*, comparer avec le href
-  if (currentPath.startsWith('/app/') && href.startsWith('/app/')) {
-    return currentPath === href
-  }
-
-  // Fallback pour les autres routes
-  return currentPath.startsWith(href)
+  if (href === '/quete') return route.path === '/quete'
+  return route.path === href || route.path.startsWith(href + '/')
 }
 
-const openQuickTransaction = (): void => {
-  // Ã‰mettre un Ã©vÃ©nement pour ouvrir la modal de transaction rapide
-  console.log('Opening quick transaction modal')
-  // TODO: ImplÃ©menter ouverture modal
-}
-
-const openDailyChallenge = (): void => {
-  // Router vers le dÃ©fi du jour
-  console.log('Opening daily challenge')
-  // TODO: Router.push('/app/challenges/daily')
+const goToQuest = (): void => {
+  router.push({ name: 'Quest' })
 }
 </script>
 
 <style scoped>
-/* Custom scrollbar pour la sidebar */
-.sidebar-scroll::-webkit-scrollbar {
-  width: 4px;
+/* ===== SIDEBAR HEADER ===== */
+.sidebar-header {
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #1e1b4b, #312e81);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
 }
 
-.sidebar-scroll::-webkit-scrollbar-track {
+.sidebar-quest {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  padding: 8px;
+  border-radius: 10px;
+  transition: background 0.15s;
+}
+
+.sidebar-quest:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-quest__emoji {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.sidebar-quest__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar-quest__name {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.sidebar-quest__bar {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.sidebar-quest__fill {
+  height: 100%;
+  background: linear-gradient(90deg, #7c3aed, #a78bfa);
+  border-radius: 2px;
+  transition: width 0.4s;
+}
+
+.sidebar-quest__pct {
+  font-size: 13px;
+  font-weight: 800;
+  color: #a78bfa;
+  flex-shrink: 0;
+}
+
+.sidebar-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.sidebar-stat {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 6px 4px;
+  text-align: center;
+}
+
+.sidebar-stat__val {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+}
+
+.sidebar-stat__val.streak {
+  color: #fb923c;
+}
+
+.sidebar-stat__label {
+  display: block;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 2px;
+}
+
+/* ===== NAVIGATION ===== */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-nav__scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #e5e7eb transparent;
+}
+
+.nav-section {
+  padding: 10px 12px 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+}
+
+.nav-section--sub {
+  color: #d1d5db;
+}
+
+.nav-divider {
+  height: 1px;
+  background: #f3f4f6;
+  margin: 6px 8px;
+}
+
+/* Nav items */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  text-decoration: none;
+  transition: all 0.15s;
+  margin-bottom: 2px;
+}
+
+.nav-item:hover {
+  background: #f9fafb;
+  color: #111827;
+}
+.nav-item.active {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.nav-item--quest {
+  background: linear-gradient(135deg, #1e1b4b, #312e81);
+  color: white;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.nav-item--quest:hover {
+  background: linear-gradient(135deg, #312e81, #4c1d95);
+  color: white;
+}
+.nav-item--quest.active {
+  background: linear-gradient(135deg, #4c1d95, #6d28d9);
+  color: white;
+}
+
+.nav-item--muted {
+  color: #9ca3af;
+  font-size: 13px;
+}
+.nav-item--muted:hover {
+  color: #6b7280;
+}
+
+.nav-item__icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.nav-item__hero-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.nav-item__label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  background: #dcfce7;
+  color: #16a34a;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+/* More toggle */
+.nav-more-toggle {
+  width: 100%;
+  padding: 6px 12px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
   background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s;
 }
 
-.sidebar-scroll::-webkit-scrollbar-thumb {
-  background: rgb(209, 213, 219);
-  border-radius: 4px;
+.nav-more-toggle:hover {
+  background: #f9fafb;
+  color: #374151;
 }
 
-.sidebar-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgb(156, 163, 175);
+/* Quick action */
+.sidebar-quick-action {
+  padding: 10px 12px;
+  border-top: 1px solid #f3f4f6;
 }
 
-/* Animation pour les badges */
-@keyframes badge-pulse {
-  0%,
-  100% {
-    opacity: 1;
+.quick-action-btn {
+  width: 100%;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.quick-action-btn:hover {
+  opacity: 0.9;
+}
+
+/* Toggle button */
+.sidebar-toggle {
+  display: none;
+  padding: 8px;
+  border-top: 1px solid #f3f4f6;
+}
+
+@media (min-width: 1024px) {
+  .sidebar-toggle {
+    display: flex;
+    justify-content: center;
   }
-  50% {
-    opacity: 0.7;
-  }
 }
 
-.badge-animate {
-  animation: badge-pulse 2s ease-in-out infinite;
+.sidebar-toggle button {
+  padding: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #9ca3af;
+  border-radius: 8px;
+  transition: background 0.15s;
 }
 
-/* Transition fluide pour le repositionnement */
-.sidebar-adaptive {
-  transition:
-    top 0.3s ease,
-    height 0.3s ease;
+.sidebar-toggle button:hover {
+  background: #f9fafb;
+  color: #374151;
 }
 </style>
