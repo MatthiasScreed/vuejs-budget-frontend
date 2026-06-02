@@ -1,192 +1,206 @@
 <template>
-  <div class="dashboard">
-    <!-- ===== QUÊTE PRINCIPALE ===== -->
-    <section class="quest-card" v-if="questStore.hasMainQuest">
-      <div class="quest-card__top">
-        <div class="quest-card__info">
-          <span class="quest-card__emoji">{{ quest.emoji }}</span>
-          <div>
-            <h1 class="quest-card__name">{{ quest.name }}</h1>
-            <p class="quest-card__amounts">
-              <strong>{{ formatAmount(quest.current_amount) }} €</strong>
-              <span> / {{ formatAmount(quest.target_amount) }} €</span>
-            </p>
+  <div class="dashboard-wrapper">
+    <QuestHeader />
+
+    <div class="dashboard">
+      <!-- ===== QUÊTE PRINCIPALE ===== -->
+      <section class="quest-card" v-if="questStore.hasMainQuest">
+        <div class="quest-card__top">
+          <div class="quest-card__info">
+            <span class="quest-card__emoji">{{ quest.emoji }}</span>
+            <div>
+              <h1 class="quest-card__name">{{ quest.name }}</h1>
+              <p class="quest-card__amounts">
+                <strong>{{ formatAmount(quest.current_amount) }} €</strong>
+                <span> / {{ formatAmount(quest.target_amount) }} €</span>
+              </p>
+            </div>
           </div>
+          <div class="quest-card__pct">{{ quest.progress_percentage }}%</div>
         </div>
-        <div class="quest-card__pct">{{ quest.progress_percentage }}%</div>
-      </div>
 
-      <!-- Barre de progression -->
-      <div class="quest-progress">
-        <div
-          class="quest-progress__bar"
-          :style="{ width: quest.progress_percentage + '%' }"
-          :class="quest.is_completed ? 'quest-progress__bar--done' : ''"
-        />
-      </div>
+        <!-- Barre de progression -->
+        <div class="quest-progress">
+          <div
+            class="quest-progress__bar"
+            :style="{ width: quest.progress_percentage + '%' }"
+            :class="quest.is_completed ? 'quest-progress__bar--done' : ''"
+          />
+        </div>
 
-      <div class="quest-card__bottom">
-        <span class="quest-remaining"> {{ formatAmount(quest.remaining_amount) }} € restants </span>
-        <span v-if="quest.days_remaining !== null" class="quest-deadline">
-          {{ quest.days_remaining }}j
-        </span>
-      </div>
-    </section>
-
-    <!-- Aucune quête -->
-    <section v-else class="quest-empty" @click="showQuestForm = true">
-      <span class="quest-empty__icon">🎯</span>
-      <p class="quest-empty__text">Crée ta première quête</p>
-      <span class="quest-empty__cta">Commencer →</span>
-    </section>
-
-    <!-- ===== STATS RAPIDES ===== -->
-    <div class="stats-row">
-      <!-- Streak -->
-      <div class="stat-card stat-card--streak">
-        <div class="stat-card__icon">🔥</div>
-        <div class="stat-card__value">{{ currentStreak }}</div>
-        <div class="stat-card__label">jours de série</div>
-      </div>
-
-      <!-- Niveau -->
-      <div class="stat-card stat-card--level">
-        <div class="stat-card__icon">⭐</div>
-        <div class="stat-card__value">{{ playerLevel }}</div>
-        <div class="stat-card__label">niveau</div>
-      </div>
-
-      <!-- XP du mois -->
-      <div class="stat-card stat-card--xp">
-        <div class="stat-card__icon">⚡</div>
-        <div class="stat-card__value">{{ actionStore.monthStats.xp_earned }}</div>
-        <div class="stat-card__label">XP ce mois</div>
-      </div>
-
-      <!-- Économies ce mois -->
-      <div class="stat-card stat-card--save">
-        <div class="stat-card__icon">💰</div>
-        <div class="stat-card__value">{{ formatAmount(actionStore.monthStats.saved) }}</div>
-        <div class="stat-card__label">économisés</div>
-      </div>
-    </div>
-
-    <!-- ===== XP BAR ===== -->
-    <div class="xp-bar-section">
-      <div class="xp-bar-section__labels">
-        <span>Niveau {{ playerLevel }}</span>
-        <span>{{ currentXP }} / {{ maxXP }} XP</span>
-      </div>
-      <div class="xp-bar">
-        <div class="xp-bar__fill" :style="{ width: xpPercent + '%' }" />
-      </div>
-    </div>
-
-    <!-- ===== DÉFI DU JOUR ===== -->
-    <section class="challenge-card" v-if="todayChallenge">
-      <div class="challenge-card__header">
-        <span class="challenge-badge">Défi du jour</span>
-        <span class="challenge-xp">+{{ todayChallenge.xp_reward }} XP</span>
-      </div>
-      <p class="challenge-card__title">{{ todayChallenge.title }}</p>
-      <div class="challenge-card__actions">
-        <button class="challenge-btn challenge-btn--success" @click="completeChallenge(true)">
-          ✓ Réussi
-        </button>
-        <button class="challenge-btn challenge-btn--fail" @click="completeChallenge(false)">
-          ✗ Pas aujourd'hui
-        </button>
-      </div>
-    </section>
-
-    <!-- ===== ACTIONS DU JOUR ===== -->
-    <section class="today-section" v-if="actionStore.todayActions.length > 0">
-      <h2 class="today-section__title">Aujourd'hui</h2>
-      <div class="today-actions">
-        <div
-          v-for="action in actionStore.todayActions.slice(0, 5)"
-          :key="action.id"
-          class="today-action"
-          :class="action.type === 'save' ? 'today-action--save' : 'today-action--spend'"
-        >
-          <span class="today-action__label">{{ action.reason_label || action.reason || '—' }}</span>
-          <span class="today-action__amount">
-            {{ action.type === 'save' ? '+' : '-' }}{{ formatAmount(action.amount) }} €
+        <div class="quest-card__bottom">
+          <span class="quest-remaining">
+            {{ formatAmount(quest.remaining_amount) }} € restants
+          </span>
+          <span v-if="quest.days_remaining !== null" class="quest-deadline">
+            {{ quest.days_remaining }}j
           </span>
         </div>
+      </section>
+
+      <!-- Aucune quête -->
+      <section v-else class="quest-empty" @click="showQuestForm = true">
+        <span class="quest-empty__icon">🎯</span>
+        <p class="quest-empty__text">Crée ta première quête</p>
+        <span class="quest-empty__cta">Commencer →</span>
+      </section>
+
+      <!-- ===== STATS RAPIDES ===== -->
+      <div class="stats-row">
+        <!-- Streak -->
+        <div class="stat-card stat-card--streak">
+          <div class="stat-card__icon">🔥</div>
+          <div class="stat-card__value">{{ currentStreak }}</div>
+          <div class="stat-card__label">jours de série</div>
+        </div>
+
+        <!-- Niveau -->
+        <div class="stat-card stat-card--level">
+          <div class="stat-card__icon">⭐</div>
+          <div class="stat-card__value">{{ playerLevel }}</div>
+          <div class="stat-card__label">niveau</div>
+        </div>
+
+        <!-- XP du mois -->
+        <div class="stat-card stat-card--xp">
+          <div class="stat-card__icon">⚡</div>
+          <div class="stat-card__value">{{ actionStore.monthStats.xp_earned }}</div>
+          <div class="stat-card__label">XP ce mois</div>
+        </div>
+
+        <!-- Économies ce mois -->
+        <div class="stat-card stat-card--save">
+          <div class="stat-card__icon">💰</div>
+          <div class="stat-card__value">{{ formatAmount(actionStore.monthStats.saved) }}</div>
+          <div class="stat-card__label">économisés</div>
+        </div>
       </div>
-    </section>
 
-    <!-- ===== BOUTON ACTION PRINCIPAL ===== -->
-    <div class="fab-container">
-      <button class="fab" @click="showActionModal = true">
-        <span class="fab__icon">+</span>
-        <span class="fab__label">Enregistrer</span>
-      </button>
-    </div>
+      <!-- ===== XP BAR ===== -->
+      <div class="xp-bar-section">
+        <div class="xp-bar-section__labels">
+          <span>Niveau {{ playerLevel }}</span>
+          <span>{{ currentXP }} / {{ maxXP }} XP</span>
+        </div>
+        <div class="xp-bar">
+          <div class="xp-bar__fill" :style="{ width: xpPercent + '%' }" />
+        </div>
+      </div>
 
-    <!-- ===== MODALS ===== -->
-    <ActionModal
-      v-model="showActionModal"
-      :quest-id="quest?.id ?? null"
-      :quest-name="quest?.name ?? 'Ma quête'"
-      :quest-emoji="quest?.emoji ?? '🎯'"
-      @submitted="onActionSubmitted"
-    />
+      <!-- ===== DÉFI DU JOUR ===== -->
+      <section class="challenge-card" v-if="todayChallenge">
+        <div class="challenge-card__header">
+          <span class="challenge-badge">Défi du jour</span>
+          <span class="challenge-xp">+{{ todayChallenge.xp_reward }} XP</span>
+        </div>
+        <p class="challenge-card__title">{{ todayChallenge.title }}</p>
+        <div class="challenge-card__actions">
+          <button class="challenge-btn challenge-btn--success" @click="completeChallenge(true)">
+            ✓ Réussi
+          </button>
+          <button class="challenge-btn challenge-btn--fail" @click="completeChallenge(false)">
+            ✗ Pas aujourd'hui
+          </button>
+        </div>
+      </section>
 
-    <!-- Formulaire création quête (simple) -->
-    <Teleport to="body">
-      <Transition name="modal">
-        <div v-if="showQuestForm" class="quest-form-overlay" @click.self="showQuestForm = false">
-          <div class="quest-form">
-            <h2 class="quest-form__title">Crée ta quête</h2>
-
-            <label class="quest-form__label">Nom de la quête</label>
-            <input
-              v-model="newQuest.name"
-              class="quest-form__input"
-              placeholder="Voyage au Japon, MacBook..."
-            />
-
-            <label class="quest-form__label">Montant cible (€)</label>
-            <input
-              v-model.number="newQuest.target_amount"
-              type="number"
-              class="quest-form__input"
-              placeholder="3000"
-            />
-
-            <label class="quest-form__label">Date cible (optionnelle)</label>
-            <input v-model="newQuest.target_date" type="date" class="quest-form__input" />
-
-            <div class="quest-form__emojis">
-              <button
-                v-for="e in questEmojis"
-                :key="e"
-                :class="['emoji-btn', { 'emoji-btn--active': newQuest.emoji === e }]"
-                @click="newQuest.emoji = e"
-              >
-                {{ e }}
-              </button>
-            </div>
-
-            <button
-              class="quest-form__submit"
-              :disabled="!newQuest.name || !newQuest.target_amount || questStore.saving"
-              @click="createQuest"
-            >
-              {{ questStore.saving ? '...' : '✓ Créer ma quête' }}
-            </button>
+      <!-- ===== ACTIONS DU JOUR ===== -->
+      <section class="today-section" v-if="actionStore.todayActions.length > 0">
+        <h2 class="today-section__title">Aujourd'hui</h2>
+        <div class="today-actions">
+          <div
+            v-for="action in actionStore.todayActions.slice(0, 5)"
+            :key="action.id"
+            class="today-action"
+            :class="action.type === 'save' ? 'today-action--save' : 'today-action--spend'"
+          >
+            <span class="today-action__label">{{
+              action.reason_label || action.reason || '—'
+            }}</span>
+            <span class="today-action__amount">
+              {{ action.type === 'save' ? '+' : '-' }}{{ formatAmount(action.amount) }} €
+            </span>
           </div>
         </div>
-      </Transition>
-    </Teleport>
+      </section>
+
+      <!-- ===== BOUTON ACTION PRINCIPAL ===== -->
+      <div class="fab-container">
+        <button class="fab" @click="showActionModal = true">
+          <span class="fab__icon">+</span>
+          <span class="fab__label">Enregistrer</span>
+        </button>
+      </div>
+
+      <!-- ===== MODALS ===== -->
+      <ActionModal
+        v-model="showActionModal"
+        :quest-id="quest?.id ?? null"
+        :quest-name="quest?.name ?? 'Ma quête'"
+        :quest-emoji="quest?.emoji ?? '🎯'"
+        @submitted="onActionSubmitted"
+      />
+
+      <!-- Formulaire création quête (simple) -->
+      <Teleport to="body">
+        <Transition name="modal">
+          <div v-if="showQuestForm" class="quest-form-overlay" @click.self="showQuestForm = false">
+            <div class="quest-form">
+              <h2 class="quest-form__title">Crée ta quête</h2>
+
+              <label class="quest-form__label">Nom de la quête</label>
+              <input
+                v-model="newQuest.name"
+                class="quest-form__input"
+                placeholder="Voyage au Japon, MacBook..."
+              />
+
+              <label class="quest-form__label">Montant cible (€)</label>
+              <input
+                v-model.number="newQuest.target_amount"
+                type="number"
+                class="quest-form__input"
+                placeholder="3000"
+              />
+
+              <label class="quest-form__label">Date cible (optionnelle)</label>
+              <input v-model="newQuest.target_date" type="date" class="quest-form__input" />
+
+              <div class="quest-form__emojis">
+                <button
+                  v-for="e in questEmojis"
+                  :key="e"
+                  :class="['emoji-btn', { 'emoji-btn--active': newQuest.emoji === e }]"
+                  @click="newQuest.emoji = e"
+                >
+                  {{ e }}
+                </button>
+              </div>
+
+              <button
+                class="quest-form__submit"
+                :disabled="!newQuest.name || !newQuest.target_amount || questStore.saving"
+                @click="createQuest"
+              >
+                {{ questStore.saving ? '...' : '✓ Créer ma quête' }}
+              </button>
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
+    </div>
+    <!-- end .dashboard -->
+
+    <QuestBottomNav />
   </div>
+  <!-- end .dashboard-wrapper -->
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import ActionModal from '@/components/ActionModal.vue'
+import QuestHeader from '@/components/quest/QuestHeader.vue'
+import QuestBottomNav from '@/components/quest/QuestBottomNav.vue'
 import { useQuestStore } from '@/stores/Queststore.ts'
 import { useDailyActionStore } from '@/stores/Dailyactionstore.ts'
 import { useGamingStore } from '@/stores/gamingStore'
@@ -230,11 +244,16 @@ const currentStreak = computed(() => {
 
 const playerLevel = computed(() => gamingStore.currentLevel?.level ?? 1)
 
-const currentXP = computed(() => actionStore.monthStats.xp_earned ?? 0)
+const currentXP = computed(() => gamingStore.totalXP ?? 0)
 
-const maxXP = computed(() => 200)
+const maxXP = computed(() => gamingStore.currentLevel?.max_xp ?? 200)
 
-const xpPercent = computed(() => Math.min(100, Math.round((currentXP.value / maxXP.value) * 100)))
+const xpPercent = computed(() => {
+  const minXP = gamingStore.currentLevel?.min_xp ?? 0
+  const cur = currentXP.value - minXP
+  const max = maxXP.value - minXP || 200
+  return Math.min(100, Math.round((cur / max) * 100))
+})
 
 // ==========================================
 // LIFECYCLE
@@ -304,10 +323,19 @@ async function createQuest(): Promise<void> {
 </script>
 
 <style scoped>
+.dashboard-wrapper {
+  min-height: 100vh;
+  background: #0f0f1a;
+  display: flex;
+  flex-direction: column;
+}
+
 .dashboard {
   max-width: 600px;
+  width: 100%;
   margin: 0 auto;
-  padding: 16px 16px 120px;
+  padding: 16px 16px 100px;
+  flex: 1;
 }
 
 /* ===== QUÊTE CARD ===== */
