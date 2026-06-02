@@ -3,8 +3,13 @@
   <header class="quest-header">
     <!-- Logo -->
     <div class="quest-header__logo">
-      <span class="quest-header__logo-icon">🪙</span>
-      <span class="quest-header__logo-text">CoinQuest</span>
+      <img src="@/assets/images/icon/icon.svg" class="w-10" alt="CoinQuest" />
+      <div
+        class="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"
+      >
+        
+      </div>
+    <span class="text-xl font-bold text-gray-900 hidden sm:block">CoinQuest</span>
     </div>
 
     <!-- Actions -->

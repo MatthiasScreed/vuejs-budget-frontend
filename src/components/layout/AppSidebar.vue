@@ -1,14 +1,14 @@
 <template>
-  <aside :class="sidebarClasses" :style="sidebarStyles">
+  <aside :class="sidebarClasses">
     <!-- Gaming Stats Header (quand sidebar ouverte) -->
     <div
       v-if="isOpen"
-      class="p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200 shrink-0"
+      class="p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200"
     >
       <div class="space-y-3">
         <!-- Daily Progress -->
         <div class="flex items-center justify-between">
-          <span class="text-sm font-medium text-gray-700">{{ t('gaming.dailyProgress') }}</span>
+          <span class="text-sm font-medium text-gray-700">ProgrÃ¨s du jour</span>
           <span class="text-sm text-blue-600 font-semibold">{{ dailyProgress }}%</span>
         </div>
         <div class="w-full h-2 bg-gray-200 rounded-full">
@@ -19,29 +19,27 @@
         </div>
 
         <!-- Quick Stats -->
-        <div class="grid grid-cols-3 gap-2">
-          <div class="bg-white rounded-lg p-2 h-14 flex flex-col items-center justify-center">
-            <span class="text-lg font-bold text-blue-600 leading-none">{{
-              totalAchievements
-            }}</span>
-            <span class="text-[10px] text-gray-500 mt-1">Achieve.</span>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-white rounded-lg p-2">
+            <div class="text-lg font-bold text-blue-600">{{ totalAchievements }}</div>
+            <div class="text-xs text-gray-500">SuccÃ¨s</div>
           </div>
-          <div class="bg-white rounded-lg p-2 h-14 flex flex-col items-center justify-center">
-            <span class="text-lg font-bold text-green-600 leading-none">{{ currentStreak }}</span>
-            <span class="text-[10px] text-gray-500 mt-1">Streak</span>
+          <div class="bg-white rounded-lg p-2">
+            <div class="text-lg font-bold text-green-600">{{ currentStreak }}</div>
+            <div class="text-xs text-gray-500">SÃ©rie</div>
           </div>
-          <div class="bg-white rounded-lg p-2 h-14 flex flex-col items-center justify-center">
-            <span class="text-xs font-bold text-purple-600 leading-none">{{ weeklyRank }}</span>
-            <span class="text-[10px] text-gray-500 mt-1">Rank</span>
+          <div class="bg-white rounded-lg p-2">
+            <div class="text-lg font-bold text-purple-600">{{ weeklyRank }}</div>
+            <div class="text-xs text-gray-500">Rang</div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Navigation Menu -->
-    <nav class="flex flex-col flex-1 min-h-0">
+    <nav class="flex flex-col" :style="{ height: navHeight }">
       <!-- Primary Navigation -->
-      <div class="flex-1 px-2 py-4 space-y-1 overflow-y-auto sidebar-scroll">
+      <div class="flex-1 px-2 py-4 space-y-1 sidebar-scroll overflow-y-auto">
         <template v-for="item in navigationItems" :key="item.name">
           <!-- Section header -->
           <div
@@ -62,7 +60,7 @@
                 : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
               !isOpen && 'justify-center',
             ]"
-            @click="handleNavClick"
+            active-class="bg-blue-100 text-blue-700"
           >
             <component
               :is="item.icon"
@@ -76,29 +74,21 @@
             />
             <span v-if="isOpen" class="truncate">{{ item.name }}</span>
 
-            <!-- Badge pour nouvelles fonctionnalités -->
+            <!-- Badge pour nouvelles fonctionnalitÃ©s -->
             <span
               v-if="item.badge && isOpen"
               class="ml-auto px-2 py-0.5 text-xs bg-green-100 text-green-600 rounded-full font-medium"
             >
               {{ item.badge }}
             </span>
-
-            <!-- ✅ Badge compteur insights non lus -->
-            <span
-              v-if="item.href === '/app/insights' && unreadInsightsCount > 0 && isOpen"
-              class="ml-auto px-2 py-0.5 text-xs bg-red-500 text-white rounded-full font-bold"
-            >
-              {{ unreadInsightsCount }}
-            </span>
           </router-link>
         </template>
       </div>
 
       <!-- Gaming Quick Actions (quand sidebar ouverte) -->
-      <div v-if="isOpen" class="px-4 py-4 border-t border-gray-200 bg-gray-50 shrink-0">
+      <div v-if="isOpen" class="px-4 py-4 border-t border-gray-200 bg-gray-50">
         <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-          {{ t('sidebar.quickActions') }}
+          Actions Rapides
         </h3>
 
         <div class="space-y-2">
@@ -107,7 +97,7 @@
             class="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-white hover:shadow-sm rounded-lg transition-all"
           >
             <PlusIcon class="w-4 h-4" />
-            <span>{{ t('sidebar.quickTransaction') }}</span>
+            <span>Transaction rapide</span>
           </button>
 
           <button
@@ -115,17 +105,16 @@
             class="w-full flex items-center space-x-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
           >
             <StarIcon class="w-4 h-4" />
-            <span>{{ t('sidebar.dailyChallenge') }}</span>
+            <span>DÃ©fi du jour</span>
           </button>
         </div>
       </div>
 
       <!-- Toggle button (desktop) -->
-      <div class="hidden lg:block p-2 border-t border-gray-200 shrink-0">
+      <div class="hidden lg:block p-2 border-t border-gray-200">
         <button
-          @click="emit('toggle-sidebar')"
+          @click="$emit('toggle-sidebar')"
           class="w-full flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-          :aria-label="t('common.toggleSidebar')"
         >
           <ChevronLeftIcon
             class="w-5 h-5 transition-transform duration-200"
@@ -134,32 +123,14 @@
         </button>
       </div>
     </nav>
-    <!-- ✅ Feedback Button - Toujours visible en bas -->
-    <div
-      v-if="isOpen"
-      class="shrink-0 p-3 bg-gradient-to-r from-orange-100 to-pink-100 border-t border-orange-200"
-    >
-      <a
-        href="https://docs.google.com/forms/d/e/1FAIpQLSeAPfntvo7HCLg90lVM4nFMmsBYDvLUgc-aYwx1dDNimQnjDw/viewform"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 rounded-xl transition-all shadow-lg hover:shadow-xl hover:scale-105"
-      >
-        <span class="text-lg">💬</span>
-        <span>Ton avis compte !</span>
-      </a>
-    </div>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import { useGamingStore } from '@/stores/gamingStore'
-import { useInsightStore } from '@/stores/insightStore'
-import { useAuthStore } from '@/stores/authStore'
-import api from '@/services/api'
+import { useApiHealth } from '@/composables/core/useApiHealth'
 import { useBreakpoints } from '@vueuse/core'
 import {
   HomeIcon,
@@ -171,13 +142,10 @@ import {
   PlusIcon,
   StarIcon,
   ChevronLeftIcon,
+  FolderIcon,
   CalendarIcon,
   LightBulbIcon,
-  ShieldCheckIcon,
 } from '@heroicons/vue/24/outline'
-
-// ✅ Utiliser vue-i18n
-const { t } = useI18n()
 
 // Props
 interface Props {
@@ -189,7 +157,8 @@ const props = withDefaults(defineProps<Props>(), {
   currentRoute: '',
 })
 
-const emit = defineEmits<{
+// Emits
+defineEmits<{
   close: []
   'toggle-sidebar': []
 }>()
@@ -197,181 +166,101 @@ const emit = defineEmits<{
 // Composables
 const route = useRoute()
 const gamingStore = useGamingStore()
-const insightStore = useInsightStore()
-const authStore = useAuthStore()
-
-// ✅ State local pour les stats gaming de la sidebar
-const sidebarAchievements = ref(0)
-const sidebarStreak = ref(0)
-const sidebarRank = ref('--')
-const sidebarDailyProgress = ref(0)
-
-const showApiStatus = inject('showApiStatus', ref(false))
+const apiHealth = useApiHealth()
 
 // Responsive
 const breakpoints = useBreakpoints({ lg: 1024 })
 const isMobile = computed(() => !breakpoints.lg.value)
 
+// âœ… Position adaptative selon l'API status
+const showApiStatus = computed(() => !apiHealth.isConnected.value || import.meta.env.DEV)
+
 const sidebarClasses = computed(() => {
   const baseClasses = [
-    'fixed left-0 transition-all duration-300 bg-white border-r border-gray-200',
-    'z-40',
-    'flex flex-col', // ✅ AJOUT ICI
+    'fixed left-0 z-20 transition-all duration-300 bg-white border-r border-gray-200',
     props.isOpen ? 'w-64' : 'w-16',
     'lg:translate-x-0',
+    props.isOpen || !isMobile.value ? 'translate-x-0' : '-translate-x-full',
   ]
 
-  if (isMobile.value) {
-    baseClasses.push(props.isOpen ? 'translate-x-0' : '-translate-x-full')
+  // Position adaptative selon l'Ã©tat de l'API
+  if (showApiStatus.value) {
+    baseClasses.push('top-28') // 48px (API) + 64px (Header) = 112px
   } else {
-    baseClasses.push('translate-x-0')
+    baseClasses.push('top-16') // 64px (juste Header)
   }
 
   return baseClasses
 })
 
-const sidebarStyles = computed(() => {
-  const styles: Record<string, string> = {}
-
+// âœ… Hauteur adaptative pour le contenu de navigation
+const navHeight = computed(() => {
+  // Calculer la hauteur restante selon la position
   if (showApiStatus.value) {
-    styles.top = '112px'
-    styles.height = 'calc(100vh - 112px)'
+    return 'calc(100vh - 112px)' // Soustraire API (48px) + Header (64px)
   } else {
-    styles.top = '64px'
-    styles.height = 'calc(100vh - 64px)'
+    return 'calc(100vh - 64px)' // Soustraire seulement Header (64px)
   }
-
-  if (isMobile.value) {
-    styles.height = showApiStatus.value ? 'calc(100vh - 112px)' : 'calc(100vh - 64px)'
-    styles.maxHeight = styles.height
-  }
-
-  return styles
 })
 
 // Computed gaming stats
-// ✅ Computed utilisant les données locales chargées
-const dailyProgress = computed(() => sidebarDailyProgress.value || gamingStore.dailyProgress || 0)
-const totalAchievements = computed(
-  () => sidebarAchievements.value || gamingStore.achievements?.length || 0,
-)
-const currentStreak = computed(() => sidebarStreak.value || gamingStore.currentStreak || 0)
-const weeklyRank = computed(() => sidebarRank.value || gamingStore.weeklyRank || '--')
+const dailyProgress = computed(() => gamingStore.dailyProgress || 0)
+const totalAchievements = computed(() => gamingStore.achievements?.length || 0)
+const currentStreak = computed(() => gamingStore.currentStreak || 0)
+const weeklyRank = computed(() => gamingStore.weeklyRank || '--')
 
-// ✅ Compteur insights non lus
-const unreadInsightsCount = computed(() => insightStore.unreadCount || 0)
-
-// ✅ Vérifier si l'utilisateur est admin
-const isAdmin = computed(() => !!authStore.user?.is_admin)
-
-// ✅ Navigation structure avec i18n + INSIGHTS
-const navigationItems = computed(() => [
+// Navigation structure
+const navigationItems = [
   // Dashboard
-  { type: 'link', name: t('nav.dashboard'), href: '/app/dashboard', icon: HomeIcon },
+  { type: 'link', name: 'Dashboard', href: '/app/dashboard', icon: HomeIcon },
 
   // Section Finances
-  { type: 'header', name: t('sidebar.sectionFinances') },
-  { type: 'link', name: t('nav.transactions'), href: '/app/transactions', icon: CreditCardIcon },
-  { type: 'link', name: t('nav.budget'), href: '/app/categories', icon: ChartBarIcon },
-  { type: 'link', name: t('nav.goals'), href: '/app/goals', icon: CalendarIcon },
-
-  // ✅ INSIGHTS AJOUTÉ ICI
-  {
-    type: 'link',
-    name: 'Coach IA',
-    href: '/app/insights',
-    icon: LightBulbIcon,
-    badge: unreadInsightsCount.value > 0 ? String(unreadInsightsCount.value) : undefined,
-  },
+  { type: 'header', name: 'Finances' },
+  { type: 'link', name: 'Transactions', href: '/app/transactions', icon: CreditCardIcon },
+  { type: 'link', name: 'Budget', href: '/app/categories', icon: ChartBarIcon },
+  { type: 'link', name: 'Objectifs', href: '/app/goals', icon: CalendarIcon },
 
   // Section Gaming
-  { type: 'header', name: t('sidebar.sectionGaming') },
-  {
-    type: 'link',
-    name: t('nav.gamingCenter'),
-    href: '/app/gaming',
-    icon: TrophyIcon,
-    badge: t('sidebar.badgeNew'),
-  },
-  { type: 'link', name: t('nav.achievements'), href: '/app/gaming/achievements', icon: TrophyIcon },
-  { type: 'link', name: t('nav.challenges'), href: '/app/gaming/challenges', icon: StarIcon },
+  { type: 'header', name: 'Gaming' },
+  { type: 'link', name: 'Gaming Center', href: '/app/gaming', icon: TrophyIcon, badge: 'NEW' },
+  { type: 'link', name: 'SuccÃ¨s', href: '/app/achievements', icon: TrophyIcon },
+  { type: 'link', name: 'DÃ©fis', href: '/app/challenges', icon: StarIcon },
 
   // Section Outils
-  { type: 'header', name: t('sidebar.sectionTools') },
-  { type: 'link', name: t('nav.analytics'), href: '/app/analytics', icon: ChartBarIcon },
-  { type: 'link', name: t('nav.connections'), href: '/app/banking', icon: CogIcon },
-  { type: 'link', name: t('nav.profile'), href: '/app/profile', icon: UserGroupIcon },
+  { type: 'header', name: 'Outils' },
+  { type: 'link', name: 'Analytics', href: '/app/analytics', icon: LightBulbIcon },
+  { type: 'link', name: 'Connexions', href: '/app/banking', icon: CogIcon },
+  { type: 'link', name: 'Profil', href: '/app/profile', icon: UserGroupIcon },
+]
 
-  // Section Administration (visible seulement si admin)
-  ...(isAdmin.value
-    ? [
-        { type: 'header', name: 'Administration' },
-        { type: 'link', name: 'Admin Dashboard', href: '/app/admin', icon: ShieldCheckIcon },
-      ]
-    : []),
-])
-
+// Methods
 const isCurrentRoute = (href: string): boolean => {
   const currentPath = route.path
-  return currentPath === href || currentPath.startsWith(href + '/')
-}
 
-const handleNavClick = (): void => {
-  if (isMobile.value && props.isOpen) {
-    setTimeout(() => {
-      emit('close')
-    }, 100)
+  // Si on est sur une route /app/*, comparer avec le href
+  if (currentPath.startsWith('/app/') && href.startsWith('/app/')) {
+    return currentPath === href
   }
+
+  // Fallback pour les autres routes
+  return currentPath.startsWith(href)
 }
 
 const openQuickTransaction = (): void => {
+  // Ã‰mettre un Ã©vÃ©nement pour ouvrir la modal de transaction rapide
   console.log('Opening quick transaction modal')
+  // TODO: ImplÃ©menter ouverture modal
 }
 
 const openDailyChallenge = (): void => {
+  // Router vers le dÃ©fi du jour
   console.log('Opening daily challenge')
-}
-
-// ✅ Charger les données gaming au montage
-onMounted(async () => {
-  try {
-    await insightStore.loadSummary()
-    await loadSidebarGamingData()
-  } catch (error) {
-    console.error('Erreur chargement sidebar data:', error)
-  }
-})
-
-/**
- * ✅ Charger les données gaming depuis l'API summary
- */
-async function loadSidebarGamingData(): Promise<void> {
-  try {
-    if (!authStore.isAuthenticated) return
-
-    const response = await api.get<any>('/gaming/summary')
-
-    if (response.success && response.data) {
-      const data = response.data
-      sidebarAchievements.value = data.achievements_unlocked_count || 0
-      sidebarStreak.value = data.active_streaks_count || 0
-      sidebarRank.value = data.rank || '--'
-      sidebarDailyProgress.value = data.progress_percent || 0
-    }
-  } catch (err) {
-    console.warn('⚠️ Sidebar gaming data failed (non-bloquant)')
-  }
+  // TODO: Router.push('/app/challenges/daily')
 }
 </script>
 
 <style scoped>
-/* ✅ SCROLLBAR CUSTOM AMÉLIORÉE */
-.sidebar-scroll {
-  overflow-y: auto;
-  /* Smooth scrolling sur mobile */
-  -webkit-overflow-scrolling: touch;
-}
-
+/* Custom scrollbar pour la sidebar */
 .sidebar-scroll::-webkit-scrollbar {
   width: 4px;
 }
@@ -389,7 +278,7 @@ async function loadSidebarGamingData(): Promise<void> {
   background: rgb(156, 163, 175);
 }
 
-/* ✅ ANIMATIONS FLUIDES */
+/* Animation pour les badges */
 @keyframes badge-pulse {
   0%,
   100% {
@@ -400,41 +289,14 @@ async function loadSidebarGamingData(): Promise<void> {
   }
 }
 
-@keyframes pulse-slow {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.85;
-  }
-}
-.animate-pulse-slow {
-  animation: pulse-slow 2s ease-in-out infinite;
-}
-
 .badge-animate {
   animation: badge-pulse 2s ease-in-out infinite;
 }
 
-/* ✅ CORRECTIFS MOBILES */
-@media (max-width: 1023px) {
-  /* Assurer que la sidebar mobile s'affiche correctement */
-  .sidebar-mobile-fix {
-    position: fixed !important;
-    top: var(--sidebar-top, 64px) !important;
-    height: var(--sidebar-height, calc(100vh - 64px)) !important;
-    left: 0 !important;
-    z-index: 40 !important;
-  }
-}
-
-/* ✅ FIXES POUR IOS SAFARI */
-@supports (-webkit-touch-callout: none) {
-  /* iOS Safari specific fixes */
-  .sidebar-scroll {
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+/* Transition fluide pour le repositionnement */
+.sidebar-adaptive {
+  transition:
+    top 0.3s ease,
+    height 0.3s ease;
 }
 </style>
