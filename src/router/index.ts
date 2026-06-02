@@ -6,54 +6,47 @@ import { useAuthStore } from '@/stores/authStore'
 // LAZY LOADING
 // ==========================================
 
-// Layout
 const AppLayout = () => import('@/components/layout/AppLayout.vue')
-
-// Pages publiques
 const LandingPage = () => import('@/views/LandingPage.vue')
 const Login = () => import('@/views/Login.vue')
 const Register = () => import('@/views/Register.vue')
 
-// MVP — Dashboard principal (quête + action quotidienne)
+// ✅ MVP
 const Dashboard = () => import('@/views/Dashboard.vue')
+const OnboardingQuest = () => import('@/views/OnboardingQuest.vue')
 
-// Pages authentifiées — legacy (conservées mais non prioritaires)
+// Legacy
 const Transactions = () => import('@/views/Transactions.vue')
 const Goals = () => import('@/views/Goals.vue')
 const Categories = () => import('@/views/Categories.vue')
 const Analytics = () => import('@/views/Analytics.vue')
 const Profile = () => import('@/views/Profile.vue')
 const Banking = () => import('@/views/Banking.vue')
-
-// Gaming
 const Gaming = () => import('@/views/Gaming.vue')
 const Achievements = () => import('@/views/Achievements.vue')
 const Challenges = () => import('@/views/Challenges.vue')
-
-// Admin
 const AdminDashboard = () => import('@/views/AdminDashboard.vue')
+
+// ==========================================
+// HELPER — onboarding déjà fait ?
+// ==========================================
+
+function hasCompletedOnboarding(): boolean {
+  return localStorage.getItem('onboarding_completed') === 'true'
+}
 
 // ==========================================
 // ROUTES
 // ==========================================
 
 const routes = [
-  // ==========================================
-  // LANDING PAGE
-  // ==========================================
+  // PUBLIC
   {
     path: '/',
     name: 'Landing',
     component: LandingPage,
-    meta: {
-      requiresAuth: false,
-      title: 'CoinQuest - Transforme tes finances en aventure',
-    },
+    meta: { requiresAuth: false, title: 'CoinQuest - Transforme tes finances en aventure' },
   },
-
-  // ==========================================
-  // AUTHENTIFICATION (sans layout)
-  // ==========================================
   {
     path: '/login',
     name: 'Login',
@@ -67,40 +60,31 @@ const routes = [
     meta: { requiresAuth: false, title: 'Inscription - CoinQuest' },
   },
 
-  // ==========================================
-  // MVP — QUÊTE (sans AppLayout, expérience immersive)
-  // ==========================================
+  // ✅ ONBOARDING — affiché une seule fois après inscription
+  {
+    path: '/onboarding',
+    name: 'Onboarding',
+    component: OnboardingQuest,
+    meta: { requiresAuth: true, title: 'Crée ta quête - CoinQuest' },
+  },
+
+  // ✅ MVP QUEST — dashboard principal
   {
     path: '/quete',
     name: 'Quest',
-    component: Dashboard, // ← Dashboard.vue = le MVP
-    meta: {
-      requiresAuth: true,
-      title: 'Ma Quête - CoinQuest',
-    },
+    component: Dashboard,
+    meta: { requiresAuth: true, title: 'Ma Quête - CoinQuest' },
   },
 
-  // ==========================================
-  // APPLICATION (avec AppLayout + navbar)
-  // ==========================================
+  // APP (avec AppLayout)
   {
     path: '/app',
     component: AppLayout,
     meta: { requiresAuth: true },
     children: [
-      // Redirection /app → /quete (point d'entrée MVP)
-      {
-        path: '',
-        redirect: { name: 'Quest' },
-      },
+      { path: '', redirect: { name: 'Quest' } },
+      { path: 'dashboard', redirect: { name: 'Quest' } },
 
-      // Dashboard legacy (redirige vers la quête MVP)
-      {
-        path: 'dashboard',
-        redirect: { name: 'Quest' },
-      },
-
-      // === FEATURES LEGACY ===
       {
         path: 'transactions',
         name: 'Transactions',
@@ -143,8 +127,6 @@ const routes = [
         component: Profile,
         meta: { requiresAuth: true, title: 'Profil - CoinQuest' },
       },
-
-      // === GAMING ===
       {
         path: 'gaming',
         name: 'Gaming',
@@ -163,24 +145,16 @@ const routes = [
         component: Challenges,
         meta: { requiresAuth: true, title: 'Défis - CoinQuest' },
       },
-
-      // === ADMIN ===
       {
         path: 'admin',
         name: 'AdminDashboard',
         component: AdminDashboard,
-        meta: {
-          requiresAuth: true,
-          requiresAdmin: true,
-          title: 'Admin - CoinQuest',
-        },
+        meta: { requiresAuth: true, requiresAdmin: true, title: 'Admin - CoinQuest' },
       },
     ],
   },
 
-  // ==========================================
-  // REDIRECTIONS (compatibilité URLs existantes)
-  // ==========================================
+  // REDIRECTIONS
   { path: '/home', redirect: { name: 'Landing' } },
   { path: '/dashboard', redirect: { name: 'Quest' } },
   { path: '/transactions', redirect: { name: 'Transactions' } },
@@ -195,9 +169,7 @@ const routes = [
   { path: '/gaming/achievements', redirect: { name: 'Achievements' } },
   { path: '/gaming/challenges', redirect: { name: 'Challenges' } },
 
-  // ==========================================
   // 404
-  // ==========================================
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
@@ -220,7 +192,7 @@ const router = createRouter({
 })
 
 // ==========================================
-// NAVIGATION GUARDS
+// NAVIGATION GUARD
 // ==========================================
 
 router.beforeEach(async (to, from, next) => {
@@ -230,7 +202,6 @@ router.beforeEach(async (to, from, next) => {
 
   // Routes publiques
   if (!requiresAuth) {
-    // Déjà connecté → pas besoin d'aller sur Login/Register
     if (authStore.isAuthenticated && (to.name === 'Login' || to.name === 'Register')) {
       next({ name: 'Quest' })
       return
@@ -239,42 +210,46 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
-  // Déjà authentifié en mémoire
-  if (authStore.isAuthenticated && authStore.user) {
-    if (requiresAdmin && !authStore.user.is_admin) {
-      next({ name: 'Quest' })
+  // Restauration session depuis localStorage
+  if (!authStore.isAuthenticated || !authStore.user) {
+    const token = localStorage.getItem('auth_token')
+    const userStr = localStorage.getItem('user')
+
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr)
+        authStore.token = token
+        authStore.user = user
+        authStore.isAuthenticated = true
+      } catch {
+        localStorage.removeItem('auth_token')
+        localStorage.removeItem('user')
+        next({ name: 'Login', query: { redirect: to.fullPath } })
+        return
+      }
+    } else {
+      next({ name: 'Login', query: { redirect: to.fullPath } })
       return
     }
-    next()
+  }
+
+  // Vérification admin
+  if (requiresAdmin && !authStore.user?.is_admin) {
+    next({ name: 'Quest' })
     return
   }
 
-  // Tentative restauration depuis localStorage
-  const token = localStorage.getItem('auth_token')
-  const userStr = localStorage.getItem('user')
+  // ✅ GUARD ONBOARDING
+  // Si authentifié, pas sur la page onboarding, et onboarding pas encore fait
+  // → rediriger vers l'onboarding (sauf pages admin et profil)
+  const bypassOnboarding = ['Onboarding', 'Profile', 'AdminDashboard'].includes(to.name as string)
 
-  if (token && userStr) {
-    try {
-      const user = JSON.parse(userStr)
-      authStore.token = token
-      authStore.user = user
-      authStore.isAuthenticated = true
-
-      if (requiresAdmin && !user.is_admin) {
-        next({ name: 'Quest' })
-        return
-      }
-
-      next()
-      return
-    } catch {
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('user')
-    }
+  if (!hasCompletedOnboarding() && !bypassOnboarding) {
+    next({ name: 'Onboarding' })
+    return
   }
 
-  // Non authentifié → Login
-  next({ name: 'Login', query: { redirect: to.fullPath } })
+  next()
 })
 
 // ==========================================
@@ -289,7 +264,7 @@ router.afterEach((to) => {
 })
 
 // ==========================================
-// GESTION D'ERREURS (chunks lazy)
+// GESTION ERREURS (chunks lazy)
 // ==========================================
 
 router.onError((error) => {

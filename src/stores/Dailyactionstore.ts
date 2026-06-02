@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { api } from '@/services/api'
 import { useToastStore } from '@/stores/toastStore'
 import { useGamingStore } from '@/stores/gamingStore'
-import { useQuestStore } from '@/stores/Queststore'
+import { useQuestStore } from '@/stores/questStore'
 
 // ==========================================
 // TYPES
@@ -49,7 +49,14 @@ export interface ActionResult {
     bonus_xp: number
     is_milestone: boolean
   }
-  quest: any | null
+  quest: {
+    id: number
+    name: string
+    emoji: string
+    progress_percentage: number
+    current_amount: number
+    target_amount: number
+  } | null
 }
 
 interface CreateActionData {
@@ -140,7 +147,7 @@ export const useDailyActionStore = defineStore('dailyAction', () => {
 
       lastResult.value = result
 
-      // Mise à jour locale immédiate (pas besoin de refetch)
+      // Mise à jour locale immédiate
       todayActions.value.unshift(result.action)
       todaySummary.value.actions_count++
       todaySummary.value.has_acted = true
@@ -161,12 +168,12 @@ export const useDailyActionStore = defineStore('dailyAction', () => {
       // Mettre à jour le store gaming
       syncGamingStore(result)
 
-      // Mettre à jour la quête
+      // Mettre à jour la quête localement
       if (result.quest && data.quest_id) {
         useQuestStore().applyActionToQuest(data.quest_id, data.type, data.amount)
       }
 
-      // Toast contextuel
+      // ✅ FIX 1: Toast avec contexte quête
       showActionToast(result, toast)
 
       return result
@@ -216,7 +223,7 @@ export const useDailyActionStore = defineStore('dailyAction', () => {
   }
 
   /**
-   * Charger l'historique (30 derniers jours)
+   * Charger l'historique
    */
   async function fetchHistory(days = 30): Promise<void> {
     loading.value = true
@@ -264,26 +271,56 @@ export const useDailyActionStore = defineStore('dailyAction', () => {
     }
   }
 
+  /**
+   * ✅ FIX 1: Toast post-action avec contexte quête
+   * Avant : "+10 XP · 🔥 17j"
+   * Après : "✈️ Voyage au Japon · 41% → 42% · +10 XP · 🔥 17j"
+   */
   function showActionToast(result: ActionResult, toast: ReturnType<typeof useToastStore>): void {
     const xp = result.gaming.xp_earned
     const streak = result.streak.current
     const isLvlUp = result.gaming.leveled_up
+    const quest = result.quest
 
+    // Cas 1: Level up — message prioritaire
     if (isLvlUp) {
-      toast.levelUp(result.gaming.new_level!, xp)
-      return
-    }
-
-    if (result.streak.is_milestone) {
-      toast.success(`🔥 ${streak} jours de série ! +${result.streak.bonus_xp} XP bonus`, {
-        title: '🏆 Milestone streak !',
+      const questCtx = quest ? `${quest.emoji} ${quest.name} · ` : ''
+      toast.success(`${questCtx}Niveau ${result.gaming.new_level} atteint ! +${xp} XP`, {
+        title: '🌟 Level Up !',
         duration: 6000,
       })
       return
     }
 
-    const streakMsg = streak > 1 ? ` · 🔥 ${streak}j` : ''
-    toast.success(`+${xp} XP${streakMsg}`, { title: '⚡ Action enregistrée', duration: 3000 })
+    // Cas 2: Milestone streak
+    if (result.streak.is_milestone) {
+      const questCtx = quest ? `${quest.emoji} ${quest.name} · ` : ''
+      toast.success(
+        `${questCtx}🔥 ${streak} jours de série ! +${result.streak.bonus_xp} XP bonus`,
+        { title: '🏆 Milestone !', duration: 6000 },
+      )
+      return
+    }
+
+    // Cas 3: Quête complétée
+    if (quest?.progress_percentage >= 100) {
+      toast.success(`${quest.emoji} ${quest.name} terminée ! Objectif atteint ! 🎉`, {
+        title: '🏆 Quête accomplie !',
+        duration: 8000,
+      })
+      return
+    }
+
+    // Cas 4: Toast normal avec contexte quête (cas principal)
+    const questPart = quest ? `${quest.emoji} ${quest.name} · ${quest.progress_percentage}%` : null
+
+    const xpPart = `⚡ +${xp} XP`
+    const streakPart = streak > 1 ? `🔥 ${streak}j` : null
+
+    const body = [xpPart, streakPart].filter(Boolean).join(' · ')
+    const title = questPart ?? 'Action enregistrée'
+
+    toast.success(body, { title, duration: 4000 })
   }
 
   // ==========================================
