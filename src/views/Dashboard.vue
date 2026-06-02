@@ -230,16 +230,11 @@ const currentStreak = computed(() => {
 
 const playerLevel = computed(() => gamingStore.currentLevel?.level ?? 1)
 
-const currentXP = computed(() => gamingStore.totalXP ?? 0)
+const currentXP = computed(() => actionStore.monthStats.xp_earned ?? 0)
 
-const maxXP = computed(() => gamingStore.currentLevel?.max_xp ?? 200)
+const maxXP = computed(() => 200)
 
-const xpPercent = computed(() => {
-  const minXP = gamingStore.currentLevel?.min_xp ?? 0
-  const cur = currentXP.value - minXP
-  const max = maxXP.value - minXP || 200
-  return Math.min(100, Math.round((cur / max) * 100))
-})
+const xpPercent = computed(() => Math.min(100, Math.round((currentXP.value / maxXP.value) * 100)))
 
 // ==========================================
 // LIFECYCLE
