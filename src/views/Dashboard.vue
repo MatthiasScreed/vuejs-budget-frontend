@@ -264,6 +264,7 @@ onMounted(async () => {
     questStore.fetchMainQuest(),
     actionStore.fetchToday(),
     actionStore.fetchStats(),
+    gamingStore.initializeGaming(),
     loadTodayChallenge(),
   ])
 })
