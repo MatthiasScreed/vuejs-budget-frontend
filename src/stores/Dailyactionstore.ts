@@ -143,7 +143,7 @@ export const useDailyActionStore = defineStore('dailyAction', () => {
 
     try {
       const res = await api.post('/daily-actions', data)
-      const result = res.data?.data as ActionResult
+      const result = res.data as ActionResult
 
       lastResult.value = result
 
@@ -194,7 +194,7 @@ export const useDailyActionStore = defineStore('dailyAction', () => {
 
     try {
       const res = await api.get('/daily-actions/today')
-      const data = res.data?.data
+      const data = res.data
 
       todayActions.value = data?.actions ?? []
       todaySummary.value = data?.summary ?? todaySummary.value
@@ -211,7 +211,7 @@ export const useDailyActionStore = defineStore('dailyAction', () => {
   async function fetchStats(): Promise<void> {
     try {
       const res = await api.get('/daily-actions/stats')
-      const data = res.data?.data
+      const data = res.data
 
       weekStats.value = data?.week ?? weekStats.value
       monthStats.value = data?.month ?? monthStats.value
