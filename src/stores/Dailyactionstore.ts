@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { api } from '@/services/api'
 import { useToastStore } from '@/stores/toastStore'
 import { useGamingStore } from '@/stores/gamingStore'
-import { useQuestStore } from '@/stores/questStore'
+import { useQuestStore } from '@/stores/QuestStore'
 
 // ==========================================
 // TYPES

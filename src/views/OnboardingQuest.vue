@@ -140,7 +140,7 @@
 <script setup lang="ts">
 import { ref, nextTick, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useQuestStore } from '@/stores/questStore'
+import { useQuestStore } from '@/stores/Queststore.ts'
 
 // ==========================================
 // STORES
