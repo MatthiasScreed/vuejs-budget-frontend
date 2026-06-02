@@ -263,9 +263,14 @@ export const useDailyActionStore = defineStore('dailyAction', () => {
   function syncGamingStore(result: ActionResult): void {
     try {
       const gaming = useGamingStore()
-      gaming.player.level = result.gaming.level
-      gaming.player.currentXP = result.gaming.total_xp
-      gaming.currentStreak = result.streak.current
+      gaming.totalXP = result.gaming.total_xp // ✅ existe
+      gaming.weeklyXP = (gaming.weeklyXP ?? 0) + result.gaming.xp_earned
+
+      // Mettre à jour le streak dans la liste
+      const streakIdx = gaming.streaks.findIndex((s: any) => s.type === 'daily')
+      if (streakIdx !== -1) {
+        gaming.streaks[streakIdx].current_count = result.streak.current
+      }
     } catch {
       // GamingStore optionnel
     }
