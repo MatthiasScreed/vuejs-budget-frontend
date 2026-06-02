@@ -187,8 +187,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import ActionModal from '@/components/ActionModal.vue'
-import { useQuestStore } from '@/stores/questStore'
-import { useDailyActionStore } from '@/stores/dailyActionStore'
+import { useQuestStore } from '@/stores/Queststore.ts'
+import { useDailyActionStore } from '@/stores/Dailyactionstore.ts'
 import { useGamingStore } from '@/stores/gamingStore'
 import { api } from '@/services/api'
 
