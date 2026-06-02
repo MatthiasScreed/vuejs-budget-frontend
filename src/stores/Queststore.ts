@@ -73,7 +73,7 @@ export const useQuestStore = defineStore('quest', () => {
 
     try {
       const res = await api.get('/quests')
-      quests.value = res.data?.data ?? []
+      quests.value = res.data ?? []
     } catch (e: any) {
       error.value = e.message
     } finally {
@@ -87,7 +87,7 @@ export const useQuestStore = defineStore('quest', () => {
   async function fetchMainQuest(): Promise<void> {
     try {
       const res = await api.get('/quests/main')
-      mainQuest.value = res.data?.data ?? null
+      mainQuest.value = res.data ?? null
     } catch (e: any) {
       error.value = e.message
     }
@@ -103,7 +103,7 @@ export const useQuestStore = defineStore('quest', () => {
 
     try {
       const res = await api.post('/quests', data)
-      const quest = res.data?.data as Quest
+      const quest = res.data as Quest // res = { success, data, message }
 
       quests.value.unshift(quest)
 
