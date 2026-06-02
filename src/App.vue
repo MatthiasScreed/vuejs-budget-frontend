@@ -1,17 +1,15 @@
 <template>
   <div id="app" class="min-h-screen">
-    <!-- 📄 ÉCRAN DE CHARGEMENT INITIAL -->
+    <!-- ÉCRAN DE CHARGEMENT INITIAL -->
     <div
       v-if="!appInitialized"
       class="fixed inset-0 bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center z-50"
     >
       <div class="text-center">
-        <!-- Logo animé -->
         <div class="mb-8 relative">
           <div class="w-32 h-32 mx-auto animate-pulse">
             <img :src="iconUrl" alt="CoinQuest" class="w-full h-full drop-shadow-2xl" />
           </div>
-          <!-- Cercle de progression -->
           <div class="absolute inset-0 flex items-center justify-center">
             <svg class="w-40 h-40 animate-spin-slow" viewBox="0 0 100 100">
               <circle
@@ -41,7 +39,6 @@
 
         <p class="text-gray-400 mb-6">{{ loadingMessage }}</p>
 
-        <!-- Barre de progression -->
         <div
           v-if="!initializationError"
           class="w-64 mx-auto bg-gray-700 rounded-full h-2 overflow-hidden"
@@ -49,10 +46,9 @@
           <div
             class="bg-gaming-gradient h-full transition-all duration-500"
             :style="{ width: `${initProgress}%` }"
-          ></div>
+          />
         </div>
 
-        <!-- Erreur avec retry -->
         <div v-if="initializationError" class="mt-6 space-y-4">
           <div class="bg-red-900/30 border border-red-500/50 rounded-lg p-4 max-w-md mx-auto">
             <p class="text-red-200 text-sm">{{ initializationError }}</p>
@@ -67,7 +63,7 @@
       </div>
     </div>
 
-    <!-- 🎯 CONTENU PRINCIPAL - Affiché seulement après init complète -->
+    <!-- CONTENU PRINCIPAL -->
     <router-view v-if="appInitialized" v-slot="{ Component }">
       <Transition name="fade" mode="out-in">
         <component :is="Component" />
@@ -77,103 +73,112 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, ref, computed, watch } from 'vue' // ✅ Ajouter watch ici
-import { useAuthStore } from '@/stores/authStore'
+import { onBeforeMount, onMounted, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-
-// Import du logo
+import { useAuthStore } from '@/stores/authStore'
+import { useToastStore } from '@/stores/toastStore'
+import { initializeApiCallbacks } from '@/services/api'
 import iconSvg from '@/assets/images/icon/icon.svg'
 
-const iconUrl = computed(() => iconSvg)
+// ==========================================
+// STORES & COMPOSABLES
+// ==========================================
+
 const authStore = useAuthStore()
+const toastStore = useToastStore()
 const router = useRouter()
+const { locale } = useI18n()
+
+const iconUrl = computed(() => iconSvg)
+
+// ==========================================
+// STATE
+// ==========================================
 
 const appInitialized = ref(false)
 const initializationError = ref<string | null>(null)
 const initProgress = ref(0)
 const loadingMessage = ref('Préparation de ton aventure...')
-const { locale } = useI18n()
 
-/**
- * 🔐 Initialiser l'application AVANT le premier rendu
- * Cela garantit que authStore.isInitialized = true avant que le router guard ne s'exécute
- */
+// ==========================================
+// INITIALISATION API CALLBACKS
+// FIX: évite window.location.href sur erreur 401
+// ==========================================
+
+function setupApiCallbacks(): void {
+  initializeApiCallbacks(
+    // Callback 401 — déconnexion sans rechargement de page
+    () => {
+      authStore.logout()
+      router.push({ name: 'Login' })
+    },
+    // Callback toast
+    (message: string, type: 'error' | 'success' | 'warning') => {
+      toastStore[type]?.(message)
+    },
+  )
+}
+
+// ==========================================
+// INITIALISATION APP
+// ==========================================
+
 async function initializeApp(): Promise<void> {
-  console.group('🚀 === APP INITIALIZATION ===')
-
   try {
     initializationError.value = null
     initProgress.value = 10
     loadingMessage.value = "Vérification de l'API..."
 
-    // 1️⃣ Test de connexion API (optionnel mais recommandé)
     await new Promise((r) => setTimeout(r, 300))
     initProgress.value = 30
 
-    // 2️⃣ Initialiser l'authentification (CRITIQUE)
     loadingMessage.value = 'Chargement de ton profil...'
-    console.log('🔐 Début initAuth()')
-
-    const authResult = await authStore.initAuth()
-
-    console.log('🔐 initAuth() terminée:', authResult)
-    console.log('🔐 isAuthenticated:', authStore.isAuthenticated)
-    console.log('🔐 user:', authStore.user?.email || 'null')
+    await authStore.initAuth()
 
     initProgress.value = 70
 
-    // 3️⃣ Autres initialisations (stores, config, etc.)
     loadingMessage.value = 'Presque prêt...'
     await new Promise((r) => setTimeout(r, 300))
     initProgress.value = 90
 
-    // 4️⃣ Finalisation
     initProgress.value = 100
     loadingMessage.value = 'Prêt ! 🎮'
 
-    // Petit délai pour que l'utilisateur voit le 100%
     await new Promise((r) => setTimeout(r, 200))
-
     appInitialized.value = true
-
-    console.log('✅ Application initialisée avec succès')
-    console.groupEnd()
   } catch (error: any) {
-    console.error("❌ Erreur lors de l'initialisation:", error)
-    console.groupEnd()
-
     initializationError.value = error.message || 'Une erreur est survenue lors du chargement'
 
-    // En cas d'erreur réseau mais avec token local, on peut quand même laisser l'app démarrer
+    // Session locale présente malgré erreur réseau → mode dégradé
     if (authStore.user && error.message?.includes('réseau')) {
-      console.warn('⚠️ Erreur réseau mais session locale présente, démarrage en mode dégradé')
       await new Promise((r) => setTimeout(r, 1000))
       appInitialized.value = true
     }
   }
 }
 
-/**
- * 🔄 Réessayer l'initialisation en cas d'erreur
- */
 async function retryInitialization(): Promise<void> {
   initProgress.value = 0
   loadingMessage.value = 'Nouvelle tentative...'
   await initializeApp()
 }
 
-/**
- * 🎯 IMPORTANT: Utiliser onBeforeMount au lieu de onMounted
- * Cela garantit que l'init se fait AVANT que le router ne tente la première navigation
- */
+// ==========================================
+// LIFECYCLE
+// ==========================================
+
+// FIX: setupApiCallbacks avant initApp pour que les intercepteurs
+// soient prêts dès la première requête (initAuth)
 onBeforeMount(async () => {
-  console.log('🔍 App.vue - BEFORE MOUNT')
+  setupApiCallbacks()
   await initializeApp()
-  console.log('🔍 App.vue - Initialization complete, ready for navigation')
 })
 
-// ✅ Watcher pour changer la langue du HTML
+// ==========================================
+// WATCHERS
+// ==========================================
+
 watch(locale, (newLocale) => {
   document.documentElement.lang = newLocale
 })
