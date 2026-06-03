@@ -63,6 +63,17 @@
           <span v-if="isOpen" class="nav-item__label">Analytics</span>
         </router-link>
 
+        <router-link
+          v-if="authStore.user?.is_admin || !!authStore.user?.is_admin"
+          to="/app/admin"
+          class="nav-item nav-item--admin"
+          :class="{ active: isCurrentRoute('/app/admin') }"
+        >
+          <ShieldCheckIcon class="nav-item__hero-icon" />
+          <span v-if="isOpen" class="nav-item__label">Admin</span>
+          <span v-if="isOpen" class="nav-badge nav-badge--admin">ADMIN</span>
+        </router-link>
+
         <!-- ===== SECTION GAMING ===== -->
         <div v-if="isOpen" class="nav-section">Gaming</div>
 
@@ -181,6 +192,7 @@ import {
   FolderIcon,
   CalendarIcon,
   LightBulbIcon,
+  ShieldCheckIcon,
 } from '@heroicons/vue/24/outline'
 
 // ==========================================
@@ -266,6 +278,17 @@ const goToQuest = (): void => {
   padding: 12px 16px;
   background: linear-gradient(135deg, #1e1b4b, #312e81);
   border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.nav-item--admin {
+  color: #dc2626;
+}
+.nav-item--admin:hover {
+  background: #fef2f2;
+}
+.nav-badge--admin {
+  background: #fee2e2;
+  color: #dc2626;
 }
 
 .sidebar-quest {
