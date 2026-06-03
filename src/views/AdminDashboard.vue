@@ -247,9 +247,7 @@
           >
             <!-- Header -->
             <div class="px-6 py-4 border-b border-gray-200">
-              <h3 class="text-lg font-semibold text-gray-900">
-                Notifier {{ selectedUser?.name }}
-              </h3>
+              <h3 class="text-lg font-semibold text-gray-900">Notifier {{ selectedUser?.name }}</h3>
               <p class="text-sm text-gray-500 mt-1">{{ selectedUser?.email }}</p>
             </div>
 
@@ -317,10 +315,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { useApi } from '@/composables/core/useApi'
+import { apiClient } from '@/services/api'
 import StatsCard from '@/components/admin/StatsCard.vue'
-
-const { get, post } = useApi()
 
 const loading = ref(true)
 const usersLoading = ref(false)
@@ -391,8 +387,8 @@ function debouncedSearchUsers(): void {
 async function loadDashboard(): Promise<void> {
   loading.value = true
   try {
-    const response = await get<any>('/admin/dashboard')
-    if (response.success && response.data) stats.value = response.data
+    const response = await apiClient.get('/admin/dashboard')
+    if (response.data?.success && response.data?.data) stats.value = response.data.data
   } catch (error) {
     console.error('Erreur chargement dashboard:', error)
   } finally {
@@ -403,14 +399,14 @@ async function loadDashboard(): Promise<void> {
 async function loadUsers(page = 1): Promise<void> {
   usersLoading.value = true
   try {
-    const response = await get<any>('/admin/users', {
+    const response = await apiClient.get('/admin/users', {
       params: { page, per_page: 10, search: userSearch.value || undefined },
     })
-    if (response.success && response.data) {
-      users.value = response.data.data || []
+    if (response.data?.success && response.data?.data) {
+      users.value = response.data.data.data || []
       usersPagination.value = {
-        current_page: response.data.current_page || 1,
-        last_page: response.data.last_page || 1,
+        current_page: response.data.data.current_page || 1,
+        last_page: response.data.data.last_page || 1,
       }
     }
   } catch (error) {
@@ -423,8 +419,8 @@ async function loadUsers(page = 1): Promise<void> {
 async function loadActivityLogs(): Promise<void> {
   logsLoading.value = true
   try {
-    const response = await get<any[]>('/admin/activity-logs', { params: { limit: 20 } })
-    if (response.success && response.data) activityLogs.value = response.data
+    const response = await apiClient.get('/admin/activity-logs', { params: { limit: 20 } })
+    if (response.data?.success && response.data?.data) activityLogs.value = response.data.data
   } catch (error) {
     console.error('Erreur chargement logs:', error)
   } finally {
@@ -436,8 +432,8 @@ async function sendNotification(): Promise<void> {
   if (!notification.title || !notification.message) return
   sendingNotification.value = true
   try {
-    const response = await post<any>('/admin/broadcast-notification', { ...notification })
-    if (response.success) {
+    const response = await apiClient.post('/admin/broadcast-notification', { ...notification })
+    if (response.data?.success) {
       alert(`✅ ${response.message}`)
       notification.title = ''
       notification.message = ''
@@ -474,16 +470,13 @@ async function sendUserNotification(): Promise<void> {
 
   sendingUserNotification.value = true
   try {
-    const response = await post<any>(
-      `/admin/users/${selectedUser.value.id}/notify`,
-      {
-        title: userNotification.title,
-        message: userNotification.message,
-        type: userNotification.type,
-      }
-    )
+    const response = await apiClient.post(`/admin/users/${selectedUser.value.id}/notify`, {
+      title: userNotification.title,
+      message: userNotification.message,
+      type: userNotification.type,
+    })
 
-    if (response.success) {
+    if (response.data?.success) {
       alert(`✅ ${response.message}`)
       closeNotifyModal()
     }
