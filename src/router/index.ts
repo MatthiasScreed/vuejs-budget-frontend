@@ -10,12 +10,10 @@ const AppLayout = () => import('@/components/layout/AppLayout.vue')
 const LandingPage = () => import('@/views/LandingPage.vue')
 const Login = () => import('@/views/Login.vue')
 const Register = () => import('@/views/Register.vue')
-
-// ✅ MVP
+const ForgotPassword = () => import('@/views/ForgotPassword.vue')
+const ResetPassword = () => import('@/views/ResetPassword.vue')
 const Dashboard = () => import('@/views/Dashboard.vue')
 const OnboardingQuest = () => import('@/views/OnboardingQuest.vue')
-
-// Legacy
 const Transactions = () => import('@/views/Transactions.vue')
 const Goals = () => import('@/views/Goals.vue')
 const Categories = () => import('@/views/Categories.vue')
@@ -28,19 +26,30 @@ const Challenges = () => import('@/views/Challenges.vue')
 const AdminDashboard = () => import('@/views/AdminDashboard.vue')
 
 // ==========================================
-// HELPER — onboarding déjà fait ?
+// HELPERS
 // ==========================================
 
 function hasCompletedOnboarding(): boolean {
   return localStorage.getItem('onboarding_completed') === 'true'
 }
 
+// Pages qui bypass l'onboarding guard
+const ONBOARDING_BYPASS = [
+  'Onboarding',
+  'Profile',
+  'AdminDashboard',
+  'ForgotPassword', // ✅ FIX: lien mail reset password
+  'ResetPassword', // ✅ FIX: page de reset
+]
+
 // ==========================================
 // ROUTES
 // ==========================================
 
 const routes = [
+  // ==========================================
   // PUBLIC
+  // ==========================================
   {
     path: '/',
     name: 'Landing',
@@ -59,8 +68,22 @@ const routes = [
     component: Register,
     meta: { requiresAuth: false, title: 'Inscription - CoinQuest' },
   },
+  {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: ForgotPassword,
+    meta: { requiresAuth: false, title: 'Mot de passe oublié - CoinQuest' },
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: ResetPassword,
+    meta: { requiresAuth: false, title: 'Réinitialisation - CoinQuest' },
+  },
 
-  // ✅ ONBOARDING — affiché une seule fois après inscription
+  // ==========================================
+  // ONBOARDING (auth requis, une seule fois)
+  // ==========================================
   {
     path: '/onboarding',
     name: 'Onboarding',
@@ -68,7 +91,9 @@ const routes = [
     meta: { requiresAuth: true, title: 'Crée ta quête - CoinQuest' },
   },
 
-  // ✅ MVP QUEST — dashboard principal
+  // ==========================================
+  // MVP — QUÊTE (dashboard principal)
+  // ==========================================
   {
     path: '/quete',
     name: 'Quest',
@@ -76,7 +101,9 @@ const routes = [
     meta: { requiresAuth: true, title: 'Ma Quête - CoinQuest' },
   },
 
-  // APP (avec AppLayout)
+  // ==========================================
+  // APP (avec AppLayout + sidebar)
+  // ==========================================
   {
     path: '/app',
     component: AppLayout,
@@ -154,7 +181,9 @@ const routes = [
     ],
   },
 
+  // ==========================================
   // REDIRECTIONS
+  // ==========================================
   { path: '/home', redirect: { name: 'Landing' } },
   { path: '/dashboard', redirect: { name: 'Quest' } },
   { path: '/transactions', redirect: { name: 'Transactions' } },
@@ -169,7 +198,9 @@ const routes = [
   { path: '/gaming/achievements', redirect: { name: 'Achievements' } },
   { path: '/gaming/challenges', redirect: { name: 'Challenges' } },
 
+  // ==========================================
   // 404
+  // ==========================================
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
@@ -179,7 +210,7 @@ const routes = [
 ]
 
 // ==========================================
-// CRÉATION DU ROUTER
+// ROUTER
 // ==========================================
 
 const router = createRouter({
@@ -200,9 +231,10 @@ router.beforeEach(async (to, from, next) => {
   const requiresAdmin = to.matched.some((r) => r.meta.requiresAdmin)
   const authStore = useAuthStore()
 
-  // Routes publiques
+  // Routes publiques — pas de guard
   if (!requiresAuth) {
-    if (authStore.isAuthenticated && (to.name === 'Login' || to.name === 'Register')) {
+    // Déjà connecté → pas besoin d'aller sur Login/Register
+    if (authStore.isAuthenticated && ['Login', 'Register'].includes(to.name as string)) {
       next({ name: 'Quest' })
       return
     }
@@ -240,10 +272,7 @@ router.beforeEach(async (to, from, next) => {
   }
 
   // ✅ GUARD ONBOARDING
-  // Si authentifié, pas sur la page onboarding, et onboarding pas encore fait
-  // → rediriger vers l'onboarding (sauf pages admin et profil)
-  const bypassOnboarding = ['Onboarding', 'Profile', 'AdminDashboard'].includes(to.name as string)
-
+  const bypassOnboarding = ONBOARDING_BYPASS.includes(to.name as string)
   if (!hasCompletedOnboarding() && !bypassOnboarding) {
     next({ name: 'Onboarding' })
     return
@@ -253,12 +282,11 @@ router.beforeEach(async (to, from, next) => {
 })
 
 // ==========================================
-// AFTER EACH — Métadonnées
+// AFTER EACH — Métadonnées SEO
 // ==========================================
 
 router.afterEach((to) => {
   document.title = (to.meta.title as string) || 'CoinQuest'
-
   const desc = (to.meta.description as string) || 'CoinQuest - Transforme tes finances en aventure'
   document.querySelector('meta[name="description"]')?.setAttribute('content', desc)
 })
