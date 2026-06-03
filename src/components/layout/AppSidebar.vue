@@ -141,6 +141,18 @@
           </router-link>
         </template>
 
+        <!-- ===== ADMIN (visible uniquement pour les admins) ===== -->
+        <router-link
+          v-if="isAdmin"
+          to="/app/admin"
+          class="nav-item nav-item--admin"
+          :class="{ active: isCurrentRoute('/app/admin') }"
+        >
+          <ShieldCheckIcon class="nav-item__hero-icon" />
+          <span v-if="isOpen" class="nav-item__label">Administration</span>
+          <span v-if="isOpen" class="nav-badge nav-badge--admin">ADMIN</span>
+        </router-link>
+
         <!-- ===== PROFIL ===== -->
         <div class="nav-divider" />
 
@@ -177,6 +189,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 import { useGamingStore } from '@/stores/gamingStore'
 import { useQuestStore } from '@/stores/Queststore.ts'
 import { useApiHealth } from '@/composables/core/useApiHealth'
@@ -214,6 +227,7 @@ defineEmits<{ close: []; 'toggle-sidebar': [] }>()
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 const gamingStore = useGamingStore()
 const questStore = useQuestStore()
 const apiHealth = useApiHealth()
@@ -253,10 +267,11 @@ const questProgress = computed(() => questStore.mainQuest?.progress_percentage ?
 // Gaming stats
 const totalAchievements = computed(() => gamingStore.achievements?.length ?? 0)
 const currentStreak = computed(() => {
-  const daily = gamingStore.streaks?.find((s: any) => s.type === 'daily')
-  return daily?.current_count ?? 0
+  const streaks = Array.isArray(gamingStore.streaks) ? gamingStore.streaks : []
+  return streaks.find((s: any) => s.type === 'daily')?.current_count ?? 0
 })
 const weeklyRank = computed(() => '--')
+const isAdmin = computed(() => !!authStore.user?.is_admin)
 
 // ==========================================
 // MÉTHODES
