@@ -3,7 +3,15 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { useAuthStore } from '@/stores/authStore'
 import { gamingService } from '@/services/gamingService'
-import type { Achievement, Challenge, Level, Streak } from '@/types'
+import type { Achievement, Challenge, Streak } from '@/types'
+
+interface Level {
+  level: number
+  min_xp: number
+  max_xp: number
+  title?: string
+  description?: string
+}
 
 // ==========================================
 // TYPES DE NAVIGATION GAMING
@@ -309,22 +317,23 @@ export const useGamingStore = defineStore('gaming', () => {
    * 🔐 Protégé par auth guard
    */
   async function loadChallenges(): Promise<void> {
-    // 🔐 VÉRIFICATION AUTH
     const isAuth = await ensureAuthenticated()
-    if (!isAuth) {
-      console.warn('⚠️ [Gaming] loadChallenges annulé - utilisateur non authentifié')
-      return
-    }
+    if (!isAuth) return
 
     try {
+      if (typeof gamingService.getChallenges !== 'function') {
+        console.warn('⚠️ [Gaming] getChallenges non disponible - ignoré')
+        return
+      }
       const response = await gamingService.getChallenges()
-
       if (response.success && response.data) {
-        challenges.value = response.data
+        // ✅ FIX: s'assurer que c'est un array
+        challenges.value = Array.isArray(response.data) ? response.data : []
         console.log('✅ [Gaming] Challenges chargés:', challenges.value.length)
       }
     } catch (err) {
-      console.error('❌ [Gaming] Erreur chargement challenges:', err)
+      // ✅ FIX: 404 silencieux — endpoint optionnel pour le MVP
+      console.warn('⚠️ [Gaming] loadChallenges ignoré (endpoint optionnel):', err)
     }
   }
 
@@ -333,22 +342,23 @@ export const useGamingStore = defineStore('gaming', () => {
    * 🔐 Protégé par auth guard
    */
   async function loadLevels(): Promise<void> {
-    // 🔐 VÉRIFICATION AUTH
     const isAuth = await ensureAuthenticated()
-    if (!isAuth) {
-      console.warn('⚠️ [Gaming] loadLevels annulé - utilisateur non authentifié')
-      return
-    }
+    if (!isAuth) return
 
     try {
+      // ✅ FIX: getLevels peut ne pas exister dans le service
+      if (typeof gamingService.getLevels !== 'function') {
+        console.warn('⚠️ [Gaming] getLevels non disponible - ignoré')
+        return
+      }
       const response = await gamingService.getLevels()
-
       if (response.success && response.data) {
-        levels.value = response.data
+        // ✅ FIX: s'assurer que c'est un array
+        levels.value = Array.isArray(response.data) ? response.data : []
         console.log('✅ [Gaming] Levels chargés:', levels.value.length)
       }
     } catch (err) {
-      console.error('❌ [Gaming] Erreur chargement levels:', err)
+      console.warn('⚠️ [Gaming] loadLevels ignoré:', err)
     }
   }
 
@@ -368,7 +378,8 @@ export const useGamingStore = defineStore('gaming', () => {
       const response = await gamingService.getStreaks()
 
       if (response.success && response.data) {
-        streaks.value = response.data
+        // ✅ FIX: s'assurer que streaks est toujours un array
+        streaks.value = Array.isArray(response.data) ? response.data : []
         console.log('✅ [Gaming] Streaks chargés:', streaks.value.length)
       }
     } catch (err) {
@@ -555,6 +566,7 @@ export const useGamingStore = defineStore('gaming', () => {
     // Actions principales
     handleNavigation,
     initializeGaming,
+    loadPlayerData: initializeGaming, // ✅ FIX: alias pour Dashboard.vue
     loadAchievementData,
 
     // Actions spécifiques

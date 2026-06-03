@@ -4,7 +4,9 @@
     <Transition name="step" mode="out-in">
       <div v-if="step === 1" key="step1" class="onboarding__step">
         <div class="onboarding__hero">
-          <div class="onboarding__logo">🪙</div>
+          <div class="onboarding__logo">
+            <img src="@/assets/images/icon/icon.svg" alt="logo_Coinquest">
+          </div>
           <h1 class="onboarding__title">Bienvenue sur CoinQuest</h1>
           <p class="onboarding__subtitle">
             Pas de tableurs. Pas de culpabilité.<br />

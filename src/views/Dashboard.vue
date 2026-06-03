@@ -3,6 +3,7 @@
     <QuestHeader />
 
     <div class="dashboard">
+
       <!-- ===== QUÊTE PRINCIPALE ===== -->
       <section class="quest-card" v-if="questStore.hasMainQuest">
         <div class="quest-card__top">
@@ -29,12 +30,12 @@
         </div>
 
         <div class="quest-card__bottom">
-          <span class="quest-remaining">
-            {{ formatAmount(quest.remaining_amount) }} € restants
-          </span>
+        <span class="quest-remaining">
+          {{ formatAmount(quest.remaining_amount) }} € restants
+        </span>
           <span v-if="quest.days_remaining !== null" class="quest-deadline">
-            {{ quest.days_remaining }}j
-          </span>
+          {{ quest.days_remaining }}j
+        </span>
         </div>
       </section>
 
@@ -114,12 +115,10 @@
             class="today-action"
             :class="action.type === 'save' ? 'today-action--save' : 'today-action--spend'"
           >
-            <span class="today-action__label">{{
-              action.reason_label || action.reason || '—'
-            }}</span>
+            <span class="today-action__label">{{ action.reason_label || action.reason || '—' }}</span>
             <span class="today-action__amount">
-              {{ action.type === 'save' ? '+' : '-' }}{{ formatAmount(action.amount) }} €
-            </span>
+            {{ action.type === 'save' ? '+' : '-' }}{{ formatAmount(action.amount) }} €
+          </span>
           </div>
         </div>
       </section>
@@ -149,19 +148,10 @@
               <h2 class="quest-form__title">Crée ta quête</h2>
 
               <label class="quest-form__label">Nom de la quête</label>
-              <input
-                v-model="newQuest.name"
-                class="quest-form__input"
-                placeholder="Voyage au Japon, MacBook..."
-              />
+              <input v-model="newQuest.name" class="quest-form__input" placeholder="Voyage au Japon, MacBook..." />
 
               <label class="quest-form__label">Montant cible (€)</label>
-              <input
-                v-model.number="newQuest.target_amount"
-                type="number"
-                class="quest-form__input"
-                placeholder="3000"
-              />
+              <input v-model.number="newQuest.target_amount" type="number" class="quest-form__input" placeholder="3000" />
 
               <label class="quest-form__label">Date cible (optionnelle)</label>
               <input v-model="newQuest.target_date" type="date" class="quest-form__input" />
@@ -172,9 +162,7 @@
                   :key="e"
                   :class="['emoji-btn', { 'emoji-btn--active': newQuest.emoji === e }]"
                   @click="newQuest.emoji = e"
-                >
-                  {{ e }}
-                </button>
+                >{{ e }}</button>
               </div>
 
               <button
@@ -188,29 +176,28 @@
           </div>
         </Transition>
       </Teleport>
-    </div>
-    <!-- end .dashboard -->
+
+    </div><!-- end .dashboard -->
 
     <QuestBottomNav />
-  </div>
-  <!-- end .dashboard-wrapper -->
+  </div><!-- end .dashboard-wrapper -->
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import ActionModal from '@/components/ActionModal.vue'
-import QuestHeader from '@/components/quest/QuestHeader.vue'
+import ActionModal    from '@/components/ActionModal.vue'
+import QuestHeader    from '@/components/quest/QuestHeader.vue'
 import QuestBottomNav from '@/components/quest/QuestBottomNav.vue'
-import { useQuestStore } from '@/stores/Queststore.ts'
+import { useQuestStore }       from '@/stores/Queststore.ts'
 import { useDailyActionStore } from '@/stores/Dailyactionstore.ts'
-import { useGamingStore } from '@/stores/gamingStore'
-import { api } from '@/services/api'
+import { useGamingStore }      from '@/stores/gamingStore'
+import { api }                 from '@/services/api'
 
 // ==========================================
 // STORES
 // ==========================================
 
-const questStore = useQuestStore()
+const questStore  = useQuestStore()
 const actionStore = useDailyActionStore()
 const gamingStore = useGamingStore()
 
@@ -219,14 +206,14 @@ const gamingStore = useGamingStore()
 // ==========================================
 
 const showActionModal = ref(false)
-const showQuestForm = ref(false)
-const todayChallenge = ref<any>(null)
+const showQuestForm   = ref(false)
+const todayChallenge  = ref<any>(null)
 
 const newQuest = ref({
-  name: '',
+  name:          '',
   target_amount: null as number | null,
-  target_date: '',
-  emoji: '🎯',
+  target_date:   '',
+  emoji:         '🎯',
 })
 
 const questEmojis = ['🎯', '✈️', '💻', '🚗', '🏠', '🛡️', '📈', '🎓', '🎉', '💳']
@@ -238,8 +225,9 @@ const questEmojis = ['🎯', '✈️', '💻', '🚗', '🏠', '🛡️', '📈'
 const quest = computed(() => questStore.mainQuest)
 
 const currentStreak = computed(() => {
-  const dailyStreak = gamingStore.streaks.find((s: any) => s.type === 'daily')
-  return dailyStreak?.current_count ?? 0
+  // ✅ FIX: streaks peut ne pas être un array au premier rendu
+  const streaks = Array.isArray(gamingStore.streaks) ? gamingStore.streaks : []
+  return streaks.find((s: any) => s.type === 'daily')?.current_count ?? 0
 })
 
 const playerLevel = computed(() => gamingStore.currentLevel?.level ?? 1)
@@ -250,8 +238,8 @@ const maxXP = computed(() => gamingStore.currentLevel?.max_xp ?? 200)
 
 const xpPercent = computed(() => {
   const minXP = gamingStore.currentLevel?.min_xp ?? 0
-  const cur = currentXP.value - minXP
-  const max = maxXP.value - minXP || 200
+  const cur    = currentXP.value - minXP
+  const max    = (maxXP.value - minXP) || 200
   return Math.min(100, Math.round((cur / max) * 100))
 })
 
@@ -264,7 +252,7 @@ onMounted(async () => {
     questStore.fetchMainQuest(),
     actionStore.fetchToday(),
     actionStore.fetchStats(),
-    gamingStore.initializeGaming(),
+    gamingStore.initializeGaming(),   // ✅ charge streaks, achievements, XP
     loadTodayChallenge(),
   ])
 })
@@ -274,10 +262,7 @@ onMounted(async () => {
 // ==========================================
 
 function formatAmount(val: number): string {
-  return new Intl.NumberFormat('fr-FR', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(val)
+  return new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(val)
 }
 
 async function loadTodayChallenge(): Promise<void> {
@@ -310,10 +295,10 @@ async function createQuest(): Promise<void> {
   if (!newQuest.value.name || !newQuest.value.target_amount) return
 
   const quest = await questStore.createQuest({
-    name: newQuest.value.name,
+    name:          newQuest.value.name,
     target_amount: newQuest.value.target_amount,
-    target_date: newQuest.value.target_date || null,
-    emoji: newQuest.value.emoji,
+    target_date:   newQuest.value.target_date || null,
+    emoji:         newQuest.value.emoji,
   })
 
   if (quest) {
@@ -342,7 +327,7 @@ async function createQuest(): Promise<void> {
 /* ===== QUÊTE CARD ===== */
 .quest-card {
   background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(139,92,246,0.3);
   border-radius: 20px;
   padding: 24px;
   margin-bottom: 16px;
@@ -355,15 +340,9 @@ async function createQuest(): Promise<void> {
   margin-bottom: 16px;
 }
 
-.quest-card__info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+.quest-card__info { display: flex; align-items: center; gap: 12px; }
 
-.quest-card__emoji {
-  font-size: 36px;
-}
+.quest-card__emoji { font-size: 36px; }
 
 .quest-card__name {
   font-size: 18px;
@@ -372,15 +351,8 @@ async function createQuest(): Promise<void> {
   margin: 0 0 4px;
 }
 
-.quest-card__amounts {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0;
-}
-.quest-card__amounts strong {
-  color: #a78bfa;
-  font-size: 16px;
-}
+.quest-card__amounts { font-size: 14px; color: rgba(255,255,255,0.7); margin: 0; }
+.quest-card__amounts strong { color: #a78bfa; font-size: 16px; }
 
 .quest-card__pct {
   font-size: 28px;
@@ -391,7 +363,7 @@ async function createQuest(): Promise<void> {
 
 .quest-progress {
   height: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255,255,255,0.1);
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 12px;
@@ -404,9 +376,7 @@ async function createQuest(): Promise<void> {
   transition: width 0.4s ease;
 }
 
-.quest-progress__bar--done {
-  background: linear-gradient(90deg, #16a34a, #4ade80);
-}
+.quest-progress__bar--done { background: linear-gradient(90deg, #16a34a, #4ade80); }
 
 .quest-card__bottom {
   display: flex;
@@ -414,18 +384,12 @@ async function createQuest(): Promise<void> {
   align-items: center;
 }
 
-.quest-remaining {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
-}
-.quest-deadline {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
-}
+.quest-remaining { font-size: 13px; color: rgba(255,255,255,0.5); }
+.quest-deadline  { font-size: 12px; color: rgba(255,255,255,0.4); }
 
 .quest-empty {
-  background: rgba(255, 255, 255, 0.04);
-  border: 2px dashed rgba(255, 255, 255, 0.15);
+  background: rgba(255,255,255,0.04);
+  border: 2px dashed rgba(255,255,255,0.15);
   border-radius: 20px;
   padding: 32px;
   text-align: center;
@@ -434,23 +398,10 @@ async function createQuest(): Promise<void> {
   transition: border-color 0.2s;
 }
 
-.quest-empty:hover {
-  border-color: rgba(139, 92, 246, 0.5);
-}
-.quest-empty__icon {
-  font-size: 40px;
-  display: block;
-  margin-bottom: 8px;
-}
-.quest-empty__text {
-  color: rgba(255, 255, 255, 0.6);
-  margin: 0 0 8px;
-}
-.quest-empty__cta {
-  color: #a78bfa;
-  font-weight: 600;
-  font-size: 14px;
-}
+.quest-empty:hover { border-color: rgba(139,92,246,0.5); }
+.quest-empty__icon { font-size: 40px; display: block; margin-bottom: 8px; }
+.quest-empty__text { color: rgba(255,255,255,0.6); margin: 0 0 8px; }
+.quest-empty__cta  { color: #a78bfa; font-weight: 600; font-size: 14px; }
 
 /* ===== STATS ROW ===== */
 .stats-row {
@@ -461,70 +412,40 @@ async function createQuest(): Promise<void> {
 }
 
 .stat-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 14px;
   padding: 14px 8px;
   text-align: center;
 }
 
-.stat-card__icon {
-  font-size: 20px;
-  margin-bottom: 4px;
-}
-.stat-card__value {
-  font-size: 18px;
-  font-weight: 800;
-  color: white;
-  line-height: 1;
-  margin-bottom: 2px;
-}
-.stat-card__label {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.4);
-}
+.stat-card__icon  { font-size: 20px; margin-bottom: 4px; }
+.stat-card__value { font-size: 18px; font-weight: 800; color: white; line-height: 1; margin-bottom: 2px; }
+.stat-card__label { font-size: 10px; color: rgba(255,255,255,0.4); }
 
-.stat-card--streak {
-  border-color: rgba(249, 115, 22, 0.3);
-}
-.stat-card--streak .stat-card__value {
-  color: #fb923c;
-}
-.stat-card--level {
-  border-color: rgba(234, 179, 8, 0.3);
-}
-.stat-card--level .stat-card__value {
-  color: #fbbf24;
-}
-.stat-card--xp {
-  border-color: rgba(139, 92, 246, 0.3);
-}
-.stat-card--xp .stat-card__value {
-  color: #a78bfa;
-}
-.stat-card--save {
-  border-color: rgba(34, 197, 94, 0.3);
-}
-.stat-card--save .stat-card__value {
-  color: #4ade80;
-}
+.stat-card--streak { border-color: rgba(249,115,22,0.3); }
+.stat-card--streak .stat-card__value { color: #fb923c; }
+.stat-card--level  { border-color: rgba(234,179,8,0.3); }
+.stat-card--level .stat-card__value  { color: #fbbf24; }
+.stat-card--xp     { border-color: rgba(139,92,246,0.3); }
+.stat-card--xp .stat-card__value     { color: #a78bfa; }
+.stat-card--save   { border-color: rgba(34,197,94,0.3); }
+.stat-card--save .stat-card__value   { color: #4ade80; }
 
 /* ===== XP BAR ===== */
-.xp-bar-section {
-  margin-bottom: 16px;
-}
+.xp-bar-section { margin-bottom: 16px; }
 
 .xp-bar-section__labels {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255,255,255,0.4);
   margin-bottom: 6px;
 }
 
 .xp-bar {
   height: 6px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255,255,255,0.08);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -538,8 +459,8 @@ async function createQuest(): Promise<void> {
 
 /* ===== CHALLENGE CARD ===== */
 .challenge-card {
-  background: rgba(234, 179, 8, 0.08);
-  border: 1px solid rgba(234, 179, 8, 0.25);
+  background: rgba(234,179,8,0.08);
+  border: 1px solid rgba(234,179,8,0.25);
   border-radius: 16px;
   padding: 18px;
   margin-bottom: 16px;
@@ -558,7 +479,7 @@ async function createQuest(): Promise<void> {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #fbbf24;
-  background: rgba(234, 179, 8, 0.15);
+  background: rgba(234,179,8,0.15);
   padding: 3px 10px;
   border-radius: 10px;
 }
@@ -576,10 +497,7 @@ async function createQuest(): Promise<void> {
   margin: 0 0 14px;
 }
 
-.challenge-card__actions {
-  display: flex;
-  gap: 8px;
-}
+.challenge-card__actions { display: flex; gap: 8px; }
 
 .challenge-btn {
   flex: 1;
@@ -592,37 +510,23 @@ async function createQuest(): Promise<void> {
   transition: opacity 0.15s;
 }
 
-.challenge-btn:hover {
-  opacity: 0.85;
-}
-.challenge-btn--success {
-  background: #22c55e;
-  color: white;
-}
-.challenge-btn--fail {
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.5);
-}
+.challenge-btn:hover { opacity: 0.85; }
+.challenge-btn--success { background: #22c55e; color: white; }
+.challenge-btn--fail    { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); }
 
 /* ===== TODAY ACTIONS ===== */
-.today-section {
-  margin-bottom: 16px;
-}
+.today-section { margin-bottom: 16px; }
 
 .today-section__title {
   font-size: 13px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255,255,255,0.4);
   margin: 0 0 10px;
 }
 
-.today-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+.today-actions { display: flex; flex-direction: column; gap: 6px; }
 
 .today-action {
   display: flex;
@@ -633,26 +537,12 @@ async function createQuest(): Promise<void> {
   font-size: 14px;
 }
 
-.today-action--save {
-  background: rgba(34, 197, 94, 0.08);
-  border: 1px solid rgba(34, 197, 94, 0.2);
-}
-.today-action--spend {
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-}
+.today-action--save  { background: rgba(34,197,94,0.08);  border: 1px solid rgba(34,197,94,0.2); }
+.today-action--spend { background: rgba(239,68,68,0.08);  border: 1px solid rgba(239,68,68,0.2); }
 
-.today-action__label {
-  color: rgba(255, 255, 255, 0.7);
-}
-.today-action--save .today-action__amount {
-  color: #4ade80;
-  font-weight: 700;
-}
-.today-action--spend .today-action__amount {
-  color: #f87171;
-  font-weight: 700;
-}
+.today-action__label  { color: rgba(255,255,255,0.7); }
+.today-action--save .today-action__amount  { color: #4ade80; font-weight: 700; }
+.today-action--spend .today-action__amount { color: #f87171; font-weight: 700; }
 
 /* ===== FAB ===== */
 .fab-container {
@@ -675,31 +565,21 @@ async function createQuest(): Promise<void> {
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 24px rgba(124, 58, 237, 0.5);
+  box-shadow: 0 4px 24px rgba(124,58,237,0.5);
   transition: all 0.15s;
 }
 
-.fab:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 28px rgba(124, 58, 237, 0.6);
-}
-.fab:active {
-  transform: scale(0.97);
-}
+.fab:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(124,58,237,0.6); }
+.fab:active { transform: scale(0.97); }
 
-.fab__icon {
-  font-size: 20px;
-  font-weight: 300;
-}
-.fab__label {
-  font-size: 15px;
-}
+.fab__icon  { font-size: 20px; font-weight: 300; }
+.fab__label { font-size: 15px; }
 
 /* ===== QUEST FORM ===== */
 .quest-form-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0,0,0,0.6);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-end;
@@ -708,14 +588,12 @@ async function createQuest(): Promise<void> {
 }
 
 @media (min-width: 640px) {
-  .quest-form-overlay {
-    align-items: center;
-  }
+  .quest-form-overlay { align-items: center; }
 }
 
 .quest-form {
   background: #1a1a2e;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 20px 20px 0 0;
   padding: 28px 20px 40px;
   width: 100%;
@@ -723,9 +601,7 @@ async function createQuest(): Promise<void> {
 }
 
 @media (min-width: 640px) {
-  .quest-form {
-    border-radius: 20px;
-  }
+  .quest-form { border-radius: 20px; }
 }
 
 .quest-form__title {
@@ -741,14 +617,14 @@ async function createQuest(): Promise<void> {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255,255,255,0.4);
   margin-bottom: 6px;
 }
 
 .quest-form__input {
   width: 100%;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.15);
   border-radius: 10px;
   padding: 12px 14px;
   color: white;
@@ -768,7 +644,7 @@ async function createQuest(): Promise<void> {
 .emoji-btn {
   width: 40px;
   height: 40px;
-  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border: 1.5px solid rgba(255,255,255,0.15);
   border-radius: 10px;
   background: transparent;
   font-size: 20px;
@@ -781,7 +657,7 @@ async function createQuest(): Promise<void> {
 
 .emoji-btn--active {
   border-color: #7c3aed;
-  background: rgba(124, 58, 237, 0.2);
+  background: rgba(124,58,237,0.2);
 }
 
 .quest-form__submit {
@@ -797,26 +673,11 @@ async function createQuest(): Promise<void> {
   transition: opacity 0.15s;
 }
 
-.quest-form__submit:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
+.quest-form__submit:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* Modal transition */
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.2s;
-}
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
-.modal-enter-active .quest-form,
-.modal-leave-active .quest-form {
-  transition: transform 0.25s ease;
-}
-.modal-enter-from .quest-form,
-.modal-leave-to .quest-form {
-  transform: translateY(40px);
-}
+.modal-enter-active, .modal-leave-active { transition: opacity 0.2s; }
+.modal-enter-from, .modal-leave-to { opacity: 0; }
+.modal-enter-active .quest-form, .modal-leave-active .quest-form { transition: transform 0.25s ease; }
+.modal-enter-from .quest-form, .modal-leave-to .quest-form { transform: translateY(40px); }
 </style>
