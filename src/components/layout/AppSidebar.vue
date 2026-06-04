@@ -248,7 +248,7 @@ const isMobile = computed(() => !breakpoints.lg.value)
 const showApiStatus = computed(() => !apiHealth.isConnected.value || import.meta.env.DEV)
 
 const sidebarClasses = computed(() => [
-  'fixed left-0 z-20 transition-all duration-300 bg-white border-r border-gray-200',
+  'fixed left-0 z-30 transition-all duration-300 bg-white border-r border-gray-200',
   props.isOpen ? 'w-64' : 'w-16',
   'lg:translate-x-0',
   props.isOpen || !isMobile.value ? 'translate-x-0' : '-translate-x-full',
