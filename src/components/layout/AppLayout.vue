@@ -93,7 +93,7 @@
     </nav>
 
     <!-- Notifications gaming -->
-    <GamingNotifications v-if="gamingNotificationsEnabled" />
+    <!--<GamingNotifications v-if="gamingNotificationsEnabled" /> -->
   </div>
 </template>
 
