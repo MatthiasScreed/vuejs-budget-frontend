@@ -252,7 +252,7 @@ const sidebarClasses = computed(() => [
   props.isOpen ? 'w-64 max-w-full' : 'w-16',
   'lg:translate-x-0',
   props.isOpen || !isMobile.value ? 'translate-x-0' : '-translate-x-full',
-  showApiStatus.value ? 'top-28' : 'top-16',
+  
 ])
 
 const navHeight = computed(() =>
