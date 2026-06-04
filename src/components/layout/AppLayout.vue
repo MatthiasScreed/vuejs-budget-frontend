@@ -34,7 +34,7 @@
     <!-- Overlay mobile pour sidebar -->
     <div
       v-if="sidebarOpen && isMobile"
-      class="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
+      class="fixed inset-0 bg-black bg-opacity-50 z-10 lg:hidden"
       @click="closeSidebar"
     />
 
@@ -129,7 +129,7 @@ onMounted(async () => {
   }
 
   document.addEventListener('keydown', handleKeyboard)
-  sidebarOpen.value = !isMobile.value // ouvert sur desktop, fermé sur mobile
+  sidebarOpen.value = window.innerWidth >= 1024 // ouvert sur desktop, fermé sur mobile
 })
 
 onUnmounted(() => {
