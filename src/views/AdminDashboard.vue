@@ -10,7 +10,7 @@
     </div>
 
     <template v-else>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="grid grid-cols-2 gap-3 mb-6">
         <StatsCard
           title="Utilisateurs"
           :value="stats.users?.total_users || 0"
@@ -41,7 +41,7 @@
         />
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="grid grid-cols-2 gap-3 mb-6">
         <StatsCard
           title="Nouveaux (7j)"
           :value="stats.users?.new_users_7d || 0"
@@ -73,7 +73,7 @@
         />
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div class="grid grid-cols-1 gap-4 mb-6">
         <!-- Users List -->
         <div class="bg-white rounded-xl border border-gray-200 p-6">
           <div class="flex items-center justify-between mb-4">

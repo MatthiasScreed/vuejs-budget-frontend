@@ -10,41 +10,95 @@
     />
 
     <div class="flex">
-      <!-- Sidebar -->
-      <AppSidebar :is-open="sidebarOpen" :current-route="currentRoute" @close="closeSidebar" />
+      <!-- Sidebar — desktop uniquement -->
+      <AppSidebar
+        :is-open="sidebarOpen"
+        :current-route="currentRoute"
+        @close="closeSidebar"
+        class="hidden lg:block"
+      />
 
       <!-- CONTENU PRINCIPAL -->
       <main
-        class="flex-1 transition-all duration-300 bg-white pt-16 min-h-screen"
+        class="flex-1 transition-all duration-300 bg-white pt-16 min-h-screen pb-20 lg:pb-6"
         :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'"
       >
         <div class="p-4 lg:p-6 min-h-full">
-          <!-- ✅ QUEST MINI CARD — visible sur toutes les pages -->
           <QuestMiniCard v-if="showQuestCard" />
-
-          <!-- Contenu de la page -->
           <router-view />
         </div>
       </main>
     </div>
 
-    <!-- Footer -->
-    <AppFooter class="transition-all duration-300" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'" />
+    <!-- Footer — desktop uniquement -->
+    <AppFooter
+      class="hidden lg:block transition-all duration-300"
+      :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'"
+    />
 
-    <!-- Overlay mobile pour sidebar -->
+    <!-- Overlay sidebar mobile -->
     <div
       v-if="sidebarOpen && isMobile"
-      class="fixed inset-0 bg-black bg-opacity-50 z-10 lg:hidden"
+      class="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
       @click="closeSidebar"
     />
 
-    <!-- Notifications gaming flottantes -->
+    <!-- ===== BOTTOM NAV MOBILE ===== -->
+    <nav class="mobile-bottom-nav lg:hidden">
+      <router-link
+        to="/quete"
+        class="mobile-nav-item"
+        :class="{ 'mobile-nav-item--active': isRoute('/quete') }"
+      >
+        <span class="mobile-nav-item__icon">🎯</span>
+        <span class="mobile-nav-item__label">Quête</span>
+      </router-link>
+
+      <router-link
+        to="/app/transactions"
+        class="mobile-nav-item"
+        :class="{ 'mobile-nav-item--active': isRoute('/app/transactions') }"
+      >
+        <span class="mobile-nav-item__icon">💳</span>
+        <span class="mobile-nav-item__label">Actions</span>
+      </router-link>
+
+      <router-link
+        to="/app/analytics"
+        class="mobile-nav-item"
+        :class="{ 'mobile-nav-item--active': isRoute('/app/analytics') }"
+      >
+        <span class="mobile-nav-item__icon">📊</span>
+        <span class="mobile-nav-item__label">Stats</span>
+      </router-link>
+
+      <router-link
+        to="/app/profile"
+        class="mobile-nav-item"
+        :class="{ 'mobile-nav-item--active': isRoute('/app/profile') }"
+      >
+        <span class="mobile-nav-item__icon">👤</span>
+        <span class="mobile-nav-item__label">Profil</span>
+      </router-link>
+
+      <router-link
+        v-if="isAdmin"
+        to="/app/admin"
+        class="mobile-nav-item mobile-nav-item--admin"
+        :class="{ 'mobile-nav-item--active': isRoute('/app/admin') }"
+      >
+        <span class="mobile-nav-item__icon">🛡️</span>
+        <span class="mobile-nav-item__label">Admin</span>
+      </router-link>
+    </nav>
+
+    <!-- Notifications gaming -->
     <GamingNotifications v-if="gamingNotificationsEnabled" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, inject, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useGamingStore } from '@/stores/gamingStore'
@@ -55,8 +109,6 @@ import AppFooter from './AppFooter.vue'
 import GamingNotifications from '@/components/gaming/GamingNotifications.vue'
 import QuestMiniCard from '@/components/quest/QuestMiniCard.vue'
 
-const showApiStatus = inject('showApiStatus', ref(false))
-
 const authStore = useAuthStore()
 const gamingStore = useGamingStore()
 const route = useRoute()
@@ -64,7 +116,6 @@ const route = useRoute()
 const sidebarOpen = ref(false)
 const gamingNotificationsEnabled = ref(true)
 
-// Pages où la QuestMiniCard ne s'affiche pas (inutile sur la quête elle-même)
 const HIDE_QUEST_CARD_ROUTES = ['Quest', 'Onboarding', 'AdminDashboard']
 
 const showQuestCard = computed(() => !HIDE_QUEST_CARD_ROUTES.includes(route.name as string))
@@ -75,22 +126,18 @@ const showQuestCard = computed(() => !HIDE_QUEST_CARD_ROUTES.includes(route.name
 
 const currentUser = computed(() => authStore.user)
 
-const userLevel = computed(() => {
-  if (gamingStore.currentLevel?.level) return gamingStore.currentLevel.level
-  if (authStore.user?.level?.level) return authStore.user.level.level
-  return 1
-})
+const userLevel = computed(
+  () => gamingStore.currentLevel?.level ?? authStore.user?.level?.level ?? 1,
+)
 
-const userXP = computed(() => {
-  if (gamingStore.totalXP !== undefined) return gamingStore.totalXP
-  if (authStore.user?.level?.current_xp !== undefined) return authStore.user.level.current_xp
-  return 0
-})
+const userXP = computed(() => gamingStore.totalXP ?? authStore.user?.level?.current_xp ?? 0)
 
 const currentRoute = computed(() => route.name as string)
 
-const breakpoints = useBreakpoints({ sm: 640, md: 768, lg: 1024, xl: 1280 })
+const breakpoints = useBreakpoints({ lg: 1024 })
 const isMobile = computed(() => !breakpoints.lg.value)
+
+const isAdmin = computed(() => !!authStore.user?.is_admin)
 
 // ==========================================
 // MÉTHODES
@@ -99,19 +146,18 @@ const isMobile = computed(() => !breakpoints.lg.value)
 const toggleSidebar = (): void => {
   sidebarOpen.value = !sidebarOpen.value
 }
-
 const closeSidebar = (): void => {
   sidebarOpen.value = false
 }
 
-const handleKeyboard = (event: KeyboardEvent): void => {
-  if ((event.ctrlKey || event.metaKey) && event.key === 'b') {
-    event.preventDefault()
+const isRoute = (path: string): boolean => route.path === path || route.path.startsWith(path + '/')
+
+const handleKeyboard = (e: KeyboardEvent): void => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+    e.preventDefault()
     toggleSidebar()
   }
-  if (event.key === 'Escape' && sidebarOpen.value && isMobile.value) {
-    closeSidebar()
-  }
+  if (e.key === 'Escape' && sidebarOpen.value && isMobile.value) closeSidebar()
 }
 
 // ==========================================
@@ -119,22 +165,19 @@ const handleKeyboard = (event: KeyboardEvent): void => {
 // ==========================================
 
 onMounted(async () => {
+  // ✅ FIX: window.innerWidth évite le bug useBreakpoints non initialisé
+  sidebarOpen.value = window.innerWidth >= 1024
+
   try {
-    await Promise.all([
-      authStore.loadUser ? authStore.loadUser() : Promise.resolve(),
-      gamingStore.loadPlayerData ? gamingStore.loadPlayerData() : Promise.resolve(),
-    ])
+    await Promise.all([authStore.loadUser?.(), gamingStore.loadPlayerData?.()])
   } catch {
-    // Continuer même si le chargement échoue
+    /* non bloquant */
   }
 
   document.addEventListener('keydown', handleKeyboard)
-  sidebarOpen.value = window.innerWidth >= 1024 // ouvert sur desktop, fermé sur mobile
 })
 
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeyboard)
-})
+onUnmounted(() => document.removeEventListener('keydown', handleKeyboard))
 
 watch(
   () => route.path,
@@ -147,6 +190,54 @@ watch(
 <style scoped>
 main {
   background-color: white;
-  min-height: calc(100vh - 4rem);
+}
+
+/* ===== BOTTOM NAV MOBILE ===== */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: flex;
+  align-items: stretch;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid #e5e7eb;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.mobile-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 4px;
+  text-decoration: none;
+  color: #9ca3af;
+  transition: color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-nav-item:active {
+  transform: scale(0.93);
+}
+
+.mobile-nav-item--active {
+  color: #7c3aed;
+}
+
+.mobile-nav-item--admin {
+  color: #dc2626;
+}
+
+.mobile-nav-item__icon {
+  font-size: 20px;
+}
+.mobile-nav-item__label {
+  font-size: 10px;
+  font-weight: 600;
 }
 </style>
