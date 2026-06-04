@@ -119,7 +119,8 @@ export const useAuthStore = defineStore('auth', {
         const response = await api.get<User>('/auth/me')
 
         if (response.success && response.data) {
-          this.user = JSON.parse(JSON.stringify(response.data))
+          const userData = (response.data as any)?.user ?? response.data
+          this.user = JSON.parse(JSON.stringify(userData))
           this.isAuthenticated = true
           localStorage.setItem('user', JSON.stringify(this.user))
           return { success: true, data: this.user }

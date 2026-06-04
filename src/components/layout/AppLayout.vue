@@ -11,12 +11,7 @@
 
     <div class="flex">
       <!-- Sidebar — desktop uniquement -->
-      <AppSidebar
-        :is-open="sidebarOpen"
-        :current-route="currentRoute"
-        @close="closeSidebar"
-        class="hidden lg:block"
-      />
+      <AppSidebar :is-open="sidebarOpen" :current-route="currentRoute" @close="closeSidebar" />
 
       <!-- CONTENU PRINCIPAL -->
       <main
