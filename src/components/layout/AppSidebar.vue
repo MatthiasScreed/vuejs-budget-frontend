@@ -187,7 +187,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useGamingStore } from '@/stores/gamingStore'
@@ -248,8 +248,8 @@ const isMobile = computed(() => !breakpoints.lg.value)
 const showApiStatus = computed(() => !apiHealth.isConnected.value || import.meta.env.DEV)
 
 const sidebarClasses = computed(() => [
-  'fixed left-0 z-30 transition-all duration-300 bg-white border-r border-gray-200',
-  props.isOpen ? 'w-64' : 'w-16',
+  'fixed left-0 z-30 top-16 bottom-0 transition-all duration-300 bg-white border-r border-gray-200',
+  props.isOpen ? 'w-64 max-w-full' : 'w-16',
   'lg:translate-x-0',
   props.isOpen || !isMobile.value ? 'translate-x-0' : '-translate-x-full',
   showApiStatus.value ? 'top-28' : 'top-16',
@@ -285,6 +285,17 @@ const isCurrentRoute = (href: string): boolean => {
 const goToQuest = (): void => {
   router.push({ name: 'Quest' })
 }
+
+onMounted(async () => {
+  // Charger la quête si pas encore fait
+  if (!questStore.mainQuest) {
+    await questStore.fetchMainQuest()
+  }
+  // Charger les données gaming si pas encore fait
+  if (!gamingStore.isInitialized) {
+    await gamingStore.initializeGaming()
+  }
+})
 </script>
 
 <style scoped>
