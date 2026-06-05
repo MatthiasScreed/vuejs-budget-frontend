@@ -30,7 +30,7 @@
     </div>
 
     <!-- Navigation -->
-    <nav class="sidebar-nav pt-16" :style="{ height: navHeight }">
+    <nav class="sidebar-nav" :style="{ height: navHeight }">
       <div class="sidebar-nav__scroll">
         <!-- ===== SECTION MVP ===== -->
         <router-link
@@ -248,11 +248,11 @@ const isMobile = computed(() => !breakpoints.lg.value)
 const showApiStatus = computed(() => !apiHealth.isConnected.value || import.meta.env.DEV)
 
 const sidebarClasses = computed(() => [
-  'fixed left-0 z-30 top-0 bottom-0 transition-all duration-300 bg-white border-r border-gray-200',
+  'fixed left-0 z-30 top-16 bottom-0 transition-all duration-300 bg-white border-r border-gray-200',
   props.isOpen ? 'w-64 max-w-full' : 'w-16',
   'lg:translate-x-0',
   props.isOpen || !isMobile.value ? 'translate-x-0' : '-translate-x-full',
-  
+
 ])
 
 const navHeight = computed(() =>
