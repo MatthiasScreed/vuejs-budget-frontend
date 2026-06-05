@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+  <div class="min-h-screen bg-white">
     <!-- Header fixe -->
     <AppHeader
       :user="currentUser"
@@ -9,13 +9,13 @@
       @toggle-sidebar="toggleSidebar"
     />
 
-    <div class="flex">
-      <!-- Sidebar — desktop uniquement -->
+    <div class="flex w-full overflow-hidden">
+      <!-- Sidebar -->
       <AppSidebar :is-open="sidebarOpen" :current-route="currentRoute" @close="closeSidebar" />
 
       <!-- CONTENU PRINCIPAL -->
       <main
-        class="flex-1 transition-all duration-300 bg-white pt-16 min-h-screen pb-20 lg:pb-6"
+        class="w-full transition-all duration-300 bg-white pt-16 min-h-screen pb-20 lg:pb-6"
         :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'"
       >
         <div class="p-4 lg:p-6 min-h-full">
@@ -141,9 +141,15 @@ const isAdmin = computed(() => !!authStore.user?.is_admin)
 const toggleSidebar = (): void => {
   sidebarOpen.value = !sidebarOpen.value
 }
+
 const closeSidebar = (): void => {
   sidebarOpen.value = false
 }
+
+// Bloque le scroll du body quand la sidebar est ouverte sur mobile
+watch([sidebarOpen, isMobile], ([open, mobile]) => {
+  document.body.style.overflow = open && mobile ? 'hidden' : ''
+})
 
 const isRoute = (path: string): boolean => route.path === path || route.path.startsWith(path + '/')
 
@@ -172,7 +178,10 @@ onMounted(async () => {
   document.addEventListener('keydown', handleKeyboard)
 })
 
-onUnmounted(() => document.removeEventListener('keydown', handleKeyboard))
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyboard)
+  document.body.style.overflow = ''
+})
 
 watch(
   () => route.path,
