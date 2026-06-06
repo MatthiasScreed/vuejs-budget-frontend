@@ -2,7 +2,7 @@
   "name": "CoinQuest — Épargne gamifiée",
   "short_name": "CoinQuest",
   "description": "Épargne comme tu joues. Transforme tes économies en quête.",
-  "start_url": "/login",
+  "start_url": "/?pwa=1",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
@@ -13,28 +13,40 @@
   "categories": ["finance", "utilities", "lifestyle"],
   "icons": [
     {
-      "src": "/icon.png",
+      "src": "/images/icon/icon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon.png",
+      "src": "/images/icon/icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/iconrounded.png",
+      "src": "/images/icon/icon-rounded.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/iconrounded.png",
+      "src": "/images/icon/icon-rounded.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "shortcuts": [
@@ -43,16 +55,15 @@
       "short_name": "Quête",
       "description": "Voir ma quête en cours",
       "url": "/quete",
-      "icons": [{ "src": "/icon.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "/images/icon/icon.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Action rapide",
       "short_name": "Épargner",
       "description": "Enregistrer une économie ou dépense",
       "url": "/quete?action=quick",
-      "icons": [{ "src": "/icon.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "/images/icon/icon.png", "sizes": "192x192", "type": "image/png" }]
     }
   ],
-  "screenshots": [],
   "prefer_related_applications": false
 }
