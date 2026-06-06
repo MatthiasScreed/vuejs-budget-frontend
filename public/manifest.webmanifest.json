@@ -1,0 +1,58 @@
+{
+  "name": "CoinQuest — Épargne gamifiée",
+  "short_name": "CoinQuest",
+  "description": "Épargne comme tu joues. Transforme tes économies en quête.",
+  "start_url": "/login",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#5F224C",
+  "lang": "fr",
+  "dir": "ltr",
+  "categories": ["finance", "utilities", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/iconrounded.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/iconrounded.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ma Quête",
+      "short_name": "Quête",
+      "description": "Voir ma quête en cours",
+      "url": "/quete",
+      "icons": [{ "src": "/icon.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Action rapide",
+      "short_name": "Épargner",
+      "description": "Enregistrer une économie ou dépense",
+      "url": "/quete?action=quick",
+      "icons": [{ "src": "/icon.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}

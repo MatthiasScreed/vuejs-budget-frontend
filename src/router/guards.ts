@@ -7,7 +7,7 @@ import { useAppStore, useAuthStore } from '@/stores'
 export async function authGuard(
   to: RouteLocationNormalized,
   from: RouteLocationNormalized,
-  next: NavigationGuardNext
+  next: NavigationGuardNext,
 ) {
   const authStore = useAuthStore()
 
@@ -15,8 +15,28 @@ export async function authGuard(
     // Rediriger vers login avec return URL
     next({
       name: 'Login',
-      query: { redirect: to.fullPath }
+      query: { redirect: to.fullPath },
     })
+    return
+  }
+
+  next()
+}
+
+/**
+ * Guard invité — PWA fix
+ * Redirige vers /quete si l'utilisateur est déjà connecté
+ * quand il atterrit sur /login ou /register (ex: icône PWA)
+ */
+export function guestGuard(
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
+  next: NavigationGuardNext,
+) {
+  const authStore = useAuthStore()
+
+  if (authStore.isAuthenticated) {
+    next({ name: 'Quest', replace: true })
     return
   }
 
@@ -29,7 +49,7 @@ export async function authGuard(
 export async function initGuard(
   to: RouteLocationNormalized,
   from: RouteLocationNormalized,
-  next: NavigationGuardNext
+  next: NavigationGuardNext,
 ) {
   const appStore = useAppStore()
 
@@ -52,7 +72,7 @@ export async function initGuard(
 export function gamingGuard(
   to: RouteLocationNormalized,
   from: RouteLocationNormalized,
-  next: NavigationGuardNext
+  next: NavigationGuardNext,
 ) {
   const appStore = useAppStore()
 
