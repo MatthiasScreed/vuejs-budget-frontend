@@ -1,5 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
-import { useNotifications } from '@/composables/ui'
+import { useNotifications } from '@/composables/ui/useNotifications'
+import { useApi } from '@/composables/core/useApi'
 
 interface PWAInstallPromptEvent extends Event {
   readonly platforms: string[]
@@ -32,6 +33,7 @@ interface InstallationStats {
  */
 export function usePWAInstall() {
   const notifications = useNotifications()
+  const api = useApi()
 
   // State
   const deferredPrompt = ref<PWAInstallPromptEvent | null>(null)
@@ -49,7 +51,6 @@ export function usePWAInstall() {
     setupInstallListeners()
     loadInstallationStats()
     checkStandaloneMode()
-
     log('PWA Install initialisé')
   }
 
@@ -57,15 +58,9 @@ export function usePWAInstall() {
    * Setup des listeners d'installation
    */
   function setupInstallListeners(): void {
-    // Listener pour l'événement beforeinstallprompt
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-
-    // Listener pour l'événement appinstalled
     window.addEventListener('appinstalled', handleAppInstalled)
-
-    // Listener pour détecter si l'app est utilisée en standalone
     window.addEventListener('DOMContentLoaded', checkStandaloneMode)
-
     log('Listeners installation configurés')
   }
 
@@ -77,15 +72,13 @@ export function usePWAInstall() {
     deferredPrompt.value = event as PWAInstallPromptEvent
     isInstallPromptReady.value = true
 
-    log('Prompt d\'installation disponible')
+    log("Prompt d'installation disponible")
 
-    // Sauvegarder les stats
     saveInstallationStats({
       ...getInstallationStats(),
-      prompt_shown: getInstallationStats().prompt_shown + 1
+      prompt_shown: getInstallationStats().prompt_shown + 1,
     })
 
-    // Décider si montrer le prompt automatiquement
     if (shouldShowInstallPrompt()) {
       showInstallationHint()
     }
@@ -93,31 +86,44 @@ export function usePWAInstall() {
 
   /**
    * Gérer l'événement appinstalled
+   * 🎁 Donne 100 XP au backend (une seule fois)
    */
-  function handleAppInstalled(): void {
+  async function handleAppInstalled(): Promise<void> {
     deferredPrompt.value = null
     isInstallPromptReady.value = false
 
-    notifications.success('🎉 App installée avec succès !', {
-      title: '📱 Installation PWA',
-      duration: 6000,
-      actions: [
-        { label: 'Découvrir les fonctionnalités', action: 'tour', url: '/onboarding' }
-      ]
-    })
+    try {
+      const response = await api.post('/gaming/pwa-installed', {})
 
-    // Sauvegarder les stats
+      if (response.data?.success) {
+        const xp = response.data.data?.xp_earned ?? 100
+        notifications.success(`🎉 +${xp} XP — Merci d'avoir installé CoinQuest !`, {
+          title: '📱 App installée',
+          duration: 6000,
+        })
+      } else {
+        notifications.success("🎉 CoinQuest est maintenant sur ton écran d'accueil !", {
+          title: '📱 App installée',
+          duration: 4000,
+        })
+      }
+    } catch {
+      notifications.success("🎉 CoinQuest est maintenant sur ton écran d'accueil !", {
+        title: '📱 App installée',
+        duration: 4000,
+      })
+    }
+
     const stats = getInstallationStats()
     saveInstallationStats({
       ...stats,
-      install_accepted: stats.install_accepted + 1
+      install_accepted: stats.install_accepted + 1,
     })
 
-    // Tracking analytics
     trackInstallationEvent('app_installed', {
       platform: getInstallationStatus().platform,
       attempts: installationAttempts.value,
-      time_to_install: Date.now() - lastPromptTime.value
+      time_to_install: Date.now() - lastPromptTime.value,
     })
 
     log('App installée avec succès')
@@ -128,7 +134,7 @@ export function usePWAInstall() {
    */
   async function showInstallPrompt(): Promise<boolean> {
     if (!deferredPrompt.value) {
-      log('Aucun prompt d\'installation disponible')
+      log("Aucun prompt d'installation disponible")
       return false
     }
 
@@ -136,43 +142,36 @@ export function usePWAInstall() {
     lastPromptTime.value = Date.now()
 
     try {
-      // Déclencher le prompt d'installation
       await deferredPrompt.value.prompt()
 
-      // Attendre la décision de l'utilisateur
       const choiceResult = await deferredPrompt.value.userChoice
       userDecision.value = choiceResult.outcome
 
       log(`Décision utilisateur: ${choiceResult.outcome}`)
 
-      // Traitement selon la décision
       if (choiceResult.outcome === 'accepted') {
-        // L'installation sera gérée par l'événement appinstalled
         return true
       } else {
         dismissalCount.value++
 
-        // Sauvegarder le refus
         const stats = getInstallationStats()
         saveInstallationStats({
           ...stats,
           install_dismissed: stats.install_dismissed + 1,
-          last_prompt: Date.now()
+          last_prompt: Date.now(),
         })
 
-        // Tracking du refus
         trackInstallationEvent('install_dismissed', {
           platform: getInstallationStatus().platform,
-          dismissal_count: dismissalCount.value
+          dismissal_count: dismissalCount.value,
         })
 
         return false
       }
     } catch (error: any) {
-      log('Erreur lors du prompt d\'installation:', error)
+      log("Erreur lors du prompt d'installation:", error)
       return false
     } finally {
-      // Nettoyage
       deferredPrompt.value = null
       isInstallPromptReady.value = false
     }
@@ -182,30 +181,15 @@ export function usePWAInstall() {
    * Afficher un hint subtil pour l'installation
    */
   function showInstallationHint(): void {
-    const platform = getInstallationStatus().platform
-
-    let hintMessage = 'Installez l\'app pour une meilleure expérience'
-    let instructions = ''
-
-    switch (platform) {
-      case 'ios':
-        instructions = 'Appuyez sur le bouton Partager puis "Sur l\'écran d\'accueil"'
-        break
-      case 'android':
-        instructions = 'Utilisez le menu du navigateur ou le bouton d\'installation'
-        break
-      case 'desktop':
-        instructions = 'Cliquez sur l\'icône d\'installation dans la barre d\'adresse'
-        break
-    }
+    const hintMessage = "Installez l'app pour une meilleure expérience"
 
     notifications.info(hintMessage, {
       title: '📱 Installation disponible',
       duration: 10000,
       actions: [
         { label: 'Installer maintenant', action: 'install_now' },
-        { label: 'Plus tard', action: 'dismiss' }
-      ]
+        { label: 'Plus tard', action: 'dismiss' },
+      ],
     })
   }
 
@@ -216,13 +200,11 @@ export function usePWAInstall() {
     const stats = getInstallationStats()
     const timeSinceLastPrompt = Date.now() - stats.last_prompt
 
-    // Critères pour montrer le prompt:
-    // - Moins de 3 refus
-    // - Au moins 24h depuis le dernier prompt
-    // - Pas déjà installé
-    return dismissalCount.value < 3 &&
+    return (
+      dismissalCount.value < 3 &&
       timeSinceLastPrompt > 24 * 60 * 60 * 1000 &&
       !getInstallationStatus().isInstalled
+    )
   }
 
   /**
@@ -263,7 +245,7 @@ export function usePWAInstall() {
       canInstall: isInstallPromptReady.value,
       isInstalled: isStandalone,
       isStandalone,
-      platform
+      platform,
     }
   }
 
@@ -276,8 +258,8 @@ export function usePWAInstall() {
     if (saved) {
       try {
         return JSON.parse(saved)
-      } catch (error) {
-        log('Erreur parsing des stats d\'installation')
+      } catch {
+        log("Erreur parsing des stats d'installation")
       }
     }
 
@@ -286,7 +268,7 @@ export function usePWAInstall() {
       install_accepted: 0,
       install_dismissed: 0,
       uninstall_count: 0,
-      last_prompt: 0
+      last_prompt: 0,
     }
   }
 
@@ -298,18 +280,24 @@ export function usePWAInstall() {
   }
 
   /**
+   * Charger les stats au démarrage
+   */
+  function loadInstallationStats(): void {
+    const stats = getInstallationStats()
+    dismissalCount.value = stats.install_dismissed
+  }
+
+  /**
    * Tracking des événements d'installation
    */
   function trackInstallationEvent(event: string, data: any): void {
-    // Intégration avec votre système d'analytics
     log(`📊 Tracking: ${event}`, data)
 
-    // Exemple d'intégration Google Analytics
     if (typeof gtag !== 'undefined') {
       gtag('event', event, {
         event_category: 'pwa_install',
         event_label: data.platform,
-        value: data.attempts || 1
+        value: data.attempts || 1,
       })
     }
   }
@@ -329,22 +317,13 @@ export function usePWAInstall() {
    * Détecter si l'utilisateur a désinstallé l'app
    */
   function detectUninstall(): void {
-    // Cette méthode est appelée périodiquement pour détecter si l'app a été désinstallée
     const wasInstalled = localStorage.getItem('pwa_was_installed') === 'true'
     const isCurrentlyInstalled = getInstallationStatus().isInstalled
 
     if (wasInstalled && !isCurrentlyInstalled) {
-      // L'app a été désinstallée
       const stats = getInstallationStats()
-      saveInstallationStats({
-        ...stats,
-        uninstall_count: stats.uninstall_count + 1
-      })
-
-      trackInstallationEvent('app_uninstalled', {
-        platform: getInstallationStatus().platform
-      })
-
+      saveInstallationStats({ ...stats, uninstall_count: stats.uninstall_count + 1 })
+      trackInstallationEvent('app_uninstalled', { platform: getInstallationStatus().platform })
       localStorage.setItem('pwa_was_installed', 'false')
       log('App désinstallée détectée')
     } else if (!wasInstalled && isCurrentlyInstalled) {
@@ -358,29 +337,14 @@ export function usePWAInstall() {
   function getInstallInstructions(): string {
     const platform = getInstallationStatus().platform
 
-    const instructions = {
-      ios: `
-        Pour installer sur iOS :
-        1. Ouvrez cette page dans Safari
-        2. Appuyez sur le bouton Partager (carré avec flèche)
-        3. Faites défiler et appuyez sur "Sur l'écran d'accueil"
-        4. Appuyez sur "Ajouter" pour confirmer
-      `,
-      android: `
-        Pour installer sur Android :
-        1. Ouvrez le menu de votre navigateur (⋮)
-        2. Appuyez sur "Ajouter à l'écran d'accueil" ou "Installer l'app"
-        3. Confirmez l'installation
-      `,
-      desktop: `
-        Pour installer sur ordinateur :
-        1. Recherchez l'icône d'installation dans la barre d'adresse
-        2. Cliquez dessus ou utilisez le menu du navigateur
-        3. Sélectionnez "Installer Budget Gaming"
-      `
+    const instructions: Record<string, string> = {
+      ios: 'Pour installer sur iOS :\n1. Ouvrez dans Safari\n2. Appuyez sur Partager\n3. "Sur l\'écran d\'accueil"',
+      android:
+        'Pour installer sur Android :\n1. Menu du navigateur\n2. "Ajouter à l\'écran d\'accueil"',
+      desktop: "Pour installer sur ordinateur :\n1. Icône d'installation dans la barre d'adresse",
     }
 
-    return instructions[platform] || 'Instructions d\'installation non disponibles pour cette plateforme'
+    return instructions[platform] ?? 'Instructions non disponibles pour cette plateforme'
   }
 
   /**
@@ -390,23 +354,15 @@ export function usePWAInstall() {
     console.log('[PWAInstall]', ...args)
   }
 
-  // Computed properties
+  // Computed
   const installationStatus = computed(() => getInstallationStatus())
-
-  const canShowPrompt = computed(() =>
-    isInstallPromptReady.value && shouldShowInstallPrompt()
-  )
-
+  const canShowPrompt = computed(() => isInstallPromptReady.value && shouldShowInstallPrompt())
   const installInstructions = computed(() => getInstallInstructions())
-
   const installationStatsComputed = computed(() => getInstallationStats())
 
-  // Auto-init
   onMounted(() => {
     initPWAInstall()
-
-    // Vérification périodique de désinstallation
-    setInterval(detectUninstall, 60000) // Toutes les minutes
+    setInterval(detectUninstall, 60000)
   })
 
   return {
@@ -429,6 +385,6 @@ export function usePWAInstall() {
     showInstallPrompt,
     showInstallationHint,
     reloadAsPWA,
-    getInstallationStatus
+    getInstallationStatus,
   }
 }
