@@ -10,9 +10,9 @@
           <div
             class="relative bg-white rounded-2xl max-w-2xl w-full shadow-2xl transform transition-all"
           >
-            <!-- Progress bar -->
+            <!-- Progress bar — 4 étapes -->
             <div class="flex justify-between px-8 pt-6 pb-4">
-              <div v-for="i in 3" :key="i" class="flex-1 mx-1">
+              <div v-for="i in 4" :key="i" class="flex-1 mx-1">
                 <div
                   :class="[
                     'h-1.5 rounded-full transition-all duration-300',
@@ -106,7 +106,6 @@
                       {{ t('onboarding.step2.savingDesc') }}
                     </div>
                   </div>
-
                   <div
                     class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 hover:scale-105 transition-transform"
                   >
@@ -118,7 +117,6 @@
                       {{ t('onboarding.step2.goalDesc') }}
                     </div>
                   </div>
-
                   <div
                     class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 hover:scale-105 transition-transform"
                   >
@@ -130,7 +128,6 @@
                       {{ t('onboarding.step2.streakDesc') }}
                     </div>
                   </div>
-
                   <div
                     class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-4 hover:scale-105 transition-transform"
                   >
@@ -170,8 +167,92 @@
                 </div>
               </div>
 
-              <!-- Étape 3 : Sécurité -->
+              <!-- Étape 3 : Streak, Freeze & Rétention 🔥🧊 -->
               <div v-if="currentStep === 3" class="text-center">
+                <div class="text-6xl mb-4">🔥</div>
+                <h2 class="text-3xl font-bold mb-2 text-gray-900">Reste dans la course</h2>
+                <p class="text-gray-600 mb-6 text-base leading-relaxed">
+                  CoinQuest te rappelle, te récompense et te protège pour que tu n'abandonnes
+                  jamais.
+                </p>
+
+                <div class="space-y-4 text-left">
+                  <!-- Streak -->
+                  <div
+                    class="flex items-start space-x-4 bg-orange-50 border border-orange-200 rounded-xl p-4"
+                  >
+                    <div class="text-3xl flex-shrink-0">🔥</div>
+                    <div>
+                      <div class="font-bold text-gray-900 mb-1">Série quotidienne</div>
+                      <div class="text-sm text-gray-600">
+                        Enregistre une action chaque jour pour maintenir ta série. Plus ta série est
+                        longue, plus tu gagnes de <strong>bonus XP</strong>. À 7 jours, à 30 jours…
+                        tu débloques des récompenses spéciales.
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Freeze -->
+                  <div
+                    class="flex items-start space-x-4 bg-blue-50 border border-blue-200 rounded-xl p-4"
+                  >
+                    <div class="text-3xl flex-shrink-0">🧊</div>
+                    <div>
+                      <div class="font-bold text-gray-900 mb-1">
+                        Streak Freeze
+                        <span
+                          class="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium"
+                          >Tu en as 1 !</span
+                        >
+                      </div>
+                      <div class="text-sm text-gray-600">
+                        La vie est imprévisible. Si tu rates un jour, un
+                        <strong>freeze</strong> protège automatiquement ta série. Tu en gagnes en
+                        atteignant des milestones ou en complétant des défis. Stock max :
+                        <strong>3 freezes</strong>.
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Email recap -->
+                  <div
+                    class="flex items-start space-x-4 bg-purple-50 border border-purple-200 rounded-xl p-4"
+                  >
+                    <div class="text-3xl flex-shrink-0">📧</div>
+                    <div>
+                      <div class="font-bold text-gray-900 mb-1">Résumé & alertes par email</div>
+                      <div class="text-sm text-gray-600">
+                        Chaque <strong>lundi matin</strong>, reçois ton bilan de la semaine. Et
+                        chaque soir à <strong>18h</strong>, si ta série est en danger, on t'envoie
+                        un petit rappel — sans spam, juste ce qui compte.
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- PWA -->
+                  <div
+                    class="flex items-start space-x-4 bg-green-50 border border-green-200 rounded-xl p-4"
+                  >
+                    <div class="text-3xl flex-shrink-0">📱</div>
+                    <div>
+                      <div class="font-bold text-gray-900 mb-1">
+                        Installe l'app
+                        <span
+                          class="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium"
+                          >+100 XP</span
+                        >
+                      </div>
+                      <div class="text-sm text-gray-600">
+                        Ajoute CoinQuest sur ton écran d'accueil pour un accès instantané. Pas d'App
+                        Store — une simple icône, et tu gagnes <strong>100 XP</strong> au passage.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Étape 4 : Sécurité (inchangée) -->
+              <div v-if="currentStep === 4" class="text-center">
                 <div class="text-6xl mb-4">🔒</div>
                 <h2 class="text-3xl font-bold mb-4 text-gray-900">
                   {{ t('onboarding.step3.title') }}
@@ -239,9 +320,9 @@
                 @click="nextStep"
                 class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-6 py-3 rounded-lg text-white font-semibold flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all"
               >
-                <span>{{ currentStep < 3 ? t('common.next') : t('onboarding.startBtn') }}</span>
+                <span>{{ currentStep < 4 ? t('common.next') : t('onboarding.startBtn') }}</span>
                 <svg
-                  v-if="currentStep < 3"
+                  v-if="currentStep < 4"
                   class="w-5 h-5"
                   fill="none"
                   stroke="currentColor"
@@ -289,10 +370,11 @@ defineProps<{ show: boolean }>()
 const emit = defineEmits<{ (e: 'close'): void }>()
 
 const currentStep = ref(1)
+const TOTAL_STEPS = 4
 
 /**
- * Items sécurité (Étape 3) — données séparées
- * École 42: Pas de répétition dans le template
+ * Items sécurité (Étape 4) — données séparées
+ * École 42 : pas de répétition dans le template
  */
 const securityItems = [
   { key: 'certified', classes: 'bg-green-50 border-green-200', iconClass: 'text-green-600' },
@@ -302,7 +384,7 @@ const securityItems = [
 ]
 
 function nextStep(): void {
-  if (currentStep.value < 3) {
+  if (currentStep.value < TOTAL_STEPS) {
     currentStep.value++
   } else {
     finishOnboarding()
