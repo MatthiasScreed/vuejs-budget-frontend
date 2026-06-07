@@ -106,7 +106,7 @@ import AppSidebar from './AppSidebar.vue'
 import AppFooter from './AppFooter.vue'
 import GamingNotifications from '@/components/gaming/GamingNotifications.vue'
 import QuestMiniCard from '@/components/quest/QuestMiniCard.vue'
-import FeedbackButton from '@/components/FeedbackButton.vue'
+import FeedbackButton from '@/components/Feedbackbutton.vue'
 
 const authStore = useAuthStore()
 const gamingStore = useGamingStore()
