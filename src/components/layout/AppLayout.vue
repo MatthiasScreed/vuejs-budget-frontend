@@ -90,6 +90,9 @@
     <!-- Notifications gaming -->
     <!--<GamingNotifications v-if="gamingNotificationsEnabled" /> -->
 
+    <!-- 🎓 Onboarding -->
+    <OnboardingModal :show="showOnboarding" @close="showOnboarding = false" />
+
     <!-- 💬 Bouton feedback flottant -->
     <FeedbackButton />
   </div>
@@ -106,6 +109,7 @@ import AppSidebar from './AppSidebar.vue'
 import AppFooter from './AppFooter.vue'
 import GamingNotifications from '@/components/gaming/GamingNotifications.vue'
 import QuestMiniCard from '@/components/quest/QuestMiniCard.vue'
+import OnboardingModal from '@/components/onboarding/OnboardingModal.vue'
 import FeedbackButton from '@/components/Feedbackbutton.vue'
 
 const authStore = useAuthStore()
@@ -113,6 +117,7 @@ const gamingStore = useGamingStore()
 const route = useRoute()
 
 const sidebarOpen = ref(false)
+const showOnboarding = ref(false)
 const gamingNotificationsEnabled = ref(true)
 
 const HIDE_QUEST_CARD_ROUTES = ['Quest', 'Onboarding', 'AdminDashboard']
@@ -180,6 +185,11 @@ onMounted(async () => {
   }
 
   document.addEventListener('keydown', handleKeyboard)
+
+  // Afficher l'onboarding si premier accès
+  if (!localStorage.getItem('onboarding_completed')) {
+    showOnboarding.value = true
+  }
 })
 
 onUnmounted(() => {
