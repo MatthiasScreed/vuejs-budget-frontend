@@ -178,6 +178,11 @@
       </div>
     </div>
 
+    <!-- ===== PARRAINAGE ===== -->
+    <div v-if="activeTab === 'referral'">
+      <ReferralCard />
+    </div>
+
     <!-- ===== SÉCURITÉ ===== -->
     <div v-if="activeTab === 'security'" class="space-y-4">
       <div class="bg-white rounded-xl border border-gray-200 p-5">
@@ -227,6 +232,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import ReferralCard from '@/components/ReferralCard.vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useGamingStore } from '@/stores/gamingStore'
@@ -256,6 +262,7 @@ const tabs = [
   { value: 'profile', label: 'Profil', icon: '👤' },
   { value: 'gaming', label: 'Gaming', icon: '🎮' },
   { value: 'history', label: 'Historique', icon: '📜' },
+  { value: 'referral', label: 'Parrainage', icon: '🎁' },
   { value: 'security', label: 'Sécurité', icon: '🔐' },
 ]
 
