@@ -111,6 +111,14 @@ export const useDailyActionStore = defineStore('dailyAction', () => {
   })
   const weekStats = ref({ saved: 0, spent: 0, xp_earned: 0, actions_count: 0 })
   const monthStats = ref({ saved: 0, spent: 0, xp_earned: 0, actions_count: 0, save_days: 0 })
+  const yesterdayActions = ref<DailyAction[]>([])
+  const yesterdaySummary = ref<TodaySummary>({
+    total_saved: 0,
+    total_spent: 0,
+    total_xp: 0,
+    actions_count: 0,
+    has_acted: false,
+  })
 
   const submitting = ref(false)
   const loading = ref(false)
@@ -202,6 +210,21 @@ export const useDailyActionStore = defineStore('dailyAction', () => {
       error.value = e.message
     } finally {
       loading.value = false
+    }
+  }
+
+  /**
+   * Charger les actions d'hier (journal HQ)
+   */
+  async function fetchYesterday(): Promise<void> {
+    try {
+      const res = await api.get('/daily-actions/yesterday')
+      const data = res.data
+
+      yesterdayActions.value = data?.actions ?? []
+      yesterdaySummary.value = data?.summary ?? yesterdaySummary.value
+    } catch (e: any) {
+      error.value = e.message
     }
   }
 
@@ -338,6 +361,8 @@ export const useDailyActionStore = defineStore('dailyAction', () => {
     todaySummary,
     weekStats,
     monthStats,
+    yesterdayActions,
+    yesterdaySummary,
     submitting,
     loading,
     error,
@@ -347,6 +372,7 @@ export const useDailyActionStore = defineStore('dailyAction', () => {
     netMonthBalance,
     submitAction,
     fetchToday,
+    fetchYesterday,
     fetchStats,
     fetchHistory,
     deleteAction,

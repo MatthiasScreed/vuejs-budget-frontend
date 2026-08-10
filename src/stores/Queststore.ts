@@ -33,6 +33,14 @@ interface CreateQuestData {
 
 interface UpdateQuestData extends Partial<CreateQuestData> {}
 
+export interface ProjectionImpact {
+  amount: number
+  type: 'save' | 'spend'
+  current_projected_date: string
+  simulated_projected_date: string
+  days_saved: number
+}
+
 // ==========================================
 // STORE
 // ==========================================
@@ -47,6 +55,7 @@ export const useQuestStore = defineStore('quest', () => {
   const loading = ref(false)
   const saving = ref(false)
   const error = ref<string | null>(null)
+  const projectionImpact = ref<ProjectionImpact | null>(null)
 
   // ==========================================
   // GETTERS
@@ -90,6 +99,22 @@ export const useQuestStore = defineStore('quest', () => {
       mainQuest.value = res.data ?? null
     } catch (e: any) {
       error.value = e.message
+    }
+  }
+
+  /**
+   * Impact (en jours) d'un montant simulé sur la projection de la quête principale
+   */
+  async function fetchProjectionImpact(amount: number, type: 'save' | 'spend'): Promise<void> {
+    if (!mainQuest.value) return
+
+    try {
+      const res = await api.get(`/quests/${mainQuest.value.id}/projection-impact`, {
+        params: { amount, type },
+      })
+      projectionImpact.value = res.data ?? null
+    } catch (e: any) {
+      projectionImpact.value = null
     }
   }
 
@@ -233,8 +258,10 @@ export const useQuestStore = defineStore('quest', () => {
     completedQuests,
     hasMainQuest,
     mainProgress,
+    projectionImpact,
     fetchQuests,
     fetchMainQuest,
+    fetchProjectionImpact,
     createQuest,
     updateQuest,
     setMainQuest,

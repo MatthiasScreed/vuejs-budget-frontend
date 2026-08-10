@@ -12,7 +12,7 @@ const Login = () => import('@/views/Login.vue')
 const Register = () => import('@/views/Register.vue')
 const ForgotPassword = () => import('@/views/Forgotpassword.vue')
 const ResetPassword = () => import('@/views/Resetpassword.vue')
-const Dashboard = () => import('@/views/Dashboard.vue')
+const HqDashboard = () => import('@/views/HqDashboard.vue')
 const OnboardingQuest = () => import('@/views/OnboardingQuest.vue')
 const Transactions = () => import('@/views/Transactions.vue')
 const Goals = () => import('@/views/Goals.vue')
@@ -97,7 +97,7 @@ const routes = [
   {
     path: '/quete',
     name: 'Quest',
-    component: Dashboard,
+    component: HqDashboard,
     meta: { requiresAuth: true, title: 'Ma Quête - CoinQuest' },
   },
 
